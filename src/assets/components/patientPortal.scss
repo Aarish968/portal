@@ -1,0 +1,17 @@
+.pp-login-imageWrap {
+    svg {
+      width: 100%;
+      height: inherit;
+    }
+  }
+  
+  .pp-login-imageWrap {
+    height: 95vh;
+    background-image: url(/src/assets/images/porter_login_background.svg);
+    background-repeat: no-repeat;
+    background-position: 50%;
+    background-size: cover;
+    border-radius: 16px;
+    padding-right: 10px;
+    margin-left: -12px;
+  }

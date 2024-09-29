@@ -1,0 +1,29 @@
+.react-cookie-law-dialog {
+  @apply bottom-0 \!top-auto;
+}
+
+.hs-cookie-banner {
+  @apply border-none;
+
+  &>div>.react-cookie-law-button-wrapper {
+    button:first-child {
+      @apply \!bg-[#F6F6F6] \!text-black border-none \!font-semibold;
+    }
+
+    button:last-child {
+      @apply \!bg-[#e77600] text-white \!text-[12px] border-b-2 border-r-2 border-orange-800 \!font-bold \!leading-[22px] \!text-center \!uppercase \!tracking-[0.3em] \!w-64 \!h-10 \!rounded-[1.5rem] \!rounded-bl-[20px];
+    }
+  }
+}
+
+.hs-line-height {
+  @apply leading-40px;
+}
+
+.hs-cookie-link-text {
+  @apply underline hover:cursor-pointer;
+}
+
+.hs-cookie-body {
+  @apply overflow-hidden
+}
