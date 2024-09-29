@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useNavigation } from '@/contexts/navigation-context'
+import { useNavigation } from '@/base_submod/contexts/navigation-context'
 import ROUTES from '@/data/routing/routes'
 import DashboardView from '@/models/dashboard/views/dashboard-view'
 

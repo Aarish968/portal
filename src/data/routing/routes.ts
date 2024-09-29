@@ -18,7 +18,7 @@ const ROUTES: Routes = {
   socialMedia: SOCIAL_MEDIA_ROUTES,
   home: {
     title: 'Home',
-    href: '/home',
+    href: '/',
     metaDescription: 'Porter home page',
     menuDescription: 'Home',
     icon: 'ph:house',

@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import AppRoutes from './routes/app-routes'
-import { NavigationProvider } from '@/contexts/navigation-context'
+import { NavigationProvider } from '@/base_submod/contexts/navigation-context'
 import LoadingSpinner from '@/base_submod/components/Misc/loading-spinner'
 
 function App() {
