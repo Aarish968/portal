@@ -1,28 +1,23 @@
 import { AUTH_ROUTES, type AuthRoutes } from './auth-routes'
 import { COMPANY_ROUTES, type CompanyRoutes } from '@/data/routing/company-routes'
 import { SOCIAL_MEDIA_ROUTES, type SocialMediaRoutes } from '@/base_submod/data/routing/social-media-routes'
-import type { SiteLink } from '@/base_submod/schemas/router'
+import type { AppRoutes } from '@/data/routing/app-routes'
+import { APP_ROUTES } from '@/data/routing/app-routes'
 
-export const APP_NAME = 'Porter Patient Portal'
+export const APP_NAME = 'Nurse Practitioner Portal'
 
 interface Routes {
   auth: AuthRoutes
   company: CompanyRoutes
   socialMedia: SocialMediaRoutes
-  home: SiteLink
+  app: AppRoutes
 }
 
 const ROUTES: Routes = {
   auth: AUTH_ROUTES,
   company: COMPANY_ROUTES,
   socialMedia: SOCIAL_MEDIA_ROUTES,
-  home: {
-    title: 'Home',
-    href: '/',
-    metaDescription: 'Porter home page',
-    menuDescription: 'Home',
-    icon: 'ph:house',
-  },
+  app: APP_ROUTES,
 }
 
 export function CheckRoutesWithoutLogin(href: string): boolean {

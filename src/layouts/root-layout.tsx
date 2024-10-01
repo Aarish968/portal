@@ -10,7 +10,7 @@ interface RootLayoutProps {
 function RootLayout({ children }: RootLayoutProps) {
   return (
     <div className=":uno: relative min-h-screen w-full flex flex-col transition-all duration-400 ease-in-out">
-      {/* <Header /> */}
+      <Header />
       <div className=":uno: mb-12 mt-6 flex flex-grow">
         {/* <Sidebar /> */}
         <div className=":uno: page-width flex-1 transition-all duration-300">

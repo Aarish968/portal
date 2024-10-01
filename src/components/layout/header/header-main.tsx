@@ -1,55 +1,28 @@
 import { Link } from 'react-router-dom'
-import UserIcon from '@/assets/images/user_icon.svg'
-import PorterLogo from '@/base_submod/components/Misc/porter-logo'
+import CaregiverUserIcon from '@/base_submod/assets/images/icons/caregiver-user-icon.svg'
+import PorterLogo from '@/base_submod/components/misc/porter-logo'
 
 import {
   NavigationMenu,
   NavigationMenuItem,
-  NavigationMenuList,
   navigationMenuTriggerStyle,
 } from '@/base_submod/components/ui/navigation-menu'
 
 function HeaderMain() {
   return (
-    <div className=":uno: bg-primary text-white">
+    <div className=":uno: bg-white text-main-black">
       <NavigationMenu className=":uno: page-width flex items-center py-3 !w-full !justify-between page-px">
         <div className=":uno: flex items-center space-x-4">
           <NavigationMenuItem className=":uno: flex list-none items-center">
             <Link to="/" className={`:uno: flex items-center ${navigationMenuTriggerStyle()}`}>
-              <PorterLogo />
+              <PorterLogo variant="dark" />
             </Link>
           </NavigationMenuItem>
 
-          <NavigationMenuList className=":uno: !hidden md:!flex">
-            <NavigationMenuItem>
-              <Link to="/" className={navigationMenuTriggerStyle()}>
-                My Health
-              </Link>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
-              <Link to="/" className={navigationMenuTriggerStyle()}>
-                My Benefits
-              </Link>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
-              <Link to="/" className={navigationMenuTriggerStyle()}>
-                Learn
-              </Link>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
-              <Link to="/" className={navigationMenuTriggerStyle()}>
-                Support
-              </Link>
-            </NavigationMenuItem>
-
-          </NavigationMenuList>
         </div>
         <div className=":uno: flex items-center space-x-2">
-          <img src={UserIcon} className=":uno: text-white" />
-          <div className=":uno: text-center font-medium">Hi Jordan</div>
+          <img src={CaregiverUserIcon} className=":uno: size-6 !text-red" />
+          <div className=":uno: text-center font-sans font-medium">Hi Jordan</div>
 
         </div>
 

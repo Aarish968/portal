@@ -1,19 +1,19 @@
 import { useEffect } from 'react'
 import { useNavigation } from '@/base_submod/contexts/navigation-context'
 import ROUTES from '@/data/routing/routes'
-import DashboardView from '@/models/dashboard/views/dashboard-view'
+import SearchView from '@/models/search/views/search-view'
 
-function DashboardPage() {
+function SearchPage() {
   const { updatePageInfo } = useNavigation()
 
   useEffect(() => {
     updatePageInfo(
-      ROUTES.home.title,
-      ROUTES.home.metaDescription,
+      ROUTES.app.search.title,
+      ROUTES.app.search.metaDescription,
     )
   }, [updatePageInfo])
 
-  return <DashboardView />
+  return <SearchView />
 }
 
-export default DashboardPage
+export default SearchPage
