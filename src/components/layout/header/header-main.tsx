@@ -10,7 +10,7 @@ import {
 
 function HeaderMain() {
   return (
-    <div className=":uno: bg-white text-main-black">
+    <div className=":uno: border-b border-#F3F0FB bg-white text-main-black">
       <NavigationMenu className=":uno: page-width flex items-center py-3 !w-full !justify-between page-px">
         <div className=":uno: flex items-center space-x-4">
           <NavigationMenuItem className=":uno: flex list-none items-center">
