@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
-import { useNavigation } from '@/base_submod/contexts/navigation-context'
 import ROUTES from '@/data/routing/routes'
-import SearchView from '@/models/search/views/search-view'
+import { useNavigation } from '@/base_submod/contexts/navigation-context'
+import MemberSearchView from '@/models/member-search/views/member-search-view'
 
-function SearchPage() {
+function MemberSearchPage() {
   const { updatePageInfo } = useNavigation()
 
   useEffect(() => {
@@ -13,7 +13,7 @@ function SearchPage() {
     )
   }, [updatePageInfo])
 
-  return <SearchView />
+  return <MemberSearchView />
 }
 
-export default SearchPage
+export default MemberSearchPage
