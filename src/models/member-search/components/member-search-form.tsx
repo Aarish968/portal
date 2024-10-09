@@ -32,7 +32,6 @@ function MemberSearchForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className=":uno: space-y-4">
-        <h1 className=":uno: mb-2 text-2xl font-bold">Member Search</h1>
         <p className=":uno: mb-4 text-sm text-gray-600">Enter the required information below to pull up member details</p>
         <div className=":uno: mb-4 flex gap-4">
           <FormField
