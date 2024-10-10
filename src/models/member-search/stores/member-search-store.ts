@@ -7,13 +7,13 @@ interface MemberSearchStore {
   isLoading: boolean
   error: string | null
   lastSearchTime: number | null
-  searchMembers: (firstName: string, lastName: string, dateOfBirth: string) => Promise<void>
+  searchMembers: (firstName: string, lastName: string, dateOfBirth: string, healthPlan: string) => Promise<void>
 }
 
-function mockSearchMembers(firstName: string, lastName: string, dateOfBirth: string): SearchResponse {
+function mockSearchMembers(firstName: string, lastName: string, dateOfBirth: string, healthPlan: string): SearchResponse {
   return {
     members: [
-      { id: '1', firstName, lastName, dateOfBirth, healthPlan: 'Plan A', address: '1234 W Candy Land Lane, Boise, ID 83702', phone: '1-555-555-5555', email: 'samples@gmail.com', hrsStatus: 'Not Started', notes: 'Member struggles with memory loss. Please be patient.' },
+      { id: '1', firstName, lastName, dateOfBirth, healthPlan, address: '1234 W Candy Land Lane, Boise, ID 83702', phone: '1-555-555-5555', email: 'samples@gmail.com', hrsStatus: 'Not Started', notes: 'Member struggles with memory loss. Please be patient.' },
       { id: '2', firstName: 'Jane', lastName: 'Doe', dateOfBirth: '1990-01-01', healthPlan: 'Plan B', address: '5678 E Candy Land Lane, Boise, ID 83702', phone: '1-555-555-5555', email: 'samples@gmail.com', hrsStatus: 'Not Started', notes: 'Member struggles with memory loss. Please be patient.' },
     ],
     totalCount: 2,
@@ -26,13 +26,13 @@ export const useMemberSearchStore = create<MemberSearchStore>(set => ({
   error: null,
   lastSearchTime: null,
 
-  searchMembers: async (firstName: string, lastName: string, dateOfBirth: string) => {
+  searchMembers: async (firstName: string, lastName: string, dateOfBirth: string, healthPlan: string) => {
     set({ isLoading: true, error: null })
 
     try {
       await new Promise(resolve => setTimeout(resolve, 1000))
 
-      const response = mockSearchMembers(firstName, lastName, dateOfBirth)
+      const response = mockSearchMembers(firstName, lastName, dateOfBirth, healthPlan)
       const parsedData = SearchResponseSchema.safeParse(response)
 
       if (parsedData.success) {

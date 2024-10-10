@@ -25,9 +25,10 @@ export const MemberSearchFormSchema = z.object({
   lastName: z.string().min(2, {
     message: 'Last name must be at least 2 characters.',
   }),
-  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
-    message: 'Date of birth must be in the format YYYY-MM-DD.',
+  dateOfBirth: z.string().regex(/^([1-9]|0[1-9]|1[0-2])\/([1-9]|0[1-9]|[12]\d|3[01])\/\d{4}$/, {
+    message: 'Date of birth must be in the format MM/DD/YYYY.',
   }),
+  healthPlan: z.string(),
 })
 
 export type Member = z.infer<typeof MemberSchema>
