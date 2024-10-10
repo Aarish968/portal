@@ -1,19 +1,19 @@
 import { useEffect } from 'react'
 import { useNavigation } from '@/base_submod/contexts/navigation-context'
 import ROUTES from '@/data/routing/routes'
-import MemberHistoryView from '@/models/member-history/views/member-history-view'
+import HraActivityView from '@/models/hra-activity/views/hra-activity-view'
 
-function MemberHistoryPage() {
+function HraActivityPage() {
   const { updatePageInfo } = useNavigation()
 
   useEffect(() => {
     updatePageInfo(
-      ROUTES.app.member_history.title,
-      ROUTES.app.member_history.metaDescription,
+      ROUTES.app.hraActivity.title,
+      ROUTES.app.hraActivity.metaDescription,
     )
   }, [updatePageInfo])
 
-  return <MemberHistoryView />
+  return <HraActivityView />
 }
 
-export default MemberHistoryPage
+export default HraActivityPage

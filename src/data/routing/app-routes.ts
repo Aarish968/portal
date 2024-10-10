@@ -2,8 +2,7 @@ import type { SiteLink } from '@/base_submod/schemas/router'
 
 export interface AppRoutes {
   search: SiteLink
-  member_history: SiteLink
-  my_schedule: SiteLink
+  hraActivity: SiteLink
   support: SiteLink
   settings: SiteLink
 }
@@ -15,17 +14,11 @@ export const APP_ROUTES: AppRoutes = {
     metaDescription: 'Search for a member',
     menuDescription: 'Search for a member',
   },
-  member_history: {
-    title: 'Member History',
-    href: '/member-history',
-    metaDescription: 'View member history',
-    menuDescription: 'View member history',
-  },
-  my_schedule: {
-    title: 'My Schedule',
-    href: '/my-schedule',
-    metaDescription: 'View my schedule',
-    menuDescription: 'View my schedule',
+  hraActivity: {
+    title: 'HRA Activity',
+    href: '/hra-activity',
+    metaDescription: 'View HRA Activity',
+    menuDescription: 'View HRA Activity',
   },
   support: {
     title: 'Support',
