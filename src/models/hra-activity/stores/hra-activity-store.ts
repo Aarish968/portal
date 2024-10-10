@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { HraActivity, HraActivityItem } from '../schemas/hra-activity-schema'
 import { HraActivitySchema } from '../schemas/hra-activity-schema'
+import { fakeHraActivities } from '@/models/hra-activity/data/mock-hra-activities'
 
 interface HraActivityStore {
   hraActivity: HraActivity
@@ -11,8 +12,8 @@ interface HraActivityStore {
 }
 
 const defaultHraActivity: HraActivity = {
-  activities: [],
-  totalCount: 0,
+  activities: fakeHraActivities,
+  totalCount: fakeHraActivities.length,
 }
 
 export const useHraActivityStore = create<HraActivityStore>()(

@@ -13,7 +13,7 @@ function BasePractitionerView({ children, title, description, actionButton }: Ba
     <div className=":uno: min-h-screen w-full">
       <div className=":uno: grid w-full px-16 pt-10 md:gap-4">
         <div className=":uno: flex flex-col gap-2">
-          <div className=":uno: flex flex-wrap justify-between gap-2">
+          <div className=":uno: flex flex-wrap items-center justify-between gap-2">
             <div className=":uno: text-20px leading-14px font-bold">{title}</div>
             {actionButton}
           </div>
