@@ -1,14 +1,23 @@
-import type { Member } from '../schemas/member-search-schema'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent } from '@/base_submod/components/ui/card'
 import { Button } from '@/base_submod/components/ui/button'
+import type { Member } from '@/models/member/schemas/member-schema'
+import { useHRAStore } from '@/models/hra/stores/hra-store'
 
 interface MemberSearchDetailsCardProps {
   member: Member
-  onStartHRS: () => void
   onCancel: () => void
 }
 
-function MemberSearchDetailsCard({ member, onStartHRS, onCancel }: MemberSearchDetailsCardProps) {
+function MemberSearchDetailsCard({ member, onCancel }: MemberSearchDetailsCardProps) {
+  const navigate = useNavigate()
+  const initializeHRA = useHRAStore(state => state.initializeHRA)
+
+  const handleStartHRS = () => {
+    initializeHRA()
+    navigate('/hra')
+  }
+
   return (
     <Card>
       <CardContent>
@@ -39,7 +48,7 @@ function MemberSearchDetailsCard({ member, onStartHRS, onCancel }: MemberSearchD
           </div>
           <div>
             <p className=":uno: font-semibold">Health Plan:</p>
-            <p>CareFirst (DSNP)</p>
+            <p>{member.healthPlan}</p>
           </div>
           <div>
             <p className=":uno: font-semibold">Member ID:</p>
@@ -49,32 +58,32 @@ function MemberSearchDetailsCard({ member, onStartHRS, onCancel }: MemberSearchD
 
         <div>
           <p className=":uno: font-semibold">Address:</p>
-          <p>1234 W Candy Land Lane, Boise, ID 83702</p>
+          <p>{member.address}</p>
         </div>
 
         <div>
           <p className=":uno: font-semibold">Phone:</p>
-          <p>1-555-555-5555</p>
+          <p>{member.phone}</p>
         </div>
 
         <div>
           <p className=":uno: font-semibold">Email:</p>
-          <p>samples@gmail.com</p>
+          <p>{member.email}</p>
         </div>
 
         <div>
           <p className=":uno: font-semibold">HRS Status:</p>
-          <span className=":uno: rounded-full bg-yellow-100 px-2 py-1 text-sm text-yellow-800">Not Started</span>
+          <span className=":uno: rounded-full bg-yellow-100 px-2 py-1 text-sm text-yellow-800">{member.hrsStatus}</span>
         </div>
 
         <div>
           <p className=":uno: font-semibold">Notes:</p>
-          <p>Member struggles with memory loss. Please be patient.</p>
+          <p>{member.notes}</p>
         </div>
 
         <div className=":uno: mt-6 flex justify-end space-x-4">
           <Button variant="outline" onClick={onCancel}>Cancel</Button>
-          <Button className=":uno: bg-orange-500 hover:bg-orange-600" onClick={onStartHRS}>Start HRS</Button>
+          <Button className=":uno: bg-orange-500 hover:bg-orange-600" onClick={handleStartHRS}>Start HRS</Button>
         </div>
       </CardContent>
     </Card>

@@ -2,7 +2,7 @@ import type { HraActivityItem } from '@/models/hra-activity/schemas/hra-activity
 
 export const fakeHraActivities: HraActivityItem[] = [
   {
-    id: '1',
+    id: '550e8400-e29b-41d4-a716-446655440000',
     firstName: 'John',
     lastName: 'Doe',
     dateOfBirth: '1980-05-15',
@@ -11,7 +11,7 @@ export const fakeHraActivities: HraActivityItem[] = [
     hraStatus: 'In Progress',
   },
   {
-    id: '2',
+    id: '6ba7b810-9dad-11d1-80b4-00c04fd430c8',
     firstName: 'Jane',
     lastName: 'Smith',
     dateOfBirth: '1992-09-22',
@@ -20,7 +20,7 @@ export const fakeHraActivities: HraActivityItem[] = [
     hraStatus: 'Completed',
   },
   {
-    id: '3',
+    id: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
     firstName: 'Michael',
     lastName: 'Johnson',
     dateOfBirth: '1975-11-30',
@@ -29,7 +29,7 @@ export const fakeHraActivities: HraActivityItem[] = [
     hraStatus: 'Not Started',
   },
   {
-    id: '4',
+    id: '8f14e45f-ceea-467a-9575-6da7b41fd81f',
     firstName: 'Emily',
     lastName: 'Brown',
     dateOfBirth: '1988-07-14',
@@ -38,7 +38,7 @@ export const fakeHraActivities: HraActivityItem[] = [
     hraStatus: 'In Progress',
   },
   {
-    id: '5',
+    id: '9f3f9e6c-5dd5-4f7a-af2b-5f5f6f9f9f9f',
     firstName: 'David',
     lastName: 'Wilson',
     dateOfBirth: '1995-03-08',
@@ -47,7 +47,7 @@ export const fakeHraActivities: HraActivityItem[] = [
     hraStatus: 'Completed',
   },
   {
-    id: '6',
+    id: 'a1a2a3a4-b1b2-c1c2-d1d2-e1e2e3e4e5e6',
     firstName: 'Sarah',
     lastName: 'Taylor',
     dateOfBirth: '1983-12-19',
@@ -56,7 +56,7 @@ export const fakeHraActivities: HraActivityItem[] = [
     hraStatus: 'Not Started',
   },
   {
-    id: '7',
+    id: 'b2b3b4b5-c3c4-d3d4-e3e4-f3f4f5f6f7f8',
     firstName: 'Robert',
     lastName: 'Anderson',
     dateOfBirth: '1970-06-25',
@@ -65,7 +65,7 @@ export const fakeHraActivities: HraActivityItem[] = [
     hraStatus: 'In Progress',
   },
   {
-    id: '8',
+    id: 'c3c4c5c6-d4d5-e4e5-f4f5-g4g5g6g7g8g9',
     firstName: 'Jennifer',
     lastName: 'Martinez',
     dateOfBirth: '1990-02-11',
@@ -74,7 +74,7 @@ export const fakeHraActivities: HraActivityItem[] = [
     hraStatus: 'Completed',
   },
   {
-    id: '9',
+    id: 'd4d5d6d7-e5e6-f5f6-g5g6-h5h6h7h8h9h0',
     firstName: 'William',
     lastName: 'Garcia',
     dateOfBirth: '1978-08-03',
@@ -83,7 +83,7 @@ export const fakeHraActivities: HraActivityItem[] = [
     hraStatus: 'Not Started',
   },
   {
-    id: '10',
+    id: 'e5e6e7e8-f6f7-g6g7-h6h7-i6i7i8i9i0i1',
     firstName: 'Lisa',
     lastName: 'Lopez',
     dateOfBirth: '1987-10-17',

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { SearchResponse } from '../schemas/member-search-schema'
 import { SearchResponseSchema } from '../schemas/member-search-schema'
+import { useMemberStore } from '@/models/member/stores/member-store'
 
 interface MemberSearchStore {
   searchResults: SearchResponse
@@ -40,10 +41,19 @@ export const useMemberSearchStore = create<MemberSearchStore>(set => ({
           searchResults: parsedData.data,
           lastSearchTime: Date.now(),
         })
+
+        if (parsedData.data.members.length > 0) {
+          const firstMember = parsedData.data.members[0]
+          useMemberStore.getState().setSelectedMember(firstMember)
+        }
+        else {
+          useMemberStore.getState().clearSelectedMember()
+        }
       }
       else {
         console.error('Data validation failed:', parsedData.error.errors)
         set({ error: 'Error: Invalid data format' })
+        useMemberStore.getState().clearSelectedMember()
       }
     }
     catch (err) {
@@ -52,6 +62,7 @@ export const useMemberSearchStore = create<MemberSearchStore>(set => ({
         error: 'Error searching members',
         searchResults: { members: [], totalCount: 0 },
       })
+      useMemberStore.getState().clearSelectedMember()
     }
     finally {
       set({ isLoading: false })

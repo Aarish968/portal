@@ -8,6 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/base_submod/components/ui/tooltip'
+import PorterLogo from '@/base_submod/components/misc/porter-logo'
 
 function Sidebar() {
   const location = useLocation()
@@ -18,6 +19,9 @@ function Sidebar() {
     >
       <div className=":uno: z-10 transition-all duration-400">
         <div className=":uno: overflow-hidden bg-white">
+          <div className=":uno: mx-auto w-full flex justify-center py-4">
+            <PorterLogo variant="dark" />
+          </div>
           <TooltipProvider>
             {SidebarLinks.map((link, _index) => {
               const isActive = location.pathname === link.href
