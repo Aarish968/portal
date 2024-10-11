@@ -2,20 +2,22 @@ import { useNavigate } from 'react-router-dom'
 import { Card, CardContent } from '@/base_submod/components/ui/card'
 import { Button } from '@/base_submod/components/ui/button'
 import type { Member } from '@/models/member/schemas/member-schema'
-import { useHRAStore } from '@/models/hra/stores/hra-store'
+import MemberSearchDetailsCardItem from '@/models/member-search/components/member-search-details-card-item'
+import MemberSearchDetailsCardShadedRow from '@/models/member-search/components/member-search-details-card-shaded-row'
 
 interface MemberSearchDetailsCardProps {
   member: Member
-  onCancel: () => void
 }
 
-function MemberSearchDetailsCard({ member, onCancel }: MemberSearchDetailsCardProps) {
+function MemberSearchDetailsCard({ member }: MemberSearchDetailsCardProps) {
   const navigate = useNavigate()
-  const initializeHRA = useHRAStore(state => state.initializeHRA)
 
-  const handleStartHRS = () => {
-    initializeHRA()
+  const handleStartHRA = () => {
     navigate('/hra')
+  }
+
+  const onCancel = () => {
+    navigate('/')
   }
 
   return (
@@ -34,56 +36,43 @@ function MemberSearchDetailsCard({ member, onCancel }: MemberSearchDetailsCardPr
         </div>
 
         <div className=":uno: grid grid-cols-2 gap-4">
-          <div>
-            <p className=":uno: font-semibold">Name:</p>
-            <p>
-              {member.firstName}
-              {' '}
-              {member.lastName}
-            </p>
-          </div>
-          <div>
-            <p className=":uno: font-semibold">Date of Birth:</p>
-            <p>{member.dateOfBirth}</p>
-          </div>
-          <div>
-            <p className=":uno: font-semibold">Health Plan:</p>
-            <p>{member.healthPlan}</p>
-          </div>
-          <div>
-            <p className=":uno: font-semibold">Member ID:</p>
-            <p>{member.id}</p>
-          </div>
+          <MemberSearchDetailsCardItem label="Name" value={`${member.firstName} ${member.lastName}`} />
+          <MemberSearchDetailsCardItem label="Date of Birth" value={member.dateOfBirth} />
         </div>
 
-        <div>
-          <p className=":uno: font-semibold">Address:</p>
-          <p>{member.address}</p>
-        </div>
+        <MemberSearchDetailsCardShadedRow>
+          <MemberSearchDetailsCardItem label="Health Plan" value={member.healthPlan} />
+          <MemberSearchDetailsCardItem label="Member ID" value={member.id} />
+        </MemberSearchDetailsCardShadedRow>
 
-        <div>
-          <p className=":uno: font-semibold">Phone:</p>
-          <p>{member.phone}</p>
-        </div>
+        <MemberSearchDetailsCardItem label="Address" value={member.address} />
 
-        <div>
-          <p className=":uno: font-semibold">Email:</p>
-          <p>{member.email}</p>
-        </div>
+        <MemberSearchDetailsCardShadedRow>
+          <MemberSearchDetailsCardItem label="Phone" value={member.phone} />
+        </MemberSearchDetailsCardShadedRow>
 
-        <div>
-          <p className=":uno: font-semibold">HRS Status:</p>
-          <span className=":uno: rounded-full bg-yellow-100 px-2 py-1 text-sm text-yellow-800">{member.hrsStatus}</span>
-        </div>
+        <MemberSearchDetailsCardItem label="Email" value={member.email} />
 
-        <div>
-          <p className=":uno: font-semibold">Notes:</p>
-          <p>{member.notes}</p>
-        </div>
+        <MemberSearchDetailsCardShadedRow>
+          <MemberSearchDetailsCardItem
+            label="HRA Status"
+            value={(
+              <span className=":uno: rounded-full bg-yellow-100 px-2 text-sm text-yellow-800">
+                {member.hrsStatus}
+              </span>
+            )}
+          />
+        </MemberSearchDetailsCardShadedRow>
+
+        <MemberSearchDetailsCardItem label="Notes" value={member.notes} className=":uno: border-b" />
 
         <div className=":uno: mt-6 flex justify-end space-x-4">
-          <Button variant="outline" onClick={onCancel}>Cancel</Button>
-          <Button className=":uno: bg-orange-500 hover:bg-orange-600" onClick={handleStartHRS}>Start HRS</Button>
+          <div>
+            <Button variant="outline" onClick={onCancel}>Cancel</Button>
+          </div>
+          <div>
+            <Button className=":uno: bg-orange-500 hover:bg-orange-600" onClick={handleStartHRA}>Start HRA</Button>
+          </div>
         </div>
       </CardContent>
     </Card>

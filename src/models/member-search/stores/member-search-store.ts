@@ -9,6 +9,7 @@ interface MemberSearchStore {
   error: string | null
   lastSearchTime: number | null
   searchMembers: (firstName: string, lastName: string, dateOfBirth: string, healthPlan: string) => Promise<void>
+  clearSearch: () => void
 }
 
 function mockSearchMembers(firstName: string, lastName: string, dateOfBirth: string, healthPlan: string): SearchResponse {
@@ -67,5 +68,15 @@ export const useMemberSearchStore = create<MemberSearchStore>(set => ({
     finally {
       set({ isLoading: false })
     }
+  },
+
+  clearSearch: () => {
+    set({
+      searchResults: { members: [], totalCount: 0 },
+      isLoading: false,
+      error: null,
+      lastSearchTime: null,
+    })
+    useMemberStore.getState().clearSelectedMember()
   },
 }))

@@ -7,19 +7,28 @@ interface HRAStore {
   hra: HRA | null
   isLoading: boolean
   error: string | null
+  currentQuestionIndex: number
+  editQuestionIndex: number | null
+  highestCompletedQuestionIndex: number
   initializeHRA: () => void
   answerQuestion: (questionId: string, answer: string | boolean) => void
   nextQuestion: () => void
   previousQuestion: () => void
+  setEditQuestionIndex: (index: number | null) => void
+  returnToCurrentQuestion: () => void
 }
 
 export const useHRAStore = create<HRAStore>((set, _get) => ({
   hra: null,
   isLoading: false,
   error: null,
+  currentQuestionIndex: 0,
+  editQuestionIndex: null,
+  highestCompletedQuestionIndex: -1,
 
   initializeHRA: () => {
     const selectedMember = useMemberStore.getState().selectedMember
+
     if (!selectedMember) {
       set({ error: 'No member selected' })
       return
@@ -41,7 +50,13 @@ export const useHRAStore = create<HRAStore>((set, _get) => ({
 
     const parsedHRA = HRASchema.safeParse(newHRA)
     if (parsedHRA.success) {
-      set({ hra: parsedHRA.data, error: null })
+      set({
+        hra: parsedHRA.data,
+        error: null,
+        currentQuestionIndex: 0,
+        editQuestionIndex: null,
+        highestCompletedQuestionIndex: -1,
+      })
     }
     else {
       console.error('Invalid HRA data:', parsedHRA.error.errors)
@@ -53,11 +68,14 @@ export const useHRAStore = create<HRAStore>((set, _get) => ({
     set((state) => {
       if (!state.hra)
         return state
+      const newHra = {
+        ...state.hra,
+        answers: { ...state.hra.answers, [questionId]: answer },
+      }
+      const currentIndex = state.editQuestionIndex !== null ? state.editQuestionIndex : state.currentQuestionIndex
       return {
-        hra: {
-          ...state.hra,
-          answers: { ...state.hra.answers, [questionId]: answer },
-        },
+        hra: newHra,
+        highestCompletedQuestionIndex: Math.max(state.highestCompletedQuestionIndex, currentIndex),
       }
     })
   },
@@ -66,14 +84,17 @@ export const useHRAStore = create<HRAStore>((set, _get) => ({
     set((state) => {
       if (!state.hra)
         return state
-      const nextIndex = state.hra.currentQuestionIndex + 1
+      const nextIndex = state.currentQuestionIndex + 1
       if (nextIndex >= state.hra.questions.length) {
         return {
           hra: { ...state.hra, status: 'completed' },
+          currentQuestionIndex: state.currentQuestionIndex,
+          highestCompletedQuestionIndex: state.currentQuestionIndex,
         }
       }
       return {
-        hra: { ...state.hra, currentQuestionIndex: nextIndex },
+        currentQuestionIndex: nextIndex,
+        highestCompletedQuestionIndex: Math.max(state.highestCompletedQuestionIndex, nextIndex - 1),
       }
     })
   },
@@ -82,10 +103,21 @@ export const useHRAStore = create<HRAStore>((set, _get) => ({
     set((state) => {
       if (!state.hra)
         return state
-      const prevIndex = Math.max(0, state.hra.currentQuestionIndex - 1)
+      const prevIndex = Math.max(0, state.currentQuestionIndex - 1)
       return {
-        hra: { ...state.hra, currentQuestionIndex: prevIndex },
+        currentQuestionIndex: prevIndex,
       }
     })
+  },
+
+  setEditQuestionIndex: (index: number | null) => {
+    set({ editQuestionIndex: index })
+  },
+
+  returnToCurrentQuestion: () => {
+    set(state => ({
+      editQuestionIndex: null,
+      currentQuestionIndex: state.highestCompletedQuestionIndex + 1,
+    }))
   },
 }))

@@ -1,20 +1,42 @@
-import { useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { useHRAStore } from '../stores/hra-store'
+import HRAStartView from './hra-start-view'
 import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
 import { Card, CardContent } from '@/base_submod/components/ui/card'
 import { Button } from '@/base_submod/components/ui/button'
 
 function HRAView() {
-  const { hra, isLoading, error, initializeHRA, answerQuestion, nextQuestion, previousQuestion } = useHRAStore()
+  const [showStartView, setShowStartView] = useState(true)
   const navigate = useNavigate()
 
-  useEffect(() => {
-    if (!hra) {
-      initializeHRA()
-    }
-  }, [hra, initializeHRA])
+  const {
+    hra,
+    isLoading,
+    error,
+    initializeHRA,
+    answerQuestion,
+    nextQuestion,
+    previousQuestion,
+    currentQuestionIndex,
+    editQuestionIndex,
+    highestCompletedQuestionIndex,
+    setEditQuestionIndex,
+    returnToCurrentQuestion,
+  } = useHRAStore()
+
+  if (showStartView) {
+    return (
+      <HRAStartView
+        onContinue={() => {
+          setShowStartView(false)
+          initializeHRA()
+        }}
+        onCancel={() => navigate('/member-search')}
+      />
+    )
+  }
 
   if (isLoading) {
     return <div>Loading HRA...</div>
@@ -35,15 +57,41 @@ function HRAView() {
     return <div>No HRA data available</div>
   }
 
-  const currentQuestion = hra.questions[hra.currentQuestionIndex]
+  const activeIndex = editQuestionIndex !== null ? editQuestionIndex : currentQuestionIndex
+  const currentQuestion = hra.questions[activeIndex]
+
+  const handleNext = () => {
+    if (editQuestionIndex !== null) {
+      if (editQuestionIndex < highestCompletedQuestionIndex) {
+        setEditQuestionIndex(editQuestionIndex + 1)
+      }
+      else {
+        returnToCurrentQuestion()
+      }
+    }
+    else {
+      nextQuestion()
+    }
+  }
+
+  const handlePrevious = () => {
+    if (editQuestionIndex !== null) {
+      if (editQuestionIndex > 0) {
+        setEditQuestionIndex(editQuestionIndex - 1)
+      }
+    }
+    else {
+      previousQuestion()
+    }
+  }
 
   return (
     <BasePractitionerView title="Health Risk Assessment" description="Complete the HRA for the selected member">
       <div className="mx-auto max-w-2xl w-full flex items-center gap-6">
         <Button
           variant="outline"
-          onClick={previousQuestion}
-          disabled={hra.currentQuestionIndex === 0}
+          onClick={handlePrevious}
+          disabled={activeIndex === 0}
         >
           <Icon icon="ph:caret-left-bold" className="h-6 w-6" />
         </Button>
@@ -52,7 +100,7 @@ function HRAView() {
             <p className="mb-6 text-sm text-gray-500">
               Question
               {' '}
-              {hra.currentQuestionIndex + 1}
+              {activeIndex + 1}
               {' '}
               of
               {' '}
@@ -94,13 +142,11 @@ function HRAView() {
         </Card>
         <Button
           variant="outline"
-          onClick={nextQuestion}
+          onClick={handleNext}
         >
-          {hra.currentQuestionIndex === hra.questions.length - 1
+          {activeIndex === hra.questions.length - 1
             ? 'Finish'
-            : (
-                <Icon icon="ph:caret-right-bold" className="h-6 w-6" />
-              )}
+            : <Icon icon="ph:caret-right-bold" className="h-6 w-6" />}
         </Button>
       </div>
     </BasePractitionerView>

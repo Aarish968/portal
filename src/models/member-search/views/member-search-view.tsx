@@ -7,24 +7,16 @@ import MemberSearchLoadingCard from '@/models/member-search/components/member-se
 function MemberSearchView() {
   const { searchResults, isLoading } = useMemberSearchStore()
 
-  const handleStartHRS = () => {
-  }
-
-  const handleCancel = () => {
-  }
-
   return (
     <BasePractitionerView title="Member Search" description="Enter the required information below to pull up member details">
       <MemberSearchForm />
       {isLoading && <MemberSearchLoadingCard />}
       {!isLoading && searchResults.members.length > 0 && (
         <>
-          <div className=":uno: bg-gray-g-200 z-4 my-6 h-1px w-full"></div>
+          <div className=":uno: z-4 my-6 h-1px w-full bg-gray-g-200"></div>
           <div className=":uno: mb-3 font-medium">Results:</div>
           <MemberSearchDetailsCard
             member={searchResults.members[0]}
-            onStartHRS={handleStartHRS}
-            onCancel={handleCancel}
           />
         </>
       )}
