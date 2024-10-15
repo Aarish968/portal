@@ -19,6 +19,5 @@ export const MemberSearchFormSchema = z.object({
   healthPlan: z.string(),
 })
 
-export type Member = z.infer<typeof MemberSchema>
 export type SearchResponse = z.infer<typeof SearchResponseSchema>
 export type MemberSearchFormData = z.infer<typeof MemberSearchFormSchema>

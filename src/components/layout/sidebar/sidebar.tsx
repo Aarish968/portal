@@ -15,7 +15,7 @@ function Sidebar() {
 
   return (
     <div
-      className=":uno: col-span-1 min-h-screen min-w-150px flex bg-white transition-all duration-300 !z-10"
+      className=":uno: fixed col-span-1 min-h-screen min-w-150px flex bg-white transition-all duration-300 !z-10"
     >
       <div className=":uno: z-10 transition-all duration-400">
         <div className=":uno: overflow-hidden bg-white">
