@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 interface BasePractitionerViewProps {
   children: ReactNode
-  title: string
+  title?: string
   description?: string
   actionButton?: ReactNode
   headerIcon?: ReactNode

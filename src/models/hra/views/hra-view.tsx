@@ -6,6 +6,7 @@ import HRAStartView from './hra-start-view'
 import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
 import { Card, CardContent } from '@/base_submod/components/ui/card'
 import { Button } from '@/base_submod/components/ui/button'
+import HraProgress from '@/models/hra/components/hra-progress'
 
 function HRAView() {
   const [showStartView, setShowStartView] = useState(true)
@@ -86,16 +87,24 @@ function HRAView() {
   }
 
   return (
-    <BasePractitionerView title="Health Risk Assessment" description="Complete the HRA for the selected member">
-      <div className="mx-auto max-w-2xl w-full flex items-center gap-6">
-        <Button
-          variant="outline"
-          onClick={handlePrevious}
-          disabled={activeIndex === 0}
-        >
-          <Icon icon="ph:caret-left-bold" className="h-6 w-6" />
-        </Button>
-        <Card>
+    <BasePractitionerView>
+      <HraProgress
+        currentQuestion={currentQuestionIndex + 1}
+        totalQuestions={hra.questions.length}
+      />
+      <div className="mx-auto max-w-2xl w-full flex items-center justify-center gap-6">
+        <div>
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={activeIndex === 0}
+            size="icon"
+            className="h-9 w-9"
+          >
+            <Icon icon="ph:caret-left-bold" className="h-4 w-4 shrink-0" />
+          </Button>
+        </div>
+        <Card className="w-full">
           <CardContent className="p-6">
             <p className="mb-6 text-sm text-gray-500">
               Question
@@ -106,48 +115,56 @@ function HRAView() {
               {' '}
               {hra.questions.length}
             </p>
-            <h3 className="mb-4 text-xl font-medium">{currentQuestion.text}</h3>
+            <div className=":uno: flex flex-col items-center justify-center gap-4">
 
-            {currentQuestion.type === 'multipleChoice' && (
-              <div className="space-y-2">
-                {currentQuestion.options?.map(option => (
-                  <Button
-                    key={option}
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => answerQuestion(currentQuestion.id, option)}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </div>
-            )}
+              <h3 className="mb-4 text-xl font-medium">{currentQuestion.text}</h3>
 
-            {currentQuestion.type === 'boolean' && (
-              <div className="flex space-x-4">
-                <Button onClick={() => answerQuestion(currentQuestion.id, true)}>Yes</Button>
-                <Button onClick={() => answerQuestion(currentQuestion.id, false)}>No</Button>
-              </div>
-            )}
+              {currentQuestion.type === 'multipleChoice' && (
+                <div className="space-y-2">
+                  {currentQuestion.options?.map(option => (
+                    <Button
+                      key={option}
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => answerQuestion(currentQuestion.id, option)}
+                    >
+                      {option}
+                    </Button>
+                  ))}
+                </div>
+              )}
 
-            {currentQuestion.type === 'text' && (
-              <input
-                type="text"
-                className="w-full border rounded p-2"
-                onChange={e => answerQuestion(currentQuestion.id, e.target.value)}
-                value={hra.answers[currentQuestion.id] as string || ''}
-              />
-            )}
+              {currentQuestion.type === 'boolean' && (
+                <div className="flex space-x-4">
+                  <Button onClick={() => answerQuestion(currentQuestion.id, true)}>Yes</Button>
+                  <Button onClick={() => answerQuestion(currentQuestion.id, false)}>No</Button>
+                </div>
+              )}
+
+              {currentQuestion.type === 'text' && (
+                <input
+                  type="text"
+                  className="w-full border rounded p-2"
+                  onChange={e => answerQuestion(currentQuestion.id, e.target.value)}
+                  value={hra.answers[currentQuestion.id] as string || ''}
+                />
+              )}
+
+            </div>
           </CardContent>
         </Card>
-        <Button
-          variant="outline"
-          onClick={handleNext}
-        >
-          {activeIndex === hra.questions.length - 1
-            ? 'Finish'
-            : <Icon icon="ph:caret-right-bold" className="h-6 w-6" />}
-        </Button>
+        <div>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-9 w-9"
+            onClick={handleNext}
+          >
+            {activeIndex === hra.questions.length - 1
+              ? 'Finish'
+              : <Icon icon="ph:caret-right-bold" className="h-4 w-4 shrink-0" />}
+          </Button>
+        </div>
       </div>
     </BasePractitionerView>
   )
