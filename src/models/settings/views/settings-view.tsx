@@ -1,10 +1,11 @@
 import { SettingsForm } from '../components/settings-form'
+import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
 
 function SettingsView() {
   return (
-    <div className="mx-auto max-w-2xl p-4">
+    <BasePractitionerView title="Settings" description="Manage your account settings and preferences.">
       <SettingsForm />
-    </div>
+    </BasePractitionerView>
   )
 }
 

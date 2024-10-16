@@ -1,13 +1,8 @@
 import { useLocation } from 'react-router-dom'
+import SidebarButton from './sidebar-button'
+import SidebarUserInfo from './sidebar-user-info'
 import { SidebarLinks } from '@/data/routing/site-links'
-import SidebarButton from '@/components/layout/sidebar/sidebar-button'
-
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/base_submod/components/ui/tooltip'
+import { TooltipProvider } from '@/base_submod/components/ui/tooltip'
 import PorterLogo from '@/base_submod/components/misc/porter-logo'
 
 function Sidebar() {
@@ -15,33 +10,27 @@ function Sidebar() {
 
   return (
     <div
-      className=":uno: fixed col-span-1 min-h-screen min-w-150px flex bg-white transition-all duration-300 !z-10"
+      className=":uno: fixed col-span-1 min-h-screen min-w-160px flex flex-col bg-white transition-all duration-300 !z-10"
     >
-      <div className=":uno: z-10 transition-all duration-400">
-        <div className=":uno: overflow-hidden bg-white">
-          <div className=":uno: mx-auto w-full flex justify-center py-4">
+      <div className=":uno: z-10 w-full flex-grow px-3 py-4 transition-all duration-400">
+        <div className=":uno: w-full overflow-hidden">
+          <div className=":uno: mx-auto mb-4 w-full flex justify-center">
             <PorterLogo variant="dark" />
           </div>
           <TooltipProvider>
-            {SidebarLinks.map((link, _index) => {
-              const isActive = location.pathname === link.href
-              return (
-                <Tooltip key={link.href}>
-                  <TooltipTrigger asChild>
-                    <SidebarButton
-                      link={link}
-                      isActive={isActive}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>{link.menuDescription}</p>
-                  </TooltipContent>
-                </Tooltip>
-              )
-            })}
+            <div className=":uno: space-y-1">
+              {SidebarLinks.map(link => (
+                <SidebarButton
+                  key={link.href}
+                  link={link}
+                  isActive={location.pathname === link.href}
+                />
+              ))}
+            </div>
           </TooltipProvider>
         </div>
       </div>
+      <SidebarUserInfo />
     </div>
   )
 }
