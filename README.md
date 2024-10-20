@@ -24,26 +24,32 @@ This repository serves as the initial template for creating new React web applic
 To create a new project using this template:
 
 1. Clone this repository:
+
    ```
    git clone https://github.com/your-org/PorterInitialAppRepo.git your-project-name
    ```
 
 2. Navigate to the project directory:
+
    ```
    cd your-project-name
    ```
 
 3. Install dependencies:
+
    ```
    npm install
    ```
 
-4. Start the development server:
+4. Initialize and update the git submodule with `git submodule update --init --recursive`
+
+5. Start the development server:
+
    ```
    npm run dev
    ```
 
-5. Open your browser and visit `http://localhost:3000`
+6. Open your browser and visit `http://localhost:3000`
 
 ## Project Structure
 
@@ -90,4 +96,5 @@ We are not currently accepting external contributions as the project is in early
 - Many features are incomplete or non-functional
 - The UI design is not finalized
 - Performance optimizations have not yet been implemented
+
 ---
