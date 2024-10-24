@@ -1,52 +1,110 @@
+import { useEffect, useState } from 'react'
+import { useMsal } from '@azure/msal-react'
+import { AuthError, InteractionStatus } from '@azure/msal-browser'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/base_submod/components/ui/button'
-import PorterLogo from '@/base_submod/assets/images/logo/porter-logo-vertical.svg'
-import LoginForm from '@/models/auth/components/login-form'
-import LoginFooterLink from '@/models/auth/components/login-footer-link'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/base_submod/components/ui/card'
+import PorterLogo from '@/base_submod/assets/images/logos/porter-logo-vertical.svg'
+import ROUTES from '@/data/routing/routes'
+import PorterDevTools from '@/base_submod/components/dev/porter-dev-tools'
+import AuthDisabledBanner from '@/base_submod/components/dev/auth-disabled-banner'
+import { useAuthStore } from '@/models/auth/stores/auth-store'
+import { initializeMsal } from '@/base_submod/utils/MSAL'
 
 function LoginView() {
+  const { instance, inProgress } = useMsal()
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate()
+  const isAuthDisabled = useAuthStore(state => state.isAuthDisabled)
+
+  useEffect(() => {
+    const handleRedirectPromise = async () => {
+      try {
+        await initializeMsal()
+        const result = await instance.handleRedirectPromise()
+        if (result) {
+          navigate(ROUTES.app.search.href)
+        }
+      }
+      catch (err) {
+        if (err instanceof AuthError) {
+          setError(`Authentication error: ${err.errorMessage}`)
+        }
+        else if (err instanceof Error) {
+          setError(`Unexpected error: ${err.message}`)
+        }
+        else {
+          setError('An unknown error occurred')
+        }
+      }
+    }
+
+    handleRedirectPromise()
+  }, [instance, navigate])
+
+  const handleLogin = async () => {
+    if (inProgress !== InteractionStatus.None) {
+      setError('Authentication already in progress')
+      return
+    }
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      await instance.loginRedirect()
+    }
+    catch (err) {
+      if (err instanceof AuthError) {
+        setError(`Authentication error: ${err.errorMessage}`)
+      }
+      else if (err instanceof Error) {
+        setError(`Unexpected error: ${err.message}`)
+      }
+      else {
+        setError('An unknown error occurred')
+      }
+    }
+    finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
-    <section className=":uno: relative grid grid-cols-1 min-h-screen gap-4 px-7 py-6 lg:grid-cols-2 lg:px-4">
-      <div className=":uno: grid grid-cols-1">
-        <div />
-        <div className=":uno: mx-auto mt-8 flex-col-center flex-grow text-center lg:mt-0 space-y-6">
-          <img src={PorterLogo} alt="Porter Logo" />
-          <div className=":uno: space-y-1">
-            <h1>Welcome Back</h1>
-            <p className=":uno: text-#212529 leading-26px font-hind">
-              Please enter the information below to sign into your account
-            </p>
-          </div>
-          <LoginForm />
-          <div className=":uno: mt-12 flex flex-col items-center text-21px leading-33px font-hind md:flex-row md:space-x-1">
-            <div>Forgot your password?</div>
-            <Button variant="link" className=":uno: text-#886aaf !text-21px">
-              Click here
+    <div className="relative min-h-screen flex flex-col items-center justify-center bg-gray-100">
+      <AuthDisabledBanner isAuthDisabled={isAuthDisabled} />
+      <div className=":uno: absolute right-1 top-1">
+        <PorterDevTools>
+          <Link to={ROUTES.app.search.href}>
+            <Button>
+              App
             </Button>
-          </div>
-        </div>
-        <div className=":uno: mt-auto h-full flex flex-col justify-between">
-          <div className=":uno: flex flex-col-center md:flex-row md:space-x-1">
-            <div className=":uno: font-primary mt-.5 font-medium">Don't have an account?</div>
-            <Button
-              variant="loginFooterLink"
-              size="link"
-              className=":uno: underline !font-semibold"
-            >
-              Sign up
-            </Button>
-          </div>
-          <div className=":uno: grid grid-cols-1 gap-1 pb-8 md:grid-cols-3">
-            <LoginFooterLink label="Privacy & Terms" />
-            <LoginFooterLink label="Contact us" />
-            <LoginFooterLink label="Back to home" />
-          </div>
-        </div>
+          </Link>
+        </PorterDevTools>
       </div>
-      <div className=":uno: pp-login-imageWrap my-auto hidden lg:block"></div>
-      <div className=":uno: fixed bottom-2 right-2">
-        <Button size="lg">Contact Us</Button>
-      </div>
-    </section>
+      <Card className="w-[350px]">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-center text-2xl">
+            <img src={PorterLogo} alt="Porter Logo" className="mx-auto mb-4 w-32" />
+            Welcome
+          </CardTitle>
+          <CardDescription className="text-center">
+            Click the button below to sign in to your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center space-y-4">
+          <Button
+            className="w-full"
+            onClick={handleLogin}
+            disabled={isLoading || inProgress !== InteractionStatus.None}
+          >
+            {isLoading || inProgress !== InteractionStatus.None ? 'Signing in...' : 'Sign in'}
+          </Button>
+          {error && <p className="text-center text-sm text-red-500">{error}</p>}
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 

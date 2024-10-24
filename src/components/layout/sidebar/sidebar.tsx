@@ -20,11 +20,13 @@ function Sidebar() {
           <TooltipProvider>
             <div className=":uno: space-y-1">
               {SidebarLinks.map(link => (
-                <SidebarButton
-                  key={link.href}
-                  link={link}
-                  isActive={location.pathname === link.href}
-                />
+                link && (
+                  <SidebarButton
+                    key={link.href}
+                    link={link}
+                    isActive={location.pathname === link.href}
+                  />
+                )
               ))}
             </div>
           </TooltipProvider>

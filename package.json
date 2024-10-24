@@ -13,6 +13,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@azure/msal-browser": "^3.26.1",
+    "@azure/msal-react": "^2.1.1",
     "@hookform/resolvers": "^3.9.0",
     "@palmabit/react-cookie-law": "^0.7.0",
     "@radix-ui/react-accordion": "^1.2.0",
@@ -45,6 +47,7 @@
     "react-i18next": "^15.0.0",
     "react-router": "^6.25.1",
     "react-router-dom": "^6.25.1",
+    "vaul": "^1.1.0",
     "zustand": "^4.5.5"
   },
   "devDependencies": {

@@ -1,27 +1,26 @@
 import { Route, Routes } from 'react-router-dom'
-import ROUTES from '../data/routing/routes'
-import RootLayout from '@/layouts/root-layout'
-import MemberSearchPage from '@/models/member-search/pages/member-search-page'
-import SupportPage from '@/models/support/pages/support-page'
-import SettingsPage from '@/models/settings/pages/settings-page'
-import HraActivityPage from '@/models/hra-activity/pages/hra-activity-page'
-import HRAPage from '@/models/hra/pages/hra-page'
-import UserPage from '@/models/user/pages/user-page'
+import LoginView from '@/models/auth/views/login-view'
+import ProtectedAppRoutes from '@/routes/protected-app-routes'
+import ProtectedRoute from '@/base_submod/components/auth/protected-route'
+import ROUTES from '@/data/routing/routes'
+import TestPage from '@/models/test/pages/test-page'
+import { useAuthStore } from '@/models/auth/stores/auth-store'
 
 function AppRoutes() {
+  const isAuthDisabled = useAuthStore(state => state.isAuthDisabled)
   return (
-    <>
-      <RootLayout>
-        <Routes>
-          <Route path={ROUTES.app.search.href} element={<MemberSearchPage />} />
-          <Route path={ROUTES.app.hra.href} element={<HRAPage />} />
-          <Route path={ROUTES.app.hraActivity.href} element={<HraActivityPage />} />
-          <Route path={ROUTES.app.support.href} element={<SupportPage />} />
-          <Route path={ROUTES.app.settings.href} element={<SettingsPage />} />
-          <Route path={ROUTES.app.user.href} element={<UserPage />} />
-        </Routes>
-      </RootLayout>
-    </>
+    <Routes>
+      <Route path="/login" element={<LoginView />} />
+      <Route path={ROUTES.app.test.href} element={<TestPage />} />
+      <Route
+        path="/*"
+        element={(
+          <ProtectedRoute bypassAuth={isAuthDisabled}>
+            <ProtectedAppRoutes />
+          </ProtectedRoute>
+        )}
+      />
+    </Routes>
   )
 }
 

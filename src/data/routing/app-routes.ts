@@ -7,6 +7,7 @@ export interface AppRoutes {
   support: SiteLink
   settings: SiteLink
   user: SiteLink
+  test: SiteLink
 }
 
 export const APP_ROUTES: AppRoutes = {
@@ -51,5 +52,12 @@ export const APP_ROUTES: AppRoutes = {
     metaDescription: 'View user profile',
     menuDescription: 'View user profile',
     icon: 'ph:user',
+  },
+  test: {
+    title: 'Testing',
+    href: '/test',
+    metaDescription: 'Test',
+    menuDescription: 'Test',
+    icon: 'ph:test-tube',
   },
 }

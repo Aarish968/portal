@@ -1,11 +1,12 @@
 import ROUTES from '@/data/routing/routes'
 import type { SiteLink } from '@/base_submod/schemas/router'
 
-export const SidebarLinks: SiteLink[] = [
+export const SidebarLinks: (SiteLink | null)[] = [
   ROUTES.app.search,
   ROUTES.app.hraActivity,
   ROUTES.app.support,
   ROUTES.app.settings,
+  import.meta.env.MODE === 'development' ? ROUTES.app.test : null,
 ]
 
 export const FooterLinksMain = {

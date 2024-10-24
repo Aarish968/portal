@@ -1,24 +1,27 @@
 import { useEffect } from 'react'
 import ROUTES from '@/data/routing/routes'
 import { useNavigation } from '@/base_submod/contexts/navigation-context'
-import MemberSearchView from '@/models/member-search/views/member-search-view'
 import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
+import TestView from '@/models/test/views/test-view'
+import RootLayout from '@/layouts/root-layout'
 
-function MemberSearchPage() {
+function TestPage() {
   const { updatePageInfo } = useNavigation()
 
   useEffect(() => {
     updatePageInfo(
-      ROUTES.app.search.title,
-      ROUTES.app.search.metaDescription,
+      ROUTES.app.test.title,
+      ROUTES.app.test.metaDescription,
     )
   }, [updatePageInfo])
 
   return (
-    <BasePractitionerView>
-      <MemberSearchView />
-    </BasePractitionerView>
+    <RootLayout>
+      <BasePractitionerView>
+        <TestView />
+      </BasePractitionerView>
+    </RootLayout>
   )
 }
 
-export default MemberSearchPage
+export default TestPage

@@ -1,15 +1,19 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Icon } from '@iconify/react'
-import { useHRAStore } from '../stores/hra-store'
-import HRAStartView from './hra-start-view'
-import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
-import { Card, CardContent } from '@/base_submod/components/ui/card'
 import { Button } from '@/base_submod/components/ui/button'
+import { useHRAStore } from '@/models/hra/stores/hra-store'
+import HRAStartView from '@/models/hra/views/hra-start-view'
 import HraProgress from '@/models/hra/components/hra-progress'
+import HRAViewMenu from '@/models/hra/components/hra-view-menu'
+import HRAEditSheet from '@/models/hra/components/hra-edit-sheet'
+import HRAQuestionCard from '@/models/hra/components/hra-question-card'
+import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
+import HRAQuestionNextButton from '@/models/hra/components/hra-question-next-button'
+import HRAQuestionPreviousButton from '@/models/hra/components/hra-question-previous-button'
 
 function HRAView() {
   const [showStartView, setShowStartView] = useState(true)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const navigate = useNavigate()
 
   const {
@@ -86,6 +90,13 @@ function HRAView() {
     }
   }
 
+  const handleEditQuestion = (index: number) => {
+    setEditQuestionIndex(index)
+  }
+
+  const handleStopAndSave = () => {
+  }
+
   return (
     <BasePractitionerView>
       <HraProgress
@@ -93,79 +104,32 @@ function HRAView() {
         totalQuestions={hra.questions.length}
       />
       <div className="mx-auto max-w-2xl w-full flex items-center justify-center gap-6">
-        <div>
-          <Button
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={activeIndex === 0}
-            size="icon"
-            className="h-9 w-9"
-          >
-            <Icon icon="ph:caret-left-bold" className="h-4 w-4 shrink-0" />
-          </Button>
-        </div>
-        <Card className="w-full">
-          <CardContent className="p-6">
-            <p className="mb-6 text-sm text-gray-500">
-              Question
-              {' '}
-              {activeIndex + 1}
-              {' '}
-              of
-              {' '}
-              {hra.questions.length}
-            </p>
-            <div className=":uno: flex flex-col items-center justify-center gap-4">
-
-              <h3 className="mb-4 text-xl font-medium">{currentQuestion.text}</h3>
-
-              {currentQuestion.type === 'multipleChoice' && (
-                <div className="space-y-2">
-                  {currentQuestion.options?.map(option => (
-                    <Button
-                      key={option}
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={() => answerQuestion(currentQuestion.id, option)}
-                    >
-                      {option}
-                    </Button>
-                  ))}
-                </div>
-              )}
-
-              {currentQuestion.type === 'boolean' && (
-                <div className="flex space-x-4">
-                  <Button onClick={() => answerQuestion(currentQuestion.id, true)}>Yes</Button>
-                  <Button onClick={() => answerQuestion(currentQuestion.id, false)}>No</Button>
-                </div>
-              )}
-
-              {currentQuestion.type === 'text' && (
-                <input
-                  type="text"
-                  className="w-full border rounded p-2"
-                  onChange={e => answerQuestion(currentQuestion.id, e.target.value)}
-                  value={hra.answers[currentQuestion.id] as string || ''}
-                />
-              )}
-
-            </div>
-          </CardContent>
-        </Card>
-        <div>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-9 w-9"
-            onClick={handleNext}
-          >
-            {activeIndex === hra.questions.length - 1
-              ? 'Finish'
-              : <Icon icon="ph:caret-right-bold" className="h-4 w-4 shrink-0" />}
-          </Button>
-        </div>
+        <HRAQuestionPreviousButton
+          onClick={handlePrevious}
+          disabled={activeIndex === 0}
+        />
+        <HRAQuestionCard
+          question={currentQuestion}
+          questionNumber={activeIndex + 1}
+          totalQuestions={hra.questions.length}
+          answer={hra.answers[currentQuestion.id]}
+          onAnswer={answerQuestion}
+        />
+        <HRAQuestionNextButton
+          onClick={handleNext}
+          isLastQuestion={activeIndex === hra.questions.length - 1}
+        />
       </div>
+      <HRAViewMenu
+        onEdit={() => setIsSheetOpen(true)}
+        onStopAndSave={handleStopAndSave}
+      />
+      <HRAEditSheet
+        isOpen={isSheetOpen}
+        onOpenChange={setIsSheetOpen}
+        questions={hra.questions}
+        onEditQuestion={handleEditQuestion}
+      />
     </BasePractitionerView>
   )
 }

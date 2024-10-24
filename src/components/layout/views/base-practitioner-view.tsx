@@ -10,7 +10,7 @@ interface BasePractitionerViewProps {
 
 function BasePractitionerView({ children, title, description, actionButton, headerIcon }: BasePractitionerViewProps) {
   return (
-    <div className=":uno: min-h-screen w-full">
+    <div className=":uno: relative min-h-screen w-full">
       <div className=":uno: grid w-full gap-6 px-12 pt-10">
         {headerIcon}
         <div className=":uno: flex flex-col gap-2">
