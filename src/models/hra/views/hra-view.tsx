@@ -63,7 +63,7 @@ function HRAView() {
   }
 
   const activeIndex = editQuestionIndex !== null ? editQuestionIndex : currentQuestionIndex
-  const currentQuestion = hra.questions[activeIndex]
+  const currentQuestion = hra.screening.questions[activeIndex]
 
   const handleNext = () => {
     if (editQuestionIndex !== null) {
@@ -101,7 +101,7 @@ function HRAView() {
     <BasePractitionerView>
       <HraProgress
         currentQuestion={currentQuestionIndex + 1}
-        totalQuestions={hra.questions.length}
+        totalQuestions={hra.screening.questions.length}
       />
       <div className="mx-auto max-w-2xl w-full flex items-center justify-center gap-6">
         <HRAQuestionPreviousButton
@@ -111,13 +111,13 @@ function HRAView() {
         <HRAQuestionCard
           question={currentQuestion}
           questionNumber={activeIndex + 1}
-          totalQuestions={hra.questions.length}
-          answer={hra.answers[currentQuestion.id]}
+          totalQuestions={hra.screening.questions.length}
+          answer={hra.answers[currentQuestion.questionId]}
           onAnswer={answerQuestion}
         />
         <HRAQuestionNextButton
           onClick={handleNext}
-          isLastQuestion={activeIndex === hra.questions.length - 1}
+          isLastQuestion={activeIndex === hra.screening.questions.length - 1}
         />
       </div>
       <HRAViewMenu
@@ -127,7 +127,7 @@ function HRAView() {
       <HRAEditSheet
         isOpen={isSheetOpen}
         onOpenChange={setIsSheetOpen}
-        questions={hra.questions}
+        questions={hra.screening.questions}
         onEditQuestion={handleEditQuestion}
       />
     </BasePractitionerView>

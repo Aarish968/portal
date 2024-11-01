@@ -23,11 +23,10 @@ function HRAStartView({ onContinue, onCancel }: HRAStartViewProps) {
     return null
   }
 
-  if (!hra) {
+  if (!hra)
     return <div>Loading HRA...</div>
-  }
 
-  const totalQuestions = hra.questions.length
+  const totalQuestions = hra.screening.questions.length
 
   return (
     <div className=":uno: mt-12 min-h-screen w-full flex flex-col items-center">
@@ -49,44 +48,33 @@ function HRAStartView({ onContinue, onCancel }: HRAStartViewProps) {
               <p>
                 <strong>Name:</strong>
                 {' '}
-                {selectedMember.firstName}
-                {' '}
-                {selectedMember.lastName}
+                {hra.screening.memberName}
               </p>
               <p>
-                <strong>Date of Birth:</strong>
+                <strong>Member ID:</strong>
                 {' '}
-                {selectedMember.dateOfBirth}
+                {hra.screening.memberId}
               </p>
               <p>
-                <strong>Health Plan:</strong>
+                <strong>Lifetime ID:</strong>
                 {' '}
-                {selectedMember.healthPlan}
+                {hra.screening.memberLifetimeID}
               </p>
               <p>
-                <strong>Address:</strong>
+                <strong>MBI:</strong>
                 {' '}
-                {selectedMember.address}
+                {hra.screening.mbi}
               </p>
               <p>
-                <strong>Phone:</strong>
+                <strong>Contract:</strong>
                 {' '}
-                {selectedMember.phone}
-              </p>
-              <p>
-                <strong>Email:</strong>
-                {' '}
-                {selectedMember.email}
+                {hra.screening.hContract}
               </p>
             </div>
 
             <div className="mt-8 flex justify-center space-x-4">
-              <div>
-                <Button variant="outline" onClick={onCancel}>Cancel</Button>
-              </div>
-              <div>
-                <Button onClick={onContinue}>Continue</Button>
-              </div>
+              <Button variant="outline" onClick={onCancel}>Cancel</Button>
+              <Button onClick={onContinue}>Continue</Button>
             </div>
           </CardContent>
         </Card>

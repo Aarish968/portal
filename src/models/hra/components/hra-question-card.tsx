@@ -6,8 +6,8 @@ interface HRAQuestionCardProps {
   question: HRAQuestion
   questionNumber: number
   totalQuestions: number
-  answer: any
-  onAnswer: (questionId: string, answer: any) => void
+  answer: string | boolean
+  onAnswer: (questionId: string, answer: string | boolean) => void
 }
 
 function HRAQuestionCard({
@@ -30,35 +30,45 @@ function HRAQuestionCard({
           {totalQuestions}
         </p>
         <div className=":uno: flex flex-col items-center justify-center gap-4">
-          <h3 className="mb-4 text-xl font-medium">{question.text}</h3>
+          <h3 className="mb-4 text-xl font-medium">{question.questionText}</h3>
 
-          {question.type === 'multipleChoice' && (
+          {question.answerType === 'Select Single' && (
             <div className="space-y-2">
-              {question.options?.map(option => (
+              {question.answerPicklistChoices?.map((choice: string) => (
                 <Button
-                  key={option}
-                  variant="outline"
+                  key={choice}
+                  variant={answer === choice ? 'default' : 'outline'}
                   className="w-full justify-start"
-                  onClick={() => onAnswer(question.id, option)}
+                  onClick={() => onAnswer(question.questionId, choice)}
                 >
-                  {option}
+                  {choice}
                 </Button>
               ))}
             </div>
           )}
 
-          {question.type === 'boolean' && (
+          {question.answerType === 'Yes/No' && (
             <div className="flex space-x-4">
-              <Button onClick={() => onAnswer(question.id, true)}>Yes</Button>
-              <Button onClick={() => onAnswer(question.id, false)}>No</Button>
+              <Button
+                variant={answer === true ? 'default' : 'outline'}
+                onClick={() => onAnswer(question.questionId, true)}
+              >
+                Yes
+              </Button>
+              <Button
+                variant={answer === false ? 'default' : 'outline'}
+                onClick={() => onAnswer(question.questionId, false)}
+              >
+                No
+              </Button>
             </div>
           )}
 
-          {question.type === 'text' && (
+          {!question.answerType && (
             <input
               type="text"
               className="w-full border rounded p-2"
-              onChange={e => onAnswer(question.id, e.target.value)}
+              onChange={e => onAnswer(question.questionId, e.target.value)}
               value={answer as string || ''}
             />
           )}

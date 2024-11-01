@@ -1,7 +1,7 @@
 import { create } from 'zustand'
-import type { HRA, HRAQuestion } from '../schemas/hra-schema'
+import type { HRA, HRAScreening } from '../schemas/hra-schema'
 import { HRASchema } from '../schemas/hra-schema'
-import { useMemberStore } from '@/models/member/stores/member-store'
+import { fakeHRA } from '../data/fakeHRA'
 
 interface HRAStore {
   hra: HRA | null
@@ -10,7 +10,7 @@ interface HRAStore {
   currentQuestionIndex: number
   editQuestionIndex: number | null
   highestCompletedQuestionIndex: number
-  initializeHRA: () => void
+  initializeHRA: (screening?: HRAScreening) => void
   answerQuestion: (questionId: string, answer: string | boolean) => void
   nextQuestion: () => void
   previousQuestion: () => void
@@ -26,23 +26,9 @@ export const useHRAStore = create<HRAStore>((set, _get) => ({
   editQuestionIndex: null,
   highestCompletedQuestionIndex: -1,
 
-  initializeHRA: () => {
-    const selectedMember = useMemberStore.getState().selectedMember
-
-    if (!selectedMember) {
-      set({ error: 'No member selected' })
-      return
-    }
-
-    const mockQuestions: HRAQuestion[] = [
-      { id: '1', text: 'How would you rate your overall health?', type: 'multipleChoice', options: ['Excellent', 'Good', 'Fair', 'Poor'] },
-      { id: '2', text: 'Do you smoke?', type: 'boolean' },
-      { id: '3', text: 'How many days per week do you exercise?', type: 'text' },
-    ]
-
+  initializeHRA: (screening = fakeHRA) => {
     const newHRA: HRA = {
-      member: selectedMember,
-      questions: mockQuestions,
+      screening,
       currentQuestionIndex: 0,
       status: 'inProgress',
       answers: {},
@@ -85,7 +71,7 @@ export const useHRAStore = create<HRAStore>((set, _get) => ({
       if (!state.hra)
         return state
       const nextIndex = state.currentQuestionIndex + 1
-      if (nextIndex >= state.hra.questions.length) {
+      if (nextIndex >= state.hra.screening.questions.length) {
         return {
           hra: { ...state.hra, status: 'completed' },
           currentQuestionIndex: state.currentQuestionIndex,
