@@ -2,7 +2,6 @@ import { Route, Routes } from 'react-router-dom'
 import ROUTES from '../data/routing/routes'
 import RootLayout from '@/layouts/root-layout'
 import HRAPage from '@/models/hra/pages/hra-page'
-import UserPage from '@/models/user/pages/user-page'
 import SupportPage from '@/models/support/pages/support-page'
 import SettingsPage from '@/models/settings/pages/settings-page'
 import HraActivityPage from '@/models/hra-activity/pages/hra-activity-page'
@@ -17,7 +16,6 @@ function ProtectedAppRoutes() {
         <Route path={ROUTES.app.hraActivity.href} element={<HraActivityPage />} />
         <Route path={ROUTES.app.support.href} element={<SupportPage />} />
         <Route path={ROUTES.app.settings.href} element={<SettingsPage />} />
-        <Route path={ROUTES.app.user.href} element={<UserPage />} />
       </Routes>
     </RootLayout>
   )

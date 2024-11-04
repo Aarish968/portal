@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
 import { useNavigation } from '@/base_submod/contexts/navigation-context'
-import ROUTES from '@/data/routing/routes'
 import SettingsView from '@/models/settings/views/settings-view'
 
 function SettingsPage() {
@@ -8,8 +7,8 @@ function SettingsPage() {
 
   useEffect(() => {
     updatePageInfo(
-      ROUTES.app.settings.title,
-      ROUTES.app.settings.metaDescription,
+      'Profile Settings',
+      'Manage your profile settings here',
     )
   }, [updatePageInfo])
 

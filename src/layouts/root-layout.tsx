@@ -3,13 +3,15 @@ import Sidebar from '@/components/layout/sidebar/sidebar'
 import PorterDevTools from '@/base_submod/components/dev/porter-dev-tools'
 import { useAuthStore } from '@/models/auth/stores/auth-store'
 import AuthDisabledBanner from '@/base_submod/components/dev/auth-disabled-banner'
+import { useAuthCheck } from '@/models/auth/hooks/use-auth-check'
 
 interface RootLayoutProps {
   children: ReactNode
 }
 
 function RootLayout({ children }: RootLayoutProps) {
-  const isAuthDisabled = useAuthStore(state => state.isAuthDisabled)
+  const { isAuthDisabled, currentUser } = useAuthStore()
+  useAuthCheck()
 
   return (
     <>
@@ -23,7 +25,7 @@ function RootLayout({ children }: RootLayoutProps) {
           </PorterDevTools>
         </div>
         <div className=":uno: grid grid-cols-6 flex flex-grow">
-          <Sidebar />
+          <Sidebar user={currentUser} />
           <div className=":uno: page-width flex-1 pl-156px">
             <main className=":uno: relative flex flex-1 overflow-auto">
               {children}

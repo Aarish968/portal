@@ -4,8 +4,13 @@ import SidebarUserInfo from './sidebar-user-info'
 import { SidebarLinks } from '@/data/routing/site-links'
 import { TooltipProvider } from '@/base_submod/components/ui/tooltip'
 import PorterLogo from '@/base_submod/components/misc/porter-logo'
+import type { AuthUser } from '@/models/auth/schemas/auth-schema'
 
-function Sidebar() {
+interface SidebarProps {
+  user: AuthUser | null
+}
+
+function Sidebar({ user }: SidebarProps) {
   const location = useLocation()
 
   return (
@@ -32,7 +37,7 @@ function Sidebar() {
           </TooltipProvider>
         </div>
       </div>
-      <SidebarUserInfo />
+      <SidebarUserInfo name={user?.name ?? 'Guest User'} />
     </div>
   )
 }

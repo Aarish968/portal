@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
-import { useNavigation } from '@/contexts/navigation-context'
 import ROUTES from '@/data/routing/routes'
 import LogoutView from '@/models/auth/views/logout-view'
+import { useNavigation } from '@/base_submod/contexts/navigation-context'
 
 function LogoutPage() {
   const { updatePageInfo } = useNavigation()

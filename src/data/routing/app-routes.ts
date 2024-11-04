@@ -6,7 +6,6 @@ export interface AppRoutes {
   hraActivity: SiteLink
   support: SiteLink
   settings: SiteLink
-  user: SiteLink
   test: SiteLink
 }
 
@@ -45,13 +44,6 @@ export const APP_ROUTES: AppRoutes = {
     metaDescription: 'View settings',
     menuDescription: 'View settings',
     icon: 'ph:gear',
-  },
-  user: {
-    title: 'User Profile',
-    href: '/profile',
-    metaDescription: 'View user profile',
-    menuDescription: 'View user profile',
-    icon: 'ph:user',
   },
   test: {
     title: 'Testing',

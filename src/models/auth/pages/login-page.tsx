@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
-import { useNavigation } from '@/contexts/navigation-context'
 import ROUTES from '@/data/routing/routes'
 import LoginView from '@/models/auth/views/login-view'
+import { useNavigation } from '@/base_submod/contexts/navigation-context'
 
 function LoginPage() {
   const { updatePageInfo } = useNavigation()

@@ -16,7 +16,7 @@ function LoginView() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
-  const isAuthDisabled = useAuthStore(state => state.isAuthDisabled)
+  const { isAuthDisabled, setCurrentUser } = useAuthStore()
 
   useEffect(() => {
     const handleRedirectPromise = async () => {
@@ -24,6 +24,22 @@ function LoginView() {
         await initializeMsal()
         const result = await instance.handleRedirectPromise()
         if (result) {
+          const userAccount = result.account
+          if (userAccount) {
+            setCurrentUser({
+              id: userAccount.localAccountId,
+              name: userAccount.name || '',
+              username: userAccount.username,
+              role: 'user',
+              createdAt: new Date(),
+              lastLogin: new Date(),
+              homeAccountId: userAccount.homeAccountId,
+              tenantId: userAccount.tenantId,
+              localAccountId: userAccount.localAccountId,
+              environment: userAccount.environment,
+              idTokenClaims: userAccount.idTokenClaims as any,
+            })
+          }
           navigate(ROUTES.app.search.href)
         }
       }
@@ -41,7 +57,7 @@ function LoginView() {
     }
 
     handleRedirectPromise()
-  }, [instance, navigate])
+  }, [instance, navigate, setCurrentUser])
 
   const handleLogin = async () => {
     if (inProgress !== InteractionStatus.None) {
