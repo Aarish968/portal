@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/base_submod/components/ui/button'
 import { useHRAStore } from '@/models/hra/stores/hra-store'
 import HRAStartView from '@/models/hra/views/hra-start-view'
+import HRAReviewView from '@/models/hra/views/hra-review-view'
 import HraProgress from '@/models/hra/components/hra-progress'
 import HRAViewMenu from '@/models/hra/components/hra-view-menu'
 import HRAEditSheet from '@/models/hra/components/hra-edit-sheet'
@@ -13,6 +14,7 @@ import HRAQuestionPreviousButton from '@/models/hra/components/hra-question-prev
 
 function HRAView() {
   const [showStartView, setShowStartView] = useState(true)
+  const [showReviewView, setShowReviewView] = useState(false)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const navigate = useNavigate()
 
@@ -62,10 +64,30 @@ function HRAView() {
     return <div>No HRA data available</div>
   }
 
+  if (showReviewView) {
+    return (
+      <HRAReviewView
+        hra={hra}
+        onSubmit={() => {
+        }}
+        onBack={() => setShowReviewView(false)}
+      />
+    )
+  }
+
   const activeIndex = editQuestionIndex !== null ? editQuestionIndex : currentQuestionIndex
   const currentQuestion = hra.screening.questions[activeIndex]
+  const isLastQuestion = activeIndex === hra.screening.questions.length - 1
+  const canMoveNext = isLastQuestion
+    ? hra.answers[currentQuestion.questionId] !== undefined
+    : activeIndex <= highestCompletedQuestionIndex
 
   const handleNext = () => {
+    if (isLastQuestion && hra.answers[currentQuestion.questionId] !== undefined) {
+      setShowReviewView(true)
+      return
+    }
+
     if (editQuestionIndex !== null) {
       if (editQuestionIndex < highestCompletedQuestionIndex) {
         setEditQuestionIndex(editQuestionIndex + 1)
@@ -74,7 +96,7 @@ function HRAView() {
         returnToCurrentQuestion()
       }
     }
-    else {
+    else if (canMoveNext) {
       nextQuestion()
     }
   }
@@ -114,10 +136,12 @@ function HRAView() {
           totalQuestions={hra.screening.questions.length}
           answer={hra.answers[currentQuestion.questionId]}
           onAnswer={answerQuestion}
+          onNext={handleNext}
         />
         <HRAQuestionNextButton
           onClick={handleNext}
-          isLastQuestion={activeIndex === hra.screening.questions.length - 1}
+          isLastQuestion={isLastQuestion}
+          disabled={!canMoveNext}
         />
       </div>
       <HRAViewMenu

@@ -38,14 +38,22 @@ export const HRAScreeningResponseSchema = z.object({
   screenings: z.array(HRAScreeningSchema),
 })
 
+// Define the possible answer types
+export const HRAAnswerSchema = z.union([
+  z.string(),
+  z.boolean(),
+  z.array(z.string()),
+])
+
 export const HRASchema = z.object({
   screening: HRAScreeningSchema,
   currentQuestionIndex: z.number(),
   status: z.enum(['notStarted', 'inProgress', 'completed']),
-  answers: z.record(z.string(), z.union([z.string(), z.boolean()])),
+  answers: z.record(z.string(), HRAAnswerSchema),
 })
 
 export type HRAQuestion = z.infer<typeof HRAQuestionSchema>
 export type HRAScreeningResponse = z.infer<typeof HRAScreeningResponseSchema>
 export type HRA = z.infer<typeof HRASchema>
 export type HRAScreening = z.infer<typeof HRAScreeningSchema>
+export type HRAAnswer = z.infer<typeof HRAAnswerSchema>

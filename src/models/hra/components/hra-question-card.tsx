@@ -1,13 +1,17 @@
-import { Card, CardContent } from '@/base_submod/components/ui/card'
-import { Button } from '@/base_submod/components/ui/button'
+import HRASelectSingleQuestion from './hra-select-single-question'
+import HRAYesNoQuestion from './hra-yes-no-question'
+import HRATextQuestion from './hra-text-question'
+import HRAMultiSelectQuestion from './hra-multi-select-question'
 import type { HRAQuestion } from '@/models/hra/schemas/hra-schema'
+import { Card, CardContent } from '@/base_submod/components/ui/card'
 
 interface HRAQuestionCardProps {
   question: HRAQuestion
   questionNumber: number
   totalQuestions: number
-  answer: string | boolean
-  onAnswer: (questionId: string, answer: string | boolean) => void
+  answer: string | boolean | string[]
+  onAnswer: (questionId: string, answer: string | boolean | string[]) => void
+  onNext: () => void
 }
 
 function HRAQuestionCard({
@@ -16,6 +20,7 @@ function HRAQuestionCard({
   totalQuestions,
   answer,
   onAnswer,
+  onNext,
 }: HRAQuestionCardProps) {
   return (
     <Card className="w-full">
@@ -33,43 +38,33 @@ function HRAQuestionCard({
           <h3 className="mb-4 text-xl font-medium">{question.questionText}</h3>
 
           {question.answerType === 'Select Single' && (
-            <div className="space-y-2">
-              {question.answerPicklistChoices?.map((choice: string) => (
-                <Button
-                  key={choice}
-                  variant={answer === choice ? 'default' : 'outline'}
-                  className="w-full justify-start"
-                  onClick={() => onAnswer(question.questionId, choice)}
-                >
-                  {choice}
-                </Button>
-              ))}
-            </div>
+            <HRASelectSingleQuestion
+              choices={question.answerPicklistChoices || []}
+              answer={answer as string}
+              onAnswer={answer => onAnswer(question.questionId, answer)}
+              onNext={onNext}
+            />
+          )}
+
+          {question.answerType === 'Select Multiple' && (
+            <HRAMultiSelectQuestion
+              choices={question.answerPicklistChoices || []}
+              answer={answer as string[]}
+              onAnswer={answer => onAnswer(question.questionId, answer)}
+            />
           )}
 
           {question.answerType === 'Yes/No' && (
-            <div className="flex space-x-4">
-              <Button
-                variant={answer === true ? 'default' : 'outline'}
-                onClick={() => onAnswer(question.questionId, true)}
-              >
-                Yes
-              </Button>
-              <Button
-                variant={answer === false ? 'default' : 'outline'}
-                onClick={() => onAnswer(question.questionId, false)}
-              >
-                No
-              </Button>
-            </div>
+            <HRAYesNoQuestion
+              answer={answer as boolean}
+              onAnswer={answer => onAnswer(question.questionId, answer)}
+            />
           )}
 
           {!question.answerType && (
-            <input
-              type="text"
-              className="w-full border rounded p-2"
-              onChange={e => onAnswer(question.questionId, e.target.value)}
-              value={answer as string || ''}
+            <HRATextQuestion
+              answer={answer as string}
+              onAnswer={answer => onAnswer(question.questionId, answer)}
             />
           )}
         </div>

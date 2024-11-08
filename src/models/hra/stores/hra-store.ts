@@ -11,7 +11,7 @@ interface HRAStore {
   editQuestionIndex: number | null
   highestCompletedQuestionIndex: number
   initializeHRA: (screening?: HRAScreening) => void
-  answerQuestion: (questionId: string, answer: string | boolean) => void
+  answerQuestion: (questionId: string, answer: string | boolean | string[]) => void
   nextQuestion: () => void
   previousQuestion: () => void
   setEditQuestionIndex: (index: number | null) => void
@@ -50,20 +50,16 @@ export const useHRAStore = create<HRAStore>((set, _get) => ({
     }
   },
 
-  answerQuestion: (questionId: string, answer: string | boolean) => {
-    set((state) => {
-      if (!state.hra)
-        return state
-      const newHra = {
-        ...state.hra,
-        answers: { ...state.hra.answers, [questionId]: answer },
-      }
-      const currentIndex = state.editQuestionIndex !== null ? state.editQuestionIndex : state.currentQuestionIndex
-      return {
-        hra: newHra,
-        highestCompletedQuestionIndex: Math.max(state.highestCompletedQuestionIndex, currentIndex),
-      }
-    })
+  answerQuestion: (questionId: string, answer: string | boolean | string[]) => {
+    set(state => ({
+      hra: {
+        ...state.hra!,
+        answers: {
+          ...state.hra!.answers,
+          [questionId]: answer,
+        },
+      },
+    }))
   },
 
   nextQuestion: () => {
