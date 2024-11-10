@@ -6,7 +6,7 @@ export const SidebarLinks: (SiteLink | null)[] = [
   ROUTES.app.hraActivity,
   ROUTES.app.support,
   ROUTES.app.settings,
-  import.meta.env.MODE === 'development' ? ROUTES.app.test : null,
+  // import.meta.env.MODE === 'development' ? ROUTES.app.test : null,
 ]
 
 export const FooterLinksMain = {

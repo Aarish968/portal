@@ -1,7 +1,7 @@
-import HRASelectSingleQuestion from './hra-select-single-question'
 import HRAYesNoQuestion from './hra-yes-no-question'
 import HRATextQuestion from './hra-text-question'
 import HRAMultiSelectQuestion from './hra-multi-select-question'
+import HRASelectSingleQuestion from './hra-select-single-question'
 import type { HRAQuestion } from '@/models/hra/schemas/hra-schema'
 import { Card, CardContent } from '@/base_submod/components/ui/card'
 

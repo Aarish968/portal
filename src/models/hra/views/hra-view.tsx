@@ -7,10 +7,10 @@ import HRAReviewView from '@/models/hra/views/hra-review-view'
 import HraProgress from '@/models/hra/components/hra-progress'
 import HRAViewMenu from '@/models/hra/components/hra-view-menu'
 import HRAEditSheet from '@/models/hra/components/hra-edit-sheet'
-import HRAQuestionCard from '@/models/hra/components/hra-question-card'
 import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
-import HRAQuestionNextButton from '@/models/hra/components/hra-question-next-button'
-import HRAQuestionPreviousButton from '@/models/hra/components/hra-question-previous-button'
+import HRAQuestionCard from '@/models/hra/components/hra-questions/hra-question-card'
+import HRAQuestionNextButton from '@/models/hra/components/hra-questions/hra-question-next-button'
+import HRAQuestionPreviousButton from '@/models/hra/components/hra-questions/hra-question-previous-button'
 
 function HRAView() {
   const [showStartView, setShowStartView] = useState(true)

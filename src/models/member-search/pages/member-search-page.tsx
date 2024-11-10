@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import ROUTES from '@/data/routing/routes'
 import { useNavigation } from '@/base_submod/contexts/navigation-context'
 import MemberSearchView from '@/models/member-search/views/member-search-view'
-import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
 
 function MemberSearchPage() {
   const { updatePageInfo } = useNavigation()
@@ -15,9 +14,7 @@ function MemberSearchPage() {
   }, [updatePageInfo])
 
   return (
-    <BasePractitionerView>
-      <MemberSearchView />
-    </BasePractitionerView>
+    <MemberSearchView />
   )
 }
 

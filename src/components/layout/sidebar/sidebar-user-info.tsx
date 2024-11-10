@@ -10,7 +10,7 @@ function SidebarUserInfo({ name, role = 'Nurse Practitioner' }: SidebarUserInfoP
   return (
     <div className=":uno: px-3 py-4">
       <Separator className=":uno: mb-4 bg-primary-p-100" />
-      <div className=":uno: flex items-center gap-2">
+      <div className=":uno: mt-4.5 flex items-center gap-2">
         <div className=":uno: rounded-full bg-light-purple-50 p-2">
           <Icon icon="mdi:user" className=":uno: h-5 w-5 text-light-purple-300" />
         </div>

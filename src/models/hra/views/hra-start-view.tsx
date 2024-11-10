@@ -73,8 +73,12 @@ function HRAStartView({ onContinue, onCancel }: HRAStartViewProps) {
             </div>
 
             <div className="mt-8 flex justify-center space-x-4">
-              <Button variant="outline" onClick={onCancel}>Cancel</Button>
-              <Button onClick={onContinue}>Continue</Button>
+              <div>
+                <Button variant="outline" onClick={onCancel}>Cancel</Button>
+              </div>
+              <div>
+                <Button onClick={onContinue}>Continue</Button>
+              </div>
             </div>
           </CardContent>
         </Card>

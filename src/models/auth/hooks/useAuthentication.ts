@@ -49,7 +49,7 @@ function useAuthentication() {
   }
 
   function updateBrowserHistory(): void {
-    navigate(ROUTES.account.dashboard.href, { replace: true })
+    navigate(ROUTES.app.hra.href, { replace: true })
   }
 
   async function getToken(): Promise<void> {
