@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useHRAStore } from '@/models/hra/stores/hra-store'
 import { Button } from '@/base_submod/components/ui/button'
 import { Card, CardContent } from '@/base_submod/components/ui/card'
@@ -11,25 +11,44 @@ interface HRAStartViewProps {
 
 function HRAStartView({ onContinue, onCancel }: HRAStartViewProps) {
   const { selectedMember } = useMemberStore()
-  const { initializeHRA, isLoading, error } = useHRAStore()
+  const { initializeHRA, isLoading, error, hra } = useHRAStore()
+  const initRef = useRef(false)
 
   useEffect(() => {
-    if (selectedMember?.assessmentId) {
+    console.log('HRAStartView - selectedMember effect', {
+      hasSelectedMember: !!selectedMember,
+      assessmentId: selectedMember?.assessmentId,
+      initRef: initRef.current,
+    })
+
+    if (selectedMember?.assessmentId && !initRef.current) {
+      console.log('Calling initializeHRA')
+      initRef.current = true
       initializeHRA(selectedMember.assessmentId)
     }
-  }, [initializeHRA, selectedMember])
+  }, [selectedMember])
 
   useEffect(() => {
-    if (!selectedMember) {
-      onCancel()
+    console.log('HRAStartView - mount/unmount')
+    return () => {
+      console.log('HRAStartView - cleanup')
     }
-  }, [selectedMember, onCancel])
+  }, [])
+
+  const handleContinue = () => {
+    console.log('Continue clicked', { hasHRA: !!hra })
+    if (hra) {
+      onContinue()
+    }
+  }
 
   if (!selectedMember) {
+    console.log('No selected member')
     return null
   }
 
   if (error) {
+    console.log('Error state:', error)
     return (
       <div className="text-center">
         <p className="text-red-500">
@@ -40,6 +59,8 @@ function HRAStartView({ onContinue, onCancel }: HRAStartViewProps) {
       </div>
     )
   }
+
+  console.log('HRAStartView render', { isLoading, hasHRA: !!hra })
 
   return (
     <div className=":uno: mt-12 min-h-screen w-full flex flex-col items-center">
@@ -81,8 +102,7 @@ function HRAStartView({ onContinue, onCancel }: HRAStartViewProps) {
                 <Button variant="outline" onClick={onCancel}>Cancel</Button>
               </div>
               <div>
-
-                <Button onClick={onContinue} disabled={isLoading}>
+                <Button onClick={handleContinue} disabled={isLoading || !hra}>
                   {isLoading ? 'Loading...' : 'Continue'}
                 </Button>
               </div>

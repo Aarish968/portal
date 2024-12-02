@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/base_submod/components/ui/button'
 import { useHRAStore } from '@/models/hra/stores/hra-store'
@@ -30,14 +30,19 @@ function HRAView() {
     highestCompletedQuestionIndex,
     setEditQuestionIndex,
     returnToCurrentQuestion,
+    resetQuestionState,
   } = useHRAStore()
+
+  // Handle view transitions
+  const handleStartViewContinue = () => {
+    resetQuestionState()
+    setShowStartView(false)
+  }
 
   if (showStartView) {
     return (
       <HRAStartView
-        onContinue={() => {
-          setShowStartView(false)
-        }}
+        onContinue={handleStartViewContinue}
         onCancel={() => navigate('/hra-activity')}
       />
     )
@@ -66,8 +71,7 @@ function HRAView() {
     return (
       <HRAReviewView
         hra={hra}
-        onSubmit={() => {
-        }}
+        onSubmit={() => {}}
         onBack={() => setShowReviewView(false)}
       />
     )
@@ -78,7 +82,7 @@ function HRAView() {
   const isLastQuestion = activeIndex === hra.screening.questions.length - 1
   const canMoveNext = isLastQuestion
     ? hra.answers[currentQuestion.questionId] !== undefined
-    : activeIndex <= highestCompletedQuestionIndex
+    : hra.answers[currentQuestion.questionId] !== undefined
 
   const handleNext = () => {
     if (isLastQuestion && hra.answers[currentQuestion.questionId] !== undefined) {
@@ -94,7 +98,7 @@ function HRAView() {
         returnToCurrentQuestion()
       }
     }
-    else if (canMoveNext) {
+    else if (hra.answers[currentQuestion.questionId] !== undefined) {
       nextQuestion()
     }
   }
@@ -108,13 +112,6 @@ function HRAView() {
     else {
       previousQuestion()
     }
-  }
-
-  const handleEditQuestion = (index: number) => {
-    setEditQuestionIndex(index)
-  }
-
-  const handleStopAndSave = () => {
   }
 
   return (
@@ -144,13 +141,13 @@ function HRAView() {
       </div>
       <HRAViewMenu
         onEdit={() => setIsSheetOpen(true)}
-        onStopAndSave={handleStopAndSave}
+        onStopAndSave={() => {}}
       />
       <HRAEditSheet
         isOpen={isSheetOpen}
         onOpenChange={setIsSheetOpen}
         questions={hra.screening.questions}
-        onEditQuestion={handleEditQuestion}
+        onEditQuestion={setEditQuestionIndex}
       />
     </BasePractitionerView>
   )

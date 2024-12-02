@@ -13,7 +13,7 @@ function HraProgress({ currentQuestion, totalQuestions }: HraProgressProps) {
 
   return (
     <div className=":uno: w-full flex flex-col">
-      <div className=":uno: mb-2 flex justify-between">
+      <div className=":uno: mb-2 flex select-none justify-between">
         <div>Progress</div>
         <div>
           <p className="text-center text-sm text-gray-500">

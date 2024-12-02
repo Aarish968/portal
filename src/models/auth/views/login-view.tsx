@@ -40,7 +40,7 @@ function LoginView() {
               idTokenClaims: userAccount.idTokenClaims as any,
             })
           }
-          navigate(ROUTES.app.search.href)
+          navigate(ROUTES.app.hraActivity.href)
         }
       }
       catch (err) {
@@ -92,7 +92,7 @@ function LoginView() {
       <AuthDisabledBanner isAuthDisabled={isAuthDisabled} />
       <div className=":uno: absolute right-1 top-1">
         <PorterDevTools>
-          <Link to={ROUTES.app.search.href}>
+          <Link to={ROUTES.app.hraActivity.href}>
             <Button>
               App
             </Button>

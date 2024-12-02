@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { useHraActivityStore } from '../stores/hra-activity-store'
-import { HraActivityList } from '@/models/hra-activity/components/hra-activity-list'
-import { HraActivityFilter } from '@/models/hra-activity/components/hra-activity-filter'
 import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
 import type { HraActivity } from '@/models/hra-activity/schemas/hra-activity-schema'
-import { useToast } from '@/base_submod/hooks/use-toast'
+import { HraActivityList } from '@/models/hra-activity/components/hra-activity-list'
+import { HraActivityFilter } from '@/models/hra-activity/components/hra-activity-filter'
 
 function HraActivityView() {
-  const { toast } = useToast()
-  const { hraActivity, isLoading, error, fetchHraActivities } = useHraActivityStore()
+  const { hraActivity, isLoading, fetchHraActivities } = useHraActivityStore()
   const [filteredHraActivity, setFilteredHraActivity] = useState<HraActivity>({
     assessments: [],
   })
@@ -17,16 +15,6 @@ function HraActivityView() {
   useEffect(() => {
     fetchHraActivities()
   }, [fetchHraActivities])
-
-  useEffect(() => {
-    if (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error,
-      })
-    }
-  }, [error, toast])
 
   useEffect(() => {
     setFilteredHraActivity({ assessments: hraActivity.assessments })

@@ -25,7 +25,7 @@ function HRAQuestionCard({
   return (
     <Card className="w-full">
       <CardContent className="p-6">
-        <p className="mb-6 text-sm text-gray-500">
+        <p className="mb-6 select-none text-sm text-gray-500">
           Question
           {' '}
           {questionNumber}
@@ -51,6 +51,7 @@ function HRAQuestionCard({
               choices={question.answerPicklistChoices || []}
               answer={answer as string[]}
               onAnswer={answer => onAnswer(question.questionId, answer)}
+              onNext={onNext}
             />
           )}
 
@@ -58,6 +59,7 @@ function HRAQuestionCard({
             <HRAYesNoQuestion
               answer={answer as boolean}
               onAnswer={answer => onAnswer(question.questionId, answer)}
+              onNext={onNext}
             />
           )}
 

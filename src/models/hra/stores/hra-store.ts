@@ -9,12 +9,14 @@ interface HRAStore {
   currentQuestionIndex: number
   editQuestionIndex: number | null
   highestCompletedQuestionIndex: number
+  lastAssessmentId: string | null
   initializeHRA: (assessmentId: string) => Promise<void>
   answerQuestion: (questionId: string, answer: string | boolean | string[]) => void
   nextQuestion: () => void
   previousQuestion: () => void
   setEditQuestionIndex: (index: number | null) => void
   returnToCurrentQuestion: () => void
+  resetQuestionState: () => void
 }
 
 const API_URL = import.meta.env.VITE_API_URL || ''
@@ -26,9 +28,32 @@ export const useHRAStore = create<HRAStore>(set => ({
   currentQuestionIndex: 0,
   editQuestionIndex: null,
   highestCompletedQuestionIndex: -1,
+  lastAssessmentId: null,
+
+  resetQuestionState: () => {
+    set({
+      currentQuestionIndex: 0,
+      editQuestionIndex: null,
+      highestCompletedQuestionIndex: -1,
+    })
+  },
 
   initializeHRA: async (assessmentId: string) => {
-    set({ isLoading: true, error: null })
+    const currentState = useHRAStore.getState()
+    if (currentState.lastAssessmentId === assessmentId && currentState.hra && !currentState.error) {
+      return
+    }
+
+    set({
+      isLoading: true,
+      error: null,
+      hra: null,
+      currentQuestionIndex: 0,
+      editQuestionIndex: null,
+      highestCompletedQuestionIndex: -1,
+      lastAssessmentId: null,
+    })
+
     try {
       const response = await fetch(`${API_URL}?assessmentId=${assessmentId}`, {
         method: 'GET',
@@ -43,10 +68,8 @@ export const useHRAStore = create<HRAStore>(set => ({
       }
 
       const data = await response.json()
-
       const parsedResponse = HRAResponseSchema.safeParse(data)
       if (!parsedResponse.success) {
-        console.error('HRAResponseSchema Parse Error:', parsedResponse.error)
         throw new Error('Invalid HRA data format')
       }
 
@@ -75,7 +98,6 @@ export const useHRAStore = create<HRAStore>(set => ({
 
       const parsedHRA = HRASchema.safeParse(hraData)
       if (!parsedHRA.success) {
-        console.error('HRASchema Parse Error:', parsedHRA.error)
         throw new Error('Failed to transform HRA data')
       }
 
@@ -85,46 +107,57 @@ export const useHRAStore = create<HRAStore>(set => ({
         currentQuestionIndex: 0,
         editQuestionIndex: null,
         highestCompletedQuestionIndex: -1,
+        lastAssessmentId: assessmentId,
       })
     }
     catch (error) {
-      console.error('HRA Initialization Error:', error)
       set({
         error: error instanceof Error ? error.message : 'Failed to initialize HRA',
         isLoading: false,
+        hra: null,
+        currentQuestionIndex: 0,
+        editQuestionIndex: null,
+        highestCompletedQuestionIndex: -1,
+        lastAssessmentId: null,
       })
     }
   },
 
   answerQuestion: (questionId: string, answer: string | boolean | string[]) => {
-    set(state => ({
-      hra: state.hra
-        ? {
-            ...state.hra,
-            answers: {
-              ...state.hra.answers,
-              [questionId]: answer,
-            },
-          }
-        : null,
-    }))
+    set((state) => {
+      if (!state.hra)
+        return state
+
+      return {
+        ...state,
+        hra: {
+          ...state.hra,
+          answers: {
+            ...state.hra.answers,
+            [questionId]: answer,
+          },
+        },
+        highestCompletedQuestionIndex: Math.max(state.highestCompletedQuestionIndex, state.currentQuestionIndex),
+      }
+    })
   },
 
   nextQuestion: () => {
     set((state) => {
       if (!state.hra)
         return state
+
       const nextIndex = state.currentQuestionIndex + 1
       if (nextIndex >= state.hra.screening.questions.length) {
         return {
+          ...state,
           hra: { ...state.hra, status: 'completed' },
-          currentQuestionIndex: state.currentQuestionIndex,
-          highestCompletedQuestionIndex: state.currentQuestionIndex,
         }
       }
+
       return {
+        ...state,
         currentQuestionIndex: nextIndex,
-        highestCompletedQuestionIndex: Math.max(state.highestCompletedQuestionIndex, nextIndex - 1),
       }
     })
   },
@@ -134,6 +167,7 @@ export const useHRAStore = create<HRAStore>(set => ({
       if (!state.hra)
         return state
       return {
+        ...state,
         currentQuestionIndex: Math.max(0, state.currentQuestionIndex - 1),
       }
     })

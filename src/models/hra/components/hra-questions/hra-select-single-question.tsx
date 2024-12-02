@@ -58,28 +58,33 @@ function HRASelectSingleQuestion({
   }
 
   return (
-    <div className="w-full flex flex-col space-y-6">
-      <div className="w-full space-y-2">
+    <div className="w-full flex flex-col justify-center space-y-6">
+      <div className="mx-auto flex flex-col space-y-2">
         {choices?.map((choice: string) => (
-          <Button
-            key={choice}
-            variant={answer === choice ? 'default' : 'outline'}
-            className="w-full justify-start"
-            onClick={() => onAnswer(choice)}
-          >
-            {choice}
-          </Button>
+          <div className="">
+            <Button
+              key={choice}
+              variant={answer === choice ? 'default' : 'outline'}
+              className="w-full items-center justify-center"
+              onClick={() => onAnswer(choice)}
+            >
+              {choice}
+            </Button>
+          </div>
         ))}
       </div>
 
       <div className="flex justify-center">
-        <Button
-          className="w-full rounded-full bg-[#4A3880] hover:bg-[#4A3880]/90"
-          disabled={!answer}
-          onClick={handleContinue}
-        >
-          Continue
-        </Button>
+        <div>
+
+          <Button
+            className="w-full rounded-full bg-[#4A3880] hover:bg-[#4A3880]/90"
+            disabled={!answer}
+            onClick={handleContinue}
+          >
+            Continue
+          </Button>
+        </div>
       </div>
     </div>
   )
