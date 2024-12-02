@@ -1,23 +1,46 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Loader2 } from 'lucide-react'
 import { useHraActivityStore } from '../stores/hra-activity-store'
 import { HraActivityList } from '@/models/hra-activity/components/hra-activity-list'
 import { HraActivityFilter } from '@/models/hra-activity/components/hra-activity-filter'
 import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
-import type { HraActivityItem } from '@/models/hra-activity/schemas/hra-activity-schema'
+import type { HraActivity } from '@/models/hra-activity/schemas/hra-activity-schema'
+import { useToast } from '@/base_submod/hooks/use-toast'
 
 function HraActivityView() {
-  const { hraActivity } = useHraActivityStore()
-  const [filteredActivities, setFilteredActivities] = useState<HraActivityItem[]>(hraActivity.activities)
+  const { toast } = useToast()
+  const { hraActivity, isLoading, error, fetchHraActivities } = useHraActivityStore()
+  const [filteredHraActivity, setFilteredHraActivity] = useState<HraActivity>({
+    assessments: [],
+  })
+
+  useEffect(() => {
+    fetchHraActivities()
+  }, [fetchHraActivities])
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error,
+      })
+    }
+  }, [error, toast])
+
+  useEffect(() => {
+    setFilteredHraActivity({ assessments: hraActivity.assessments })
+  }, [hraActivity])
 
   const handleFilterChange = (filter: 'All' | 'Upcoming' | 'In Progress' | 'Completed') => {
     const filterMap = {
-      'All': () => hraActivity.activities,
-      'Upcoming': () => hraActivity.activities.filter(activity => activity.hraStatus === 'Not Started'),
-      'In Progress': () => hraActivity.activities.filter(activity => activity.hraStatus === 'In Progress'),
-      'Completed': () => hraActivity.activities.filter(activity => activity.hraStatus === 'Completed'),
+      'All': () => hraActivity.assessments,
+      'Upcoming': () => hraActivity.assessments.filter(activity => !activity.IsStarted && !activity.IsCompletedFlag),
+      'In Progress': () => hraActivity.assessments.filter(activity => activity.IsStarted && !activity.IsCompletedFlag),
+      'Completed': () => hraActivity.assessments.filter(activity => activity.IsCompletedFlag),
     }
 
-    setFilteredActivities(filterMap[filter]())
+    setFilteredHraActivity({ assessments: filterMap[filter]() })
   }
 
   return (
@@ -26,8 +49,13 @@ function HraActivityView() {
       description="View and manage Health Risk Assessment activities"
       actionButton={<HraActivityFilter onFilterChange={handleFilterChange} />}
     >
+      {isLoading && (
+        <div className="flex items-center justify-center p-8">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      )}
 
-      <HraActivityList activities={filteredActivities} />
+      {!isLoading && <HraActivityList hraActivity={filteredHraActivity} />}
     </BasePractitionerView>
   )
 }

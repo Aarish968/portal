@@ -24,19 +24,21 @@ function HRAEditSheet({ isOpen, onOpenChange, questions, onEditQuestion }: HRAEd
         <div className="mt-4 space-y-2">
           {questions.map((question, index) => (
             <Button
-              key={question.id}
+              key={question.questionId}
               variant="ghost"
-              className="w-full justify-start text-left"
+              className="h-auto w-full justify-start whitespace-normal py-3 text-left normal-case"
               onClick={() => {
                 onEditQuestion(index)
                 onOpenChange(false)
               }}
             >
-              <span className="mr-2">
-                {index + 1}
-                .
-              </span>
-              {question.text}
+              <div className="flex">
+                <span className="mr-2 flex-shrink-0">
+                  {index + 1}
+                  .
+                </span>
+                <span>{question.questionText}</span>
+              </div>
             </Button>
           ))}
         </div>

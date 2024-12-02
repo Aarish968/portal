@@ -1,4 +1,4 @@
-import type { HraActivityItem } from '@/models/hra-activity/schemas/hra-activity-schema'
+import type { HraActivity, HraActivityItem } from '@/models/hra-activity/schemas/hra-activity-schema'
 import {
   Table,
   TableBody,
@@ -11,19 +11,28 @@ import { Card, CardContent } from '@/base_submod/components/ui/card'
 import { Badge } from '@/base_submod/components/ui/badge'
 
 interface HraActivityListProps {
-  activities: HraActivityItem[]
+  hraActivity: HraActivity
 }
 
-export function HraActivityList({ activities }: HraActivityListProps) {
-  function getBadgeVariant(status: string) {
-    switch (status) {
-      case 'In Progress':
-        return 'warning'
-      case 'Completed':
-        return 'success'
-      default:
-        return 'noStatus'
-    }
+export function HraActivityList({ hraActivity }: HraActivityListProps) {
+  function getBadgeVariant(isStarted: boolean, isCompleted: boolean) {
+    if (isCompleted)
+      return 'success'
+    if (isStarted)
+      return 'warning'
+    return 'noStatus'
+  }
+
+  function getStatusText(isStarted: boolean, isCompleted: boolean) {
+    if (isCompleted)
+      return 'Completed'
+    if (isStarted)
+      return 'In Progress'
+    return 'Not Started'
+  }
+
+  function formatAddress(address: HraActivityItem['memberAddress']) {
+    return `${address.street}, ${address.city}, ${address.state} ${address.zip}`
   }
 
   return (
@@ -33,22 +42,22 @@ export function HraActivityList({ activities }: HraActivityListProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Date of Birth</TableHead>
               <TableHead>Address</TableHead>
               <TableHead>Phone</TableHead>
-              <TableHead>HRA Status</TableHead>
+              <TableHead>Payer</TableHead>
+              <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {activities.map(activity => (
-              <TableRow key={activity.id}>
-                <TableCell>{`${activity.firstName} ${activity.lastName}`}</TableCell>
-                <TableCell>{activity.dateOfBirth}</TableCell>
-                <TableCell>{activity.address}</TableCell>
-                <TableCell>{activity.phone}</TableCell>
+            {hraActivity.assessments.map(activity => (
+              <TableRow key={activity.assessmentID}>
+                <TableCell>{`${activity.memberFirstName} ${activity.memberLastName}`}</TableCell>
+                <TableCell>{formatAddress(activity.memberAddress)}</TableCell>
+                <TableCell>{activity.MemberPhone || 'N/A'}</TableCell>
+                <TableCell>{activity.MemberPayer}</TableCell>
                 <TableCell>
-                  <Badge variant={getBadgeVariant(activity.hraStatus)}>
-                    {activity.hraStatus}
+                  <Badge variant={getBadgeVariant(activity.IsStarted, activity.IsCompletedFlag)}>
+                    {getStatusText(activity.IsStarted, activity.IsCompletedFlag)}
                   </Badge>
                 </TableCell>
               </TableRow>
