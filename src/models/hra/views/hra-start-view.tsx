@@ -1,9 +1,8 @@
 import { useEffect } from 'react'
-import { useMemberStore } from '@/models/member/stores/member-store'
 import { useHRAStore } from '@/models/hra/stores/hra-store'
-import { Card, CardContent } from '@/base_submod/components/ui/card'
 import { Button } from '@/base_submod/components/ui/button'
-import HraProgress from '@/models/hra/components/hra-progress'
+import { Card, CardContent } from '@/base_submod/components/ui/card'
+import { useMemberStore } from '@/models/member/stores/member-store'
 
 interface HRAStartViewProps {
   onContinue: () => void
@@ -12,29 +11,39 @@ interface HRAStartViewProps {
 
 function HRAStartView({ onContinue, onCancel }: HRAStartViewProps) {
   const { selectedMember } = useMemberStore()
-  const { hra, currentQuestionIndex, initializeHRA } = useHRAStore()
+  const { initializeHRA, isLoading, error } = useHRAStore()
 
   useEffect(() => {
-    initializeHRA()
-  }, [initializeHRA])
+    if (selectedMember?.assessmentId) {
+      initializeHRA(selectedMember.assessmentId)
+    }
+  }, [initializeHRA, selectedMember])
+
+  useEffect(() => {
+    if (!selectedMember) {
+      onCancel()
+    }
+  }, [selectedMember, onCancel])
 
   if (!selectedMember) {
-    onCancel()
     return null
   }
 
-  if (!hra)
-    return <div>Loading HRA...</div>
-
-  const totalQuestions = hra.screening.questions.length
+  if (error) {
+    return (
+      <div className="text-center">
+        <p className="text-red-500">
+          Error loading HRA:
+          {error}
+        </p>
+        <Button onClick={onCancel}>Back to HRA Activity</Button>
+      </div>
+    )
+  }
 
   return (
     <div className=":uno: mt-12 min-h-screen w-full flex flex-col items-center">
       <div className="mx-auto max-w-2xl w-full">
-        <HraProgress
-          currentQuestion={currentQuestionIndex}
-          totalQuestions={totalQuestions}
-        />
         <div className=":uno: mt-6 text-center text-balance">
           <h1 className="mb-4 text-32px font-bold">Let's get started</h1>
           <p className="mb-8">
@@ -48,27 +57,22 @@ function HRAStartView({ onContinue, onCancel }: HRAStartViewProps) {
               <p>
                 <strong>Name:</strong>
                 {' '}
-                {hra.screening.memberName}
+                {`${selectedMember.firstName} ${selectedMember.lastName}`}
               </p>
               <p>
-                <strong>Member ID:</strong>
+                <strong>Assessment:</strong>
                 {' '}
-                {hra.screening.memberId}
+                {selectedMember.assessmentName}
               </p>
               <p>
-                <strong>Lifetime ID:</strong>
+                <strong>Address:</strong>
                 {' '}
-                {hra.screening.memberLifetimeID}
+                {selectedMember.address}
               </p>
               <p>
-                <strong>MBI:</strong>
+                <strong>Phone:</strong>
                 {' '}
-                {hra.screening.mbi}
-              </p>
-              <p>
-                <strong>Contract:</strong>
-                {' '}
-                {hra.screening.hContract}
+                {selectedMember.phone || 'N/A'}
               </p>
             </div>
 
@@ -77,7 +81,10 @@ function HRAStartView({ onContinue, onCancel }: HRAStartViewProps) {
                 <Button variant="outline" onClick={onCancel}>Cancel</Button>
               </div>
               <div>
-                <Button onClick={onContinue}>Continue</Button>
+
+                <Button onClick={onContinue} disabled={isLoading}>
+                  {isLoading ? 'Loading...' : 'Continue'}
+                </Button>
               </div>
             </div>
           </CardContent>

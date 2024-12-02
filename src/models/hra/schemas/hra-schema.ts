@@ -1,59 +1,79 @@
 import { z } from 'zod'
 
-export const HRAQuestionSchema: z.ZodType<any> = z.lazy(() => z.object({
+const HRAQuestionSchema: z.ZodType<any> = z.lazy(() => z.object({
   questionText: z.string(),
   questionId: z.string(),
   children: z.array(HRAQuestionSchema).nullable(),
-  answerType: z.string().nullable(),
-  answerDetails: z.any().nullable(),
-  answerPicklistChoices: z.array(z.string()).optional(),
-  activationDate: z.string().optional(),
-  activityDomain: z.string().optional(),
-  expirationDate: z.string().optional(),
-  loincCode: z.string().optional(),
-  questionClassification: z.string().optional(),
-  status: z.boolean().optional(),
-  isPositive: z.boolean().optional(),
-  yesIsPositive: z.boolean().optional(),
-  payer: z.string().optional(),
+  answerType: z.string(),
+  answerDetails: z.string().nullable(),
+  answerPicklistChoices: z.array(z.string()),
+  answer: z.string().nullable(),
+  activationDate: z.string().nullable(),
+  activityDomain: z.string().nullable(),
+  expirationDate: z.string().nullable(),
+  loincCode: z.string().nullable(),
+  questionClassification: z.string().nullable(),
+  status: z.boolean(),
+  isPositive: z.boolean(),
+  yesIsPositive: z.boolean(),
+  payer: z.string().nullable(),
+  isAnswerValuePopulated: z.boolean(),
+  externalquestionId: z.string().nullable(),
+  ehrKey: z.string().nullable(),
 }))
 
 export const HRAScreeningSchema = z.object({
-  templateId: z.string(),
+  templateId: z.string().nullable(),
   screeningId: z.string(),
   relatedCases: z.array(z.object({
     caseNumber: z.string(),
   })),
   questions: z.array(HRAQuestionSchema),
-  memberName: z.string(),
-  memberLifetimeID: z.string(),
-  memberId: z.string(),
-  memberDOB: z.string().nullable(),
-  mbi: z.string(),
-  hContract: z.string(),
-  uuid: z.string(),
+  name: z.string(),
+  isStarted: z.boolean(),
+  isCompleted: z.boolean(),
+  completionDate: z.string().nullable(),
+  agentName: z.string(),
 })
 
-export const HRAScreeningResponseSchema = z.object({
+const HRAResponseItemSchema = z.object({
+  uuid: z.string().nullable(),
   screenings: z.array(HRAScreeningSchema),
+  message: z.string().nullable(),
+  memberName: z.string(),
+  memberLifetimeID: z.string().nullable(),
+  memberId: z.string().nullable(),
+  memberDOB: z.string().nullable(),
+  mbi: z.string().nullable(),
+  hContract: z.string().nullable(),
 })
 
-// Define the possible answer types
-export const HRAAnswerSchema = z.union([
-  z.string(),
-  z.boolean(),
-  z.array(z.string()),
-])
+export const HRAResponseSchema = z.array(HRAResponseItemSchema)
 
 export const HRASchema = z.object({
-  screening: HRAScreeningSchema,
+  screening: z.object({
+    templateId: z.string().nullable(),
+    screeningId: z.string(),
+    relatedCases: z.array(z.object({
+      caseNumber: z.string(),
+    })),
+    questions: z.array(HRAQuestionSchema),
+    name: z.string(),
+    isStarted: z.boolean(),
+    isCompleted: z.boolean(),
+    completionDate: z.string().nullable(),
+    agentName: z.string(),
+    memberId: z.string().nullable(),
+    memberLifetimeID: z.string().nullable(),
+    mbi: z.string().nullable(),
+    hContract: z.string().nullable(),
+  }),
   currentQuestionIndex: z.number(),
   status: z.enum(['notStarted', 'inProgress', 'completed']),
-  answers: z.record(z.string(), HRAAnswerSchema),
+  answers: z.record(z.string(), z.union([z.string(), z.boolean(), z.array(z.string())])),
 })
 
 export type HRAQuestion = z.infer<typeof HRAQuestionSchema>
-export type HRAScreeningResponse = z.infer<typeof HRAScreeningResponseSchema>
-export type HRA = z.infer<typeof HRASchema>
 export type HRAScreening = z.infer<typeof HRAScreeningSchema>
-export type HRAAnswer = z.infer<typeof HRAAnswerSchema>
+export type HRAResponse = z.infer<typeof HRAResponseSchema>
+export type HRA = z.infer<typeof HRASchema>

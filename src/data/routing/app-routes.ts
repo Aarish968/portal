@@ -1,7 +1,6 @@
 import type { SiteLink } from '@/base_submod/schemas/router'
 
 export interface AppRoutes {
-  search: SiteLink
   hra: SiteLink
   hraActivity: SiteLink
   support: SiteLink
@@ -10,13 +9,6 @@ export interface AppRoutes {
 }
 
 export const APP_ROUTES: AppRoutes = {
-  search: {
-    title: 'Search',
-    href: '/',
-    metaDescription: 'Search for a member',
-    menuDescription: 'Search for a member',
-    icon: 'ph:magnifying-glass',
-  },
   hra: {
     title: 'HRA',
     href: '/hra',

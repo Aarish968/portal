@@ -19,7 +19,8 @@ const defaultHraActivity: HraActivity = {
   assessments: [],
 }
 
-const API_URL = 'https://9s7199pwv7.execute-api.us-east-2.amazonaws.com/prod/hra'
+const API_URL = import.meta.env.VITE_API_URL || ''
+
 const CACHE_LIFETIME = 10 * 60 * 1000
 
 export const useHraActivityStore = create<HraActivityStore>()(

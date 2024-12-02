@@ -22,7 +22,6 @@ function HRAView() {
     hra,
     isLoading,
     error,
-    initializeHRA,
     answerQuestion,
     nextQuestion,
     previousQuestion,
@@ -38,9 +37,8 @@ function HRAView() {
       <HRAStartView
         onContinue={() => {
           setShowStartView(false)
-          initializeHRA()
         }}
-        onCancel={() => navigate('/member-search')}
+        onCancel={() => navigate('/hra-activity')}
       />
     )
   }
@@ -55,7 +53,7 @@ function HRAView() {
         Error:
         {' '}
         {error}
-        <Button onClick={() => navigate('/member-search')}>Back to Member Search</Button>
+        <Button onClick={() => navigate('/hra-activity')}>Back to HRA Activity</Button>
       </div>
     )
   }
