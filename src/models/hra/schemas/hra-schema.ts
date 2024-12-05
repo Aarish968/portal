@@ -4,7 +4,7 @@ const HRAQuestionSchema: z.ZodType<any> = z.lazy(() => z.object({
   questionText: z.string(),
   questionId: z.string(),
   children: z.array(HRAQuestionSchema).nullable(),
-  answerType: z.string(),
+  answerType: z.string().nullable(),
   answerDetails: z.string().nullable(),
   answerPicklistChoices: z.array(z.string()),
   answer: z.string().nullable(),
@@ -77,3 +77,33 @@ export type HRAQuestion = z.infer<typeof HRAQuestionSchema>
 export type HRAScreening = z.infer<typeof HRAScreeningSchema>
 export type HRAResponse = z.infer<typeof HRAResponseSchema>
 export type HRA = z.infer<typeof HRASchema>
+
+export function shouldShowChildQuestions(question: HRAQuestion, answers: Record<string, string | boolean | string[]>): boolean {
+  if (!question.children || question.children.length === 0) {
+    return false
+  }
+
+  const answer = answers[question.questionId]
+  if (!answer) {
+    return false
+  }
+
+  if (!question.answerType) {
+    return true
+  }
+
+  const hasOtherOption = question.answerPicklistChoices.some(choice =>
+    choice.toLowerCase().includes('other'))
+  if (hasOtherOption && String(answer).toLowerCase().includes('other')) {
+    return true
+  }
+
+  const isYesNoQuestion = question.answerPicklistChoices.length === 2
+    && question.answerPicklistChoices.includes('Yes')
+    && question.answerPicklistChoices.includes('No')
+  if (isYesNoQuestion && answer === 'Yes') {
+    return true
+  }
+
+  return false
+}

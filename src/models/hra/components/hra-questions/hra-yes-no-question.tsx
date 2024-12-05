@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
 import { Button } from '@/base_submod/components/ui/button'
-import { useHRAStore } from '@/models/hra/stores/hra-store'
 
 interface HRAYesNoQuestionProps {
   answer: boolean | null
@@ -9,18 +8,12 @@ interface HRAYesNoQuestionProps {
 }
 
 function HRAYesNoQuestion({ answer, onAnswer, onNext }: HRAYesNoQuestionProps) {
-  const { nextQuestion } = useHRAStore()
-
   useEffect(() => {
     if (answer !== null) {
-      const timer = setTimeout(() => {
-        nextQuestion()
-        onNext()
-      }, 750)
-
+      const timer = setTimeout(onNext, 750)
       return () => clearTimeout(timer)
     }
-  }, [answer, nextQuestion, onNext])
+  }, [answer, onNext])
 
   return (
     <div className="w-full flex flex-col items-center space-y-6">

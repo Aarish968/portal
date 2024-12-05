@@ -1,5 +1,4 @@
 import { Button } from '@/base_submod/components/ui/button'
-import { useHRAStore } from '@/models/hra/stores/hra-store'
 import { Checkbox } from '@/base_submod/components/ui/checkbox'
 
 interface HRAMultiSelectQuestionProps {
@@ -15,8 +14,6 @@ function HRAMultiSelectQuestion({
   onAnswer,
   onNext,
 }: HRAMultiSelectQuestionProps) {
-  const { nextQuestion } = useHRAStore()
-
   const toggleChoice = (choice: string) => {
     if (answer.includes(choice)) {
       onAnswer(answer.filter(item => item !== choice))
@@ -24,11 +21,6 @@ function HRAMultiSelectQuestion({
     else {
       onAnswer([...answer, choice])
     }
-  }
-
-  const handleContinue = () => {
-    nextQuestion()
-    onNext()
   }
 
   if (choices.length > 6) {
@@ -57,7 +49,7 @@ function HRAMultiSelectQuestion({
             <Button
               className="w-full rounded-full bg-[#4A3880] hover:bg-[#4A3880]/90"
               disabled={answer.length === 0}
-              onClick={handleContinue}
+              onClick={onNext}
             >
               Continue
             </Button>
@@ -88,7 +80,7 @@ function HRAMultiSelectQuestion({
           <Button
             className="w-full rounded-full bg-[#4A3880] hover:bg-[#4A3880]/90"
             disabled={answer.length === 0}
-            onClick={handleContinue}
+            onClick={onNext}
           >
             Continue
           </Button>

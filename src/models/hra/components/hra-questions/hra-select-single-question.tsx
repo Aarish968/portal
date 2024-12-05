@@ -6,7 +6,6 @@ import {
   SelectValue,
 } from '@/base_submod/components/ui/select'
 import { Button } from '@/base_submod/components/ui/button'
-import { useHRAStore } from '@/models/hra/stores/hra-store'
 
 interface HRASelectSingleQuestionProps {
   choices: string[]
@@ -21,13 +20,6 @@ function HRASelectSingleQuestion({
   onAnswer,
   onNext,
 }: HRASelectSingleQuestionProps) {
-  const { nextQuestion } = useHRAStore()
-
-  const handleContinue = () => {
-    nextQuestion()
-    onNext()
-  }
-
   if (choices.length > 6) {
     return (
       <div className="w-full flex flex-col space-y-6">
@@ -48,7 +40,7 @@ function HRASelectSingleQuestion({
           <Button
             className="w-full rounded-full bg-[#4A3880] hover:bg-[#4A3880]/90"
             disabled={!answer}
-            onClick={handleContinue}
+            onClick={onNext}
           >
             Continue
           </Button>
@@ -61,9 +53,8 @@ function HRASelectSingleQuestion({
     <div className="w-full flex flex-col justify-center space-y-6">
       <div className="mx-auto flex flex-col space-y-2">
         {choices?.map((choice: string) => (
-          <div className="">
+          <div key={choice}>
             <Button
-              key={choice}
               variant={answer === choice ? 'default' : 'outline'}
               className="w-full items-center justify-center"
               onClick={() => onAnswer(choice)}
@@ -76,11 +67,10 @@ function HRASelectSingleQuestion({
 
       <div className="flex justify-center">
         <div>
-
           <Button
             className="w-full rounded-full bg-[#4A3880] hover:bg-[#4A3880]/90"
             disabled={!answer}
-            onClick={handleContinue}
+            onClick={onNext}
           >
             Continue
           </Button>

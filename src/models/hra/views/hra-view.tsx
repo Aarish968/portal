@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/base_submod/components/ui/button'
-import { useHRAStore } from '@/models/hra/stores/hra-store'
+import { findQuestionByPath, useHRAStore } from '@/models/hra/stores/hra-store'
+import type { HRAQuestion } from '@/models/hra/schemas/hra-schema'
 import HRAStartView from '@/models/hra/views/hra-start-view'
 import HRAReviewView from '@/models/hra/views/hra-review-view'
 import HraProgress from '@/models/hra/components/hra-progress'
@@ -25,7 +26,7 @@ function HRAView() {
     answerQuestion,
     nextQuestion,
     previousQuestion,
-    currentQuestionIndex,
+    questionPath,
     editQuestionIndex,
     highestCompletedQuestionIndex,
     setEditQuestionIndex,
@@ -33,7 +34,6 @@ function HRAView() {
     resetQuestionState,
   } = useHRAStore()
 
-  // Handle view transitions
   const handleStartViewContinue = () => {
     resetQuestionState()
     setShowStartView(false)
@@ -77,9 +77,18 @@ function HRAView() {
     )
   }
 
-  const activeIndex = editQuestionIndex !== null ? editQuestionIndex : currentQuestionIndex
-  const currentQuestion = hra.screening.questions[activeIndex]
-  const isLastQuestion = activeIndex === hra.screening.questions.length - 1
+  const currentQuestion = editQuestionIndex !== null
+    ? hra.screening.questions[editQuestionIndex]
+    : findQuestionByPath(hra.screening.questions, questionPath)
+
+  if (!currentQuestion) {
+    return <div>Question not found</div>
+  }
+
+  const isLastQuestion = editQuestionIndex !== null
+    ? editQuestionIndex === hra.screening.questions.length - 1
+    : questionPath[0].questionIndex === hra.screening.questions.length - 1 && questionPath.length === 1
+
   const canMoveNext = isLastQuestion
     ? hra.answers[currentQuestion.questionId] !== undefined
     : hra.answers[currentQuestion.questionId] !== undefined
@@ -114,21 +123,40 @@ function HRAView() {
     }
   }
 
+  const totalQuestions = hra.screening.questions.reduce((total, q) => {
+    let count = 1
+    if (q.children) {
+      count += q.children.reduce((childTotal: number, child: HRAQuestion) => {
+        return childTotal + 1 + (child.children?.length || 0)
+      }, 0)
+    }
+    return total + count
+  }, 0)
+
+  const currentQuestionNumber = editQuestionIndex !== null
+    ? editQuestionIndex + 1
+    : questionPath.reduce((total, path, index) => {
+      if (index === 0)
+        return path.questionIndex + 1
+      const parentQuestion = findQuestionByPath(hra.screening.questions, questionPath.slice(0, index))
+      return total + (parentQuestion?.children?.[path.questionIndex]?.questionId ? 1 : 0)
+    }, 0)
+
   return (
     <BasePractitionerView>
       <HraProgress
-        currentQuestion={currentQuestionIndex + 1}
-        totalQuestions={hra.screening.questions.length}
+        currentQuestion={currentQuestionNumber}
+        totalQuestions={totalQuestions}
       />
       <div className="mx-auto max-w-2xl w-full flex items-center justify-center gap-6">
         <HRAQuestionPreviousButton
           onClick={handlePrevious}
-          disabled={activeIndex === 0}
+          disabled={editQuestionIndex === 0 || (questionPath.length === 1 && questionPath[0].questionIndex === 0)}
         />
         <HRAQuestionCard
           question={currentQuestion}
-          questionNumber={activeIndex + 1}
-          totalQuestions={hra.screening.questions.length}
+          questionNumber={currentQuestionNumber}
+          totalQuestions={totalQuestions}
           answer={hra.answers[currentQuestion.questionId]}
           onAnswer={answerQuestion}
           onNext={handleNext}
