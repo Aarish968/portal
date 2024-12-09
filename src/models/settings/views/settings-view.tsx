@@ -4,6 +4,11 @@ import BasePractitionerView from '@/components/layout/views/base-practitioner-vi
 
 function SettingsView() {
   const { currentUser } = useAuthStore()
+
+  if (!currentUser) {
+    return null
+  }
+
   return (
     <BasePractitionerView title="Profile Settings" description="Manage your profile settings here">
       <SettingsForm user={currentUser} />

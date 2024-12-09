@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-import ROUTES from '@/data/routing/routes'
 import { useNavigation } from '@/base_submod/contexts/navigation-context'
 import MemberSearchView from '@/models/member-search/views/member-search-view'
 
@@ -8,8 +7,8 @@ function MemberSearchPage() {
 
   useEffect(() => {
     updatePageInfo(
-      ROUTES.app.search.title,
-      ROUTES.app.search.metaDescription,
+      'Search for a member',
+      'Search for a member by name, email, or phone number',
     )
   }, [updatePageInfo])
 
