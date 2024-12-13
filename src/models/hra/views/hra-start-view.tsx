@@ -15,40 +15,23 @@ function HRAStartView({ onContinue, onCancel }: HRAStartViewProps) {
   const initRef = useRef(false)
 
   useEffect(() => {
-    console.log('HRAStartView - selectedMember effect', {
-      hasSelectedMember: !!selectedMember,
-      assessmentId: selectedMember?.assessmentId,
-      initRef: initRef.current,
-    })
-
     if (selectedMember?.assessmentId && !initRef.current) {
-      console.log('Calling initializeHRA')
       initRef.current = true
       initializeHRA(selectedMember.assessmentId)
     }
   }, [selectedMember])
 
-  useEffect(() => {
-    console.log('HRAStartView - mount/unmount')
-    return () => {
-      console.log('HRAStartView - cleanup')
-    }
-  }, [])
-
   const handleContinue = () => {
-    console.log('Continue clicked', { hasHRA: !!hra })
     if (hra) {
       onContinue()
     }
   }
 
   if (!selectedMember) {
-    console.log('No selected member')
     return null
   }
 
   if (error) {
-    console.log('Error state:', error)
     return (
       <div className="text-center">
         <p className="text-red-500">
@@ -59,8 +42,6 @@ function HRAStartView({ onContinue, onCancel }: HRAStartViewProps) {
       </div>
     )
   }
-
-  console.log('HRAStartView render', { isLoading, hasHRA: !!hra })
 
   return (
     <div className=":uno: mt-12 min-h-screen w-full flex flex-col items-center">

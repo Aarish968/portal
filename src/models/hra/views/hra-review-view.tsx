@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import HRAConfirmBar from '../components/hra-confirm-bar'
 import { useToast } from '@/base_submod/hooks/use-toast'
-import type { HRA } from '@/models/hra/schemas/hra-schema'
+import type { HRA, HRAQuestion } from '@/models/hra/schemas/hra-schema'
 import { Button } from '@/base_submod/components/ui/button'
 import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
 
@@ -39,6 +39,45 @@ function HRAReviewView({ hra, onSubmit, onBack }: HRAReviewViewProps) {
     }, 500)
   }
 
+  const renderQuestionRow = (question: HRAQuestion, index: number) => {
+    const answer = hra.answers[question.questionId]
+    const answerStr = Array.isArray(answer) ? answer[0] : String(answer)
+
+    const hasChildren = question.children?.length > 0
+    const showChildren = hasChildren && (
+      !question.answerType
+      || question.children.some((child: HRAQuestion) => child.childDependentValue === answerStr)
+    )
+
+    return (
+      <>
+        <tr key={question.questionId}>
+          <td className="px-6 py-4 text-sm text-gray-900">
+            {`${index + 1}. ${question.questionText}`}
+          </td>
+          <td className="px-6 py-4 text-sm text-gray-900">
+            {question.answerType ? formatAnswer(answer) : ''}
+          </td>
+        </tr>
+        {showChildren && question.children?.map((child: HRAQuestion, childIndex: number) => {
+          if (!question.answerType || child.childDependentValue === answerStr) {
+            return (
+              <tr key={child.questionId}>
+                <td className="px-6 py-4 pl-12 text-sm text-gray-900">
+                  {`${String.fromCharCode(97 + childIndex)}. ${child.questionText}`}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-900">
+                  {formatAnswer(hra.answers[child.questionId])}
+                </td>
+              </tr>
+            )
+          }
+          return null
+        })}
+      </>
+    )
+  }
+
   return (
     <BasePractitionerView title="Review and Submit HRA">
       <div className="overflow-hidden border rounded-lg">
@@ -50,16 +89,9 @@ function HRAReviewView({ hra, onSubmit, onBack }: HRAReviewViewProps) {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {hra.screening.questions.map((question, index) => (
-              <tr key={question.questionId}>
-                <td className="px-6 py-4 text-sm text-gray-900">
-                  {`${index + 1}. ${question.questionText}`}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-900">
-                  {formatAnswer(hra.answers[question.questionId])}
-                </td>
-              </tr>
-            ))}
+            {hra.screening.questions.map((question, index) =>
+              renderQuestionRow(question, index),
+            )}
           </tbody>
         </table>
       </div>

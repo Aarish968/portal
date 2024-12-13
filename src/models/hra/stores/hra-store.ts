@@ -5,6 +5,7 @@ import { HRAResponseSchema, HRASchema } from '../schemas/hra-schema'
 interface QuestionPath {
   questionIndex: number
   parentId: string | null
+  childIndex?: number
 }
 
 interface HRAStore {
@@ -27,72 +28,49 @@ interface HRAStore {
 const API_URL = import.meta.env.VITE_API_URL || ''
 
 export function findQuestionByPath(questions: HRAQuestion[], path: QuestionPath[]): HRAQuestion | null {
-  console.log('Finding question by path:', { questions, path })
   let currentQuestion: HRAQuestion | null = null
   let currentQuestions = questions
 
   for (const { questionIndex, parentId } of path) {
-    console.log('Processing path segment:', { questionIndex, parentId, currentQuestions })
-
     if (parentId) {
       const parent = currentQuestions.find(q => q.questionId === parentId)
       if (!parent?.children) {
-        console.log('Parent question not found or has no children:', parentId)
         return null
       }
       currentQuestions = parent.children
     }
 
     if (questionIndex >= currentQuestions.length) {
-      console.log('Question index out of bounds')
       return null
     }
 
     currentQuestion = currentQuestions[questionIndex]
     if (!currentQuestion) {
-      console.log('Question not found at index')
       return null
     }
   }
 
-  console.log('Found question:', currentQuestion)
   return currentQuestion
 }
 
 function shouldShowChildQuestions(question: HRAQuestion, answer: string | boolean | string[] | undefined): boolean {
-  console.log('Checking if should show children:', { question, answer })
-
   if (!question.children || question.children.length === 0) {
-    console.log('No children available')
     return false
   }
 
   if (!answer) {
-    console.log('No answer provided')
     return false
   }
 
   if (!question.answerType) {
-    console.log('Container question - showing children')
     return true
   }
 
-  const hasOtherOption = question.answerPicklistChoices.some((choice: string) =>
-    choice.toLowerCase().includes('other'))
-  if (hasOtherOption && String(answer).toLowerCase().includes('other')) {
-    console.log('Other option selected - showing children')
-    return true
+  if (question.children.some((child: HRAQuestion) => child.childDependentValue)) {
+    const answerStr = Array.isArray(answer) ? answer[0] : String(answer)
+    return question.children.some((child: HRAQuestion) => child.childDependentValue === answerStr)
   }
 
-  const isYesNoQuestion = question.answerPicklistChoices.length === 2
-    && question.answerPicklistChoices.includes('Yes')
-    && question.answerPicklistChoices.includes('No')
-  if (isYesNoQuestion && answer === 'Yes') {
-    console.log('Yes selected on Yes/No question - showing children')
-    return true
-  }
-
-  console.log('No conditions met for showing children')
   return false
 }
 
@@ -101,57 +79,54 @@ function findNextQuestion(
   answers: Record<string, string | boolean | string[]>,
   currentPath: QuestionPath[],
 ): QuestionPath[] | null {
-  console.log('Finding next question:', { currentPath, answers })
-
   const currentQuestion = findQuestionByPath(questions, currentPath)
-  if (!currentQuestion) {
-    console.log('Current question not found')
+  if (!currentQuestion)
     return null
-  }
 
-  const currentAnswer = answers[currentQuestion.questionId]
-  console.log('Current question and answer:', { currentQuestion, currentAnswer })
-
-  if (!currentQuestion.answerType && currentQuestion.children) {
-    if (currentPath.length === 1) {
-      console.log('Container question - showing children')
-      return [...currentPath, { questionIndex: 0, parentId: currentQuestion.questionId }]
-    }
-  }
-
-  if (shouldShowChildQuestions(currentQuestion, currentAnswer)) {
-    console.log('Should show children - moving to first child')
-    return [...currentPath, { questionIndex: 0, parentId: currentQuestion.questionId }]
-  }
-
-  if (currentPath.length > 1) {
-    console.log('In nested path, checking siblings')
-    const parentPath = currentPath.slice(0, -1)
-    const parentQuestion = findQuestionByPath(questions, parentPath)
-    const currentLevel = currentPath[currentPath.length - 1]
-
-    if (parentQuestion?.children) {
-      if (currentLevel.questionIndex + 1 < parentQuestion.children.length) {
-        console.log('Moving to next sibling')
-        return [...parentPath, { questionIndex: currentLevel.questionIndex + 1, parentId: parentQuestion.questionId }]
+  if (!currentQuestion.answerType && currentQuestion.children?.length) {
+    let currentChildIndex = 0
+    for (let i = 0; i < currentQuestion.children.length; i++) {
+      if (answers[currentQuestion.children[i].questionId] === undefined) {
+        currentChildIndex = i
+        break
+      }
+      if (i === currentQuestion.children.length - 1) {
+        currentChildIndex = i
       }
     }
 
-    console.log('No more siblings, going back to parent level')
-    const nextRootIndex = parentPath[0].questionIndex + 1
-    if (nextRootIndex < questions.length) {
-      console.log('Moving to next root question')
-      return [{ questionIndex: nextRootIndex, parentId: null }]
+    const currentChild = currentQuestion.children[currentChildIndex]
+    if (answers[currentChild.questionId] !== undefined) {
+      if (currentChildIndex < currentQuestion.children.length - 1) {
+        return [{
+          questionIndex: currentPath[0].questionIndex,
+          parentId: null,
+          childIndex: currentChildIndex + 1,
+        }]
+      }
+      return [{
+        questionIndex: currentPath[0].questionIndex + 1,
+        parentId: null,
+      }]
     }
+    return [{
+      questionIndex: currentPath[0].questionIndex,
+      parentId: null,
+      childIndex: currentChildIndex,
+    }]
+  }
+
+  const currentAnswer = answers[currentQuestion.questionId]
+
+  if (shouldShowChildQuestions(currentQuestion, currentAnswer)) {
+    return [...currentPath, { questionIndex: 0, parentId: currentQuestion.questionId }]
   }
 
   const nextRootIndex = currentPath[0].questionIndex + 1
   if (nextRootIndex < questions.length) {
-    console.log('Moving to next root question:', nextRootIndex)
     return [{ questionIndex: nextRootIndex, parentId: null }]
   }
 
-  console.log('No more questions found')
   return null
 }
 
@@ -258,7 +233,6 @@ export const useHRAStore = create<HRAStore>(set => ({
   },
 
   answerQuestion: (questionId: string, answer: string | boolean | string[]) => {
-    console.log('Answering question:', { questionId, answer })
     set((state) => {
       if (!state.hra)
         return state
@@ -266,6 +240,19 @@ export const useHRAStore = create<HRAStore>(set => ({
       const currentQuestion = findQuestionByPath(state.hra.screening.questions, state.questionPath)
       if (!currentQuestion)
         return state
+
+      if (!currentQuestion.answerType && currentQuestion.children?.length) {
+        return {
+          ...state,
+          hra: {
+            ...state.hra,
+            answers: {
+              ...state.hra.answers,
+              [questionId]: answer,
+            },
+          },
+        }
+      }
 
       const newState = {
         ...state,
@@ -279,7 +266,6 @@ export const useHRAStore = create<HRAStore>(set => ({
       }
 
       if (shouldShowChildQuestions(currentQuestion, answer)) {
-        console.log('Answer triggers child questions - updating path')
         return {
           ...newState,
           questionPath: [...state.questionPath, { questionIndex: 0, parentId: questionId }],
@@ -295,18 +281,11 @@ export const useHRAStore = create<HRAStore>(set => ({
       if (!state.hra)
         return state
 
-      console.log('Current state before next:', {
-        path: state.questionPath,
-        answers: state.hra.answers,
-      })
-
       const nextPath = findNextQuestion(
         state.hra.screening.questions,
         state.hra.answers,
         state.questionPath,
       )
-
-      console.log('Found next path:', nextPath)
 
       if (!nextPath) {
         return {

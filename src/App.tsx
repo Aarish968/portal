@@ -1,6 +1,6 @@
 import { MsalProvider } from '@azure/msal-react'
 import { Suspense } from 'react'
-import AppRoutes from '@/routes/app-routes'
+import { Outlet } from 'react-router-dom'
 import { NavigationProvider } from '@/base_submod/contexts/navigation-context'
 import LoadingSpinner from '@/base_submod/components/misc/loading-spinner'
 import { msalInstance } from '@/base_submod/utils/MSAL'
@@ -12,7 +12,7 @@ function App() {
       <NavigationProvider>
         <Suspense fallback={<LoadingSpinner />}>
           <Toaster />
-          <AppRoutes />
+          <Outlet />
         </Suspense>
       </NavigationProvider>
     </MsalProvider>

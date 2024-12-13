@@ -4,6 +4,7 @@ const HRAQuestionSchema: z.ZodType<any> = z.lazy(() => z.object({
   questionText: z.string(),
   questionId: z.string(),
   children: z.array(HRAQuestionSchema).nullable(),
+  childDependentValue: z.string().nullable(),
   answerType: z.string().nullable(),
   answerDetails: z.string().nullable(),
   answerPicklistChoices: z.array(z.string()),
@@ -20,6 +21,7 @@ const HRAQuestionSchema: z.ZodType<any> = z.lazy(() => z.object({
   isAnswerValuePopulated: z.boolean(),
   externalquestionId: z.string().nullable(),
   ehrKey: z.string().nullable(),
+  hasTextDetail: z.boolean().optional(),
 }))
 
 export const HRAScreeningSchema = z.object({

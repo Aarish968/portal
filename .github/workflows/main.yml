@@ -1,0 +1,56 @@
+name: Deploy Provider Portal
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment"
+        required: true
+        default: "Sandbox"
+        type: choice
+        options:
+          - Sandbox
+          - Development
+          - QA
+          - Production
+
+jobs:
+  deploy:
+    environment: ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    env:
+      BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
+      AWS_ACCESS_KEY_ID: ${{ secrets[format('AWS_{0}_ACCESS_KEY_ID', github.event.inputs.environment == 'Sandbox' && 'SBX' || github.event.inputs.environment == 'Development' && 'DEV' || github.event.inputs.environment == 'QA' && 'QA' || 'PROD')] }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets[format('AWS_{0}_SECRET_ACCESS_KEY', github.event.inputs.environment == 'Sandbox' && 'SBX' || github.event.inputs.environment == 'Development' && 'DEV' || github.event.inputs.environment == 'QA' && 'QA' || 'PROD')] }}
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GH_PAT }}
+        submodules: 'recursive'
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.17.0'
+
+    - name: Install pnpm
+      run: npm install -g pnpm
+
+    - name: Install Dependencies
+      run: pnpm install
+
+    - name: Build Application
+      run: pnpm build
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v3
+      with:
+        aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Deploy to S3
+      run: |
+        aws s3 sync ./dist s3://${{ env.BUCKET_NAME }} --delete

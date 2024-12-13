@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { useAuthentication } from '@/models/auth/hooks/useAuthentication'
 
 function AnalyticsManager() {
-  console.log('AnalyticsManager')
   useAuthentication()
 
   const { t } = useTranslation()

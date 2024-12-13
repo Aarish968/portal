@@ -77,10 +77,6 @@ function useAuthentication() {
     localStorage.removeItem('user')
     localStorage.setItem('ISIDLE', 'true')
     localStorage.setItem('dispatchedLogoutOnIdle', 'true')
-    // console.log('Tracking sign out event in mixpanel')
-    // mixpanel.track(mixPanelData.events.SIGN_OUT)
-    // console.log('Resetting mixpanel')
-    // mixpanel.reset()
     navigate(ROUTES.auth.login.href, { replace: true })
   }
 
