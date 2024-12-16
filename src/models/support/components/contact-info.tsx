@@ -4,12 +4,12 @@ function ContactInfo() {
       <div>
         <span className=":uno: font-bold">Phone:</span>
         {' '}
-        <a href="tel:1234567890" className=":uno: leading-14px">123-456-7890</a>
+        <a href="tel:8332102877" className=":uno: leading-14px no-underline">1 (833) 210-2877</a>
       </div>
       <div>
         <span className=":uno: font-bold">Email:</span>
         {' '}
-        <a href="mailto:support@example.com" className=":uno: leading-14px">support@example.com</a>
+        <a href="mailto:support@helloporter.com" className=":uno: leading-14px">support@helloporter.com</a>
       </div>
     </div>
   )

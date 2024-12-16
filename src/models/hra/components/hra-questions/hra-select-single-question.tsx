@@ -56,7 +56,6 @@ function HRASelectSingleQuestion({
           <div key={choice}>
             <Button
               variant={answer === choice ? 'default' : 'outline'}
-              className="w-full items-center justify-center"
               onClick={() => onAnswer(choice)}
             >
               {choice}

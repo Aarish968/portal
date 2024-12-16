@@ -80,7 +80,7 @@ function HRAReviewView({ hra, onSubmit, onBack }: HRAReviewViewProps) {
 
   return (
     <BasePractitionerView title="Review and Submit HRA">
-      <div className="overflow-hidden border rounded-lg">
+      <div className="mb-10 overflow-hidden border rounded-lg">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>

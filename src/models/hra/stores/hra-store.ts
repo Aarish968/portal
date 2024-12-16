@@ -23,6 +23,11 @@ interface HRAStore {
   setEditQuestionIndex: (index: number | null) => void
   returnToCurrentQuestion: () => void
   resetQuestionState: () => void
+  getTotalQuestions: () => number
+  getCurrentQuestionNumber: () => number
+  getDisplayQuestion: () => HRAQuestion | null
+  isLastQuestion: () => boolean
+  canMoveNext: () => boolean
 }
 
 const API_URL = import.meta.env.VITE_API_URL || ''
@@ -130,7 +135,32 @@ function findNextQuestion(
   return null
 }
 
-export const useHRAStore = create<HRAStore>(set => ({
+function calculateTotalQuestions(questions: HRAQuestion[]): number {
+  return questions.length
+}
+
+function calculateCurrentQuestionNumber(
+  editQuestionIndex: number | null,
+  questionPath: QuestionPath[],
+): number {
+  if (editQuestionIndex !== null) {
+    return editQuestionIndex + 1
+  }
+
+  return questionPath[0].questionIndex + 1
+}
+
+interface HRAStoreState {
+  hra: HRA | null
+  isLoading: boolean
+  error: string | null
+  questionPath: QuestionPath[]
+  editQuestionIndex: number | null
+  highestCompletedQuestionIndex: number
+  lastAssessmentId: string | null
+}
+
+export const useHRAStore = create<HRAStore>((set, get) => ({
   hra: null,
   isLoading: false,
   error: null,
@@ -148,7 +178,7 @@ export const useHRAStore = create<HRAStore>(set => ({
   },
 
   initializeHRA: async (assessmentId: string) => {
-    const currentState = useHRAStore.getState()
+    const currentState = get() as HRAStoreState
     if (currentState.lastAssessmentId === assessmentId && currentState.hra && !currentState.error) {
       return
     }
@@ -234,27 +264,16 @@ export const useHRAStore = create<HRAStore>(set => ({
 
   answerQuestion: (questionId: string, answer: string | boolean | string[]) => {
     set((state) => {
-      if (!state.hra)
+      if (!state.hra) {
         return state
-
-      const currentQuestion = findQuestionByPath(state.hra.screening.questions, state.questionPath)
-      if (!currentQuestion)
-        return state
-
-      if (!currentQuestion.answerType && currentQuestion.children?.length) {
-        return {
-          ...state,
-          hra: {
-            ...state.hra,
-            answers: {
-              ...state.hra.answers,
-              [questionId]: answer,
-            },
-          },
-        }
       }
 
-      const newState = {
+      const currentQuestion = findQuestionByPath(state.hra.screening.questions, state.questionPath)
+      if (!currentQuestion) {
+        return state
+      }
+
+      return {
         ...state,
         hra: {
           ...state.hra,
@@ -264,15 +283,6 @@ export const useHRAStore = create<HRAStore>(set => ({
           },
         },
       }
-
-      if (shouldShowChildQuestions(currentQuestion, answer)) {
-        return {
-          ...newState,
-          questionPath: [...state.questionPath, { questionIndex: 0, parentId: questionId }],
-        }
-      }
-
-      return newState
     })
   },
 
@@ -280,6 +290,38 @@ export const useHRAStore = create<HRAStore>(set => ({
     set((state) => {
       if (!state.hra)
         return state
+
+      if (state.editQuestionIndex !== null) {
+        const nextIndex = state.editQuestionIndex + 1
+        if (nextIndex <= state.highestCompletedQuestionIndex) {
+          return {
+            ...state,
+            editQuestionIndex: nextIndex,
+          }
+        }
+        return {
+          ...state,
+          editQuestionIndex: null,
+          questionPath: [{
+            questionIndex: state.highestCompletedQuestionIndex + 1,
+            parentId: null,
+          }],
+        }
+      }
+
+      const currentQuestion = findQuestionByPath(state.hra.screening.questions, state.questionPath)
+      if (!currentQuestion)
+        return state
+
+      const currentAnswer = state.hra.answers[currentQuestion.questionId]
+
+      if (shouldShowChildQuestions(currentQuestion, currentAnswer)) {
+        return {
+          ...state,
+          questionPath: [...state.questionPath, { questionIndex: 0, parentId: currentQuestion.questionId }],
+          highestCompletedQuestionIndex: Math.max(state.highestCompletedQuestionIndex, state.questionPath[0].questionIndex),
+        }
+      }
 
       const nextPath = findNextQuestion(
         state.hra.screening.questions,
@@ -291,12 +333,14 @@ export const useHRAStore = create<HRAStore>(set => ({
         return {
           ...state,
           hra: { ...state.hra, status: 'completed' },
+          highestCompletedQuestionIndex: state.questionPath[0].questionIndex,
         }
       }
 
       return {
         ...state,
         questionPath: nextPath,
+        highestCompletedQuestionIndex: Math.max(state.highestCompletedQuestionIndex, state.questionPath[0].questionIndex),
       }
     })
   },
@@ -332,5 +376,68 @@ export const useHRAStore = create<HRAStore>(set => ({
       editQuestionIndex: null,
       questionPath: [{ questionIndex: state.highestCompletedQuestionIndex + 1, parentId: null }],
     }))
+  },
+
+  getTotalQuestions: () => {
+    const state = get() as HRAStoreState
+    if (!state.hra)
+      return 0
+    return calculateTotalQuestions(state.hra.screening.questions)
+  },
+
+  getCurrentQuestionNumber: () => {
+    const state = get() as HRAStoreState
+    if (!state.hra)
+      return 0
+    return calculateCurrentQuestionNumber(
+      state.editQuestionIndex,
+      state.questionPath,
+    )
+  },
+
+  getDisplayQuestion: () => {
+    const state = get()
+    if (!state.hra)
+      return null
+
+    const currentQuestion = state.editQuestionIndex !== null
+      ? state.hra.screening.questions[state.editQuestionIndex]
+      : findQuestionByPath(state.hra.screening.questions, state.questionPath)
+
+    if (!currentQuestion)
+      return null
+
+    if (!currentQuestion.answerType && currentQuestion.children?.length) {
+      const childIndex = state.questionPath[0].childIndex || 0
+      const child = currentQuestion.children[childIndex]
+      return {
+        ...child,
+        parentQuestionText: currentQuestion.questionText,
+        questionText: child.questionText,
+      }
+    }
+
+    return currentQuestion
+  },
+
+  isLastQuestion: () => {
+    const state = get()
+    if (!state.hra)
+      return false
+
+    return state.editQuestionIndex !== null
+      ? state.editQuestionIndex === state.hra.screening.questions.length - 1
+      : state.questionPath[0].questionIndex === state.hra.screening.questions.length - 1 && state.questionPath.length === 1
+  },
+
+  canMoveNext: () => {
+    const state = get()
+    const displayQuestion = state.getDisplayQuestion()
+    if (!state.hra || !displayQuestion)
+      return false
+
+    return state.isLastQuestion()
+      ? state.hra.answers[displayQuestion.questionId] !== undefined
+      : state.hra.answers[displayQuestion.questionId] !== undefined
   },
 }))

@@ -1,22 +1,20 @@
 import { useEffect, useState } from 'react'
-import { useMsal } from '@azure/msal-react'
 import { AuthError, InteractionStatus } from '@azure/msal-browser'
-import { Link, useNavigate } from 'react-router-dom'
-import { Button } from '@/base_submod/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/base_submod/components/ui/card'
-import PorterLogo from '@/base_submod/assets/images/logos/porter-logo-vertical.svg'
+import { useMsal } from '@azure/msal-react'
+import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
-import PorterDevTools from '@/base_submod/components/dev/porter-dev-tools'
-import AuthDisabledBanner from '@/base_submod/components/dev/auth-disabled-banner'
-import { useAuthStore } from '@/models/auth/stores/auth-store'
 import { initializeMsal } from '@/base_submod/utils/MSAL'
+import { Button } from '@/base_submod/components/ui/button'
+import { useAuthStore } from '@/models/auth/stores/auth-store'
+import PorterLogo from '@/base_submod/assets/images/logos/porter-logo-vertical.svg'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/base_submod/components/ui/card'
 
 function LoginView() {
   const { instance, inProgress } = useMsal()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
-  const { isAuthDisabled, setCurrentUser } = useAuthStore()
+  const { setCurrentUser } = useAuthStore()
 
   useEffect(() => {
     const handleRedirectPromise = async () => {
@@ -89,16 +87,6 @@ function LoginView() {
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      <AuthDisabledBanner isAuthDisabled={isAuthDisabled} />
-      <div className=":uno: absolute right-1 top-1">
-        <PorterDevTools>
-          <Link to={ROUTES.app.hraActivity.href}>
-            <Button>
-              App
-            </Button>
-          </Link>
-        </PorterDevTools>
-      </div>
       <Card className="w-[350px]">
         <CardHeader className="space-y-1">
           <CardTitle className="text-center text-2xl">

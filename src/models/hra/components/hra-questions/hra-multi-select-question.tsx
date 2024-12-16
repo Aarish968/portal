@@ -66,7 +66,6 @@ function HRAMultiSelectQuestion({
           <div key={choice}>
             <Button
               variant={answer.includes(choice) ? 'default' : 'outline'}
-              className="w-full items-center justify-center pt-1"
               onClick={() => toggleChoice(choice)}
             >
               {choice}

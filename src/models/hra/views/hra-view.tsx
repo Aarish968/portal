@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useBlocker, useNavigate } from 'react-router-dom'
 import { Button } from '@/base_submod/components/ui/button'
-import { findQuestionByPath, useHRAStore } from '@/models/hra/stores/hra-store'
-import type { HRAQuestion } from '@/models/hra/schemas/hra-schema'
+import { useHRAStore } from '@/models/hra/stores/hra-store'
 import HRAStartView from '@/models/hra/views/hra-start-view'
 import HRAReviewView from '@/models/hra/views/hra-review-view'
 import HraProgress from '@/models/hra/components/hra-progress'
@@ -15,28 +14,33 @@ import HRAQuestionPreviousButton from '@/models/hra/components/hra-questions/hra
 import HRAConfirmationModal from '@/models/hra/components/hra-confirmation-modal'
 
 function HRAView() {
+  const navigate = useNavigate()
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [showStartView, setShowStartView] = useState(true)
   const [showReviewView, setShowReviewView] = useState(false)
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
-  const navigate = useNavigate()
 
   const {
     hra,
-    isLoading,
     error,
-    answerQuestion,
-    nextQuestion,
-    previousQuestion,
+    isLoading,
+    canMoveNext,
     questionPath,
+    nextQuestion,
+    answerQuestion,
+    isLastQuestion,
+    previousQuestion,
     editQuestionIndex,
-    highestCompletedQuestionIndex,
+    getTotalQuestions,
+    resetQuestionState,
+    getDisplayQuestion,
     setEditQuestionIndex,
     returnToCurrentQuestion,
-    resetQuestionState,
+    getCurrentQuestionNumber,
+    highestCompletedQuestionIndex,
   } = useHRAStore()
 
-  const shouldBlock = !showStartView && !showReviewView
+  const shouldBlock = !showStartView && !showReviewView && hra !== null
 
   const blocker = useBlocker(shouldBlock)
 
@@ -47,7 +51,6 @@ function HRAView() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault()
       setShowConfirmationModal(true)
-      e.returnValue = ''
       return ''
     }
 
@@ -116,7 +119,8 @@ function HRAView() {
   }
 
   if (!hra) {
-    return <div>No HRA data available</div>
+    navigate('/hra-activity')
+    return null
   }
 
   if (showReviewView) {
@@ -129,34 +133,14 @@ function HRAView() {
     )
   }
 
-  const currentQuestion = editQuestionIndex !== null
-    ? hra.screening.questions[editQuestionIndex]
-    : findQuestionByPath(hra.screening.questions, questionPath)
+  const displayQuestion = getDisplayQuestion()
 
-  if (!currentQuestion) {
+  if (!displayQuestion) {
     return <div>Question not found</div>
   }
 
-  let displayQuestion = currentQuestion
-  if (!currentQuestion.answerType && currentQuestion.children?.length) {
-    const childIndex = questionPath[0].childIndex || 0
-    const child = currentQuestion.children[childIndex]
-    displayQuestion = {
-      ...child,
-      questionText: `${currentQuestion.questionText}\n\n${child.questionText}`,
-    }
-  }
-
-  const isLastQuestion = editQuestionIndex !== null
-    ? editQuestionIndex === hra.screening.questions.length - 1
-    : questionPath[0].questionIndex === hra.screening.questions.length - 1 && questionPath.length === 1
-
-  const canMoveNext = isLastQuestion
-    ? hra.answers[displayQuestion.questionId] !== undefined
-    : hra.answers[displayQuestion.questionId] !== undefined
-
   const handleNext = () => {
-    if (isLastQuestion && hra.answers[displayQuestion.questionId] !== undefined) {
+    if (isLastQuestion() && hra?.answers[displayQuestion.questionId] !== undefined) {
       setShowReviewView(true)
       return
     }
@@ -169,7 +153,7 @@ function HRAView() {
         returnToCurrentQuestion()
       }
     }
-    else if (hra.answers[displayQuestion.questionId] !== undefined) {
+    else if (hra?.answers[displayQuestion.questionId] !== undefined) {
       nextQuestion()
     }
   }
@@ -189,30 +173,11 @@ function HRAView() {
     answerQuestion(questionId, answer)
   }
 
-  const totalQuestions = hra.screening.questions.reduce((total, q) => {
-    let count = 1
-    if (q.children) {
-      count += q.children.reduce((childTotal: number, child: HRAQuestion) => {
-        return childTotal + 1 + (child.children?.length || 0)
-      }, 0)
-    }
-    return total + count
-  }, 0)
-
-  const currentQuestionNumber = editQuestionIndex !== null
-    ? editQuestionIndex + 1
-    : questionPath.reduce((total, path, index) => {
-      if (index === 0)
-        return path.questionIndex + 1
-      const parentQuestion = findQuestionByPath(hra.screening.questions, questionPath.slice(0, index))
-      return total + (parentQuestion?.children?.[path.questionIndex]?.questionId ? 1 : 0)
-    }, 0)
-
   return (
     <BasePractitionerView>
       <HraProgress
-        currentQuestion={currentQuestionNumber}
-        totalQuestions={totalQuestions}
+        currentQuestion={getCurrentQuestionNumber()}
+        totalQuestions={getTotalQuestions()}
       />
       <div className="mx-auto max-w-2xl w-full flex items-center justify-center gap-6">
         <HRAQuestionPreviousButton
@@ -221,16 +186,14 @@ function HRAView() {
         />
         <HRAQuestionCard
           question={displayQuestion}
-          questionNumber={currentQuestionNumber}
-          totalQuestions={totalQuestions}
           answer={hra.answers[displayQuestion.questionId]}
           onAnswer={handleAnswer}
           onNext={handleNext}
         />
         <HRAQuestionNextButton
           onClick={handleNext}
-          isLastQuestion={isLastQuestion}
-          disabled={!canMoveNext}
+          isLastQuestion={isLastQuestion()}
+          disabled={!canMoveNext()}
         />
       </div>
       <HRAViewMenu
@@ -242,6 +205,7 @@ function HRAView() {
         onOpenChange={setIsSheetOpen}
         questions={hra.screening.questions}
         onEditQuestion={setEditQuestionIndex}
+        answers={hra.answers}
       />
       <HRAConfirmationModal
         isOpen={showConfirmationModal}

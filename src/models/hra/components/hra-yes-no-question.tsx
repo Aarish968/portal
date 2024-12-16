@@ -8,9 +8,8 @@ interface HRAYesNoQuestionProps {
 
 function HRAYesNoQuestion({ answer, onAnswer, onNext }: HRAYesNoQuestionProps) {
   const handleAnswer = (value: boolean) => {
-    if (value !== answer) {
+    if (value !== answer)
       onAnswer(value)
-    }
   }
 
   return (
