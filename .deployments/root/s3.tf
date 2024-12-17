@@ -6,11 +6,25 @@ locals {
 data "aws_iam_policy_document" "s3_policy" {
   statement {
     actions   = ["s3:GetObject"]
-    resources = ["arn:aws:s3:::${var.provider_portal_bucket_name}/*"]
-
+    resources = [
+      "arn:aws:s3:::${var.provider_portal_bucket_name}/*",
+      "arn:aws:s3:::${var.provider_portal_bucket_name}/assets/*",
+      "arn:aws:s3:::${var.provider_portal_bucket_name}/vite.svg",
+      "arn:aws:s3:::${var.provider_portal_bucket_name}/favicon.ico",
+      "arn:aws:s3:::${var.provider_portal_bucket_name}/index.html"
+    ]
     principals {
-      type        = "AWS"
-      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
+      type        = "*"
+      identifiers = ["*"]
+    }
+  }
+
+  statement {
+    actions   = ["s3:ListBucket"]
+    resources = ["arn:aws:s3:::${var.provider_portal_bucket_name}"]
+    principals {
+      type        = "*"
+      identifiers = ["*"]
     }
   }
 }
@@ -20,27 +34,55 @@ module "s3_bucket" {
   source  = "terraform-aws-modules/s3-bucket/aws"
   version = "4.2.2"
 
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
 
   bucket                   = var.provider_portal_bucket_name
-  acl                      = "private"
+  acl                      = "public-read"  
   control_object_ownership = true
   object_ownership         = "ObjectWriter"
-
-  force_destroy = var.force_destroy
+  force_destroy           = var.force_destroy
+  
+  website = {
+    index_document = "index.html"
+    error_document = "index.html"
+    routing_rules = jsonencode([
+      {
+        Condition = {
+          HttpErrorCodeReturnedEquals = "404"
+        }
+        Redirect = {
+          ReplaceKeyWith = "index.html"
+        }
+      }
+    ])
+  }
 
   attach_policy = true
   policy        = data.aws_iam_policy_document.s3_policy.json
+
+  attach_public_policy = true
+  website_hosting     = "enabled"
 
   versioning = {
     enabled = false
   }
 
+  cors_rule = {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "HEAD"]
+    allowed_origins = ["*"]
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
+
   tags = {
     Name = var.provider_portal_bucket_name
   }
+}
 
+output "website_endpoint" {
+  value = module.s3_bucket.s3_bucket_website_endpoint
 }
