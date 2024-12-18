@@ -40,7 +40,7 @@ module "s3_bucket" {
   restrict_public_buckets = false
 
   bucket                   = var.provider_portal_bucket_name
-  acl                      = "public-read"  
+  acl                      = null  
   control_object_ownership = true
   object_ownership         = "ObjectWriter"
   force_destroy           = var.force_destroy
@@ -48,35 +48,24 @@ module "s3_bucket" {
   website = {
     index_document = "index.html"
     error_document = "index.html"
-    routing_rules = jsonencode([
-      {
-        Condition = {
-          HttpErrorCodeReturnedEquals = "404"
-        }
-        Redirect = {
-          ReplaceKeyWith = "index.html"
-        }
-      }
-    ])
   }
 
   attach_policy = true
   policy        = data.aws_iam_policy_document.s3_policy.json
 
-  attach_public_policy = true
-  website_hosting     = "enabled"
-
   versioning = {
     enabled = false
   }
 
-  cors_rule = {
-    allowed_headers = ["*"]
-    allowed_methods = ["GET", "HEAD"]
-    allowed_origins = ["*"]
-    expose_headers  = ["ETag"]
-    max_age_seconds = 3000
-  }
+  cors_rule = [
+    {
+      allowed_headers = ["*"]
+      allowed_methods = ["GET", "HEAD"]
+      allowed_origins = ["*"]
+      expose_headers  = ["ETag"]
+      max_age_seconds = 3000
+    }
+  ]
 
   tags = {
     Name = var.provider_portal_bucket_name
