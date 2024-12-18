@@ -1,10 +1,17 @@
 import { LogOut, User } from 'lucide-react'
+import { useMsal } from '@azure/msal-react'
 import { Avatar, AvatarFallback } from '@/base_submod/components/ui/avatar'
 import { Button } from '@/base_submod/components/ui/button'
 import { Card, CardContent } from '@/base_submod/components/ui/card'
 import type { AuthUser } from '@/models/auth/schemas/auth-schema'
 
 export function SettingsForm({ user }: { user: AuthUser }) {
+  const { instance, accounts } = useMsal()
+
+  const handleLogout = () => {
+    instance.logout().catch(e => console.error(e))
+  }
+
   return (
     <Card className="max-w-md w-full">
       <CardContent className="grid mt-6 gap-6">
@@ -33,15 +40,17 @@ export function SettingsForm({ user }: { user: AuthUser }) {
             </div>
             <div>
               <div className="text-muted-foreground">Email</div>
-              <div>amy.porter@helloporter.com</div>
+              <div>{accounts[0]?.username}</div>
             </div>
           </div>
         </div>
 
-        <Button variant="outline" className="w-full" size="sm">
-          <LogOut className="mr-2 h-4 w-4" />
-          Sign out
-        </Button>
+        <div className="flex justify-start">
+          <Button variant="link" size="sm" className="w-auto" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign out
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

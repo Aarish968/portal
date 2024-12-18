@@ -31,7 +31,7 @@ function HRAEditSheet({ isOpen, onOpenChange, questions, onEditQuestion, answers
       <div key={question.questionId}>
         <Button
           variant="ghost"
-          className={`h-auto w-full justify-start whitespace-normal py-1 text-left normal-case ${
+          className={`h-auto w-full justify-start whitespace-normal pt-2 text-left normal-case ${
             isChild ? 'pl-8' : ''
           }`}
           disabled={!isAnswered}
@@ -65,7 +65,7 @@ function HRAEditSheet({ isOpen, onOpenChange, questions, onEditQuestion, answers
         <SheetHeader>
           <SheetTitle>Edit HRA Questions</SheetTitle>
         </SheetHeader>
-        <div className="mt-4 flex-1 overflow-y-auto space-y-2">
+        <div className="mt-4 flex-1 overflow-y-auto space-y-2 divide-y">
           {questions.map((question, index) => renderQuestion(question, index))}
         </div>
       </SheetContent>

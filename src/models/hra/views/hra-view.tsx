@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useBlocker, useNavigate } from 'react-router-dom'
 import { Button } from '@/base_submod/components/ui/button'
 import { useHRAStore } from '@/models/hra/stores/hra-store'
@@ -12,13 +12,17 @@ import HRAQuestionCard from '@/models/hra/components/hra-questions/hra-question-
 import HRAQuestionNextButton from '@/models/hra/components/hra-questions/hra-question-next-button'
 import HRAQuestionPreviousButton from '@/models/hra/components/hra-questions/hra-question-previous-button'
 import HRAConfirmationModal from '@/models/hra/components/hra-confirmation-modal'
+import { useToast } from '@/base_submod/hooks/use-toast'
 
 function HRAView() {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [showStartView, setShowStartView] = useState(true)
   const [showReviewView, setShowReviewView] = useState(false)
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
+  const pendingLocationRef = useRef<any>(null)
+  const [isNavigating, setIsNavigating] = useState(false)
 
   const {
     hra,
@@ -40,9 +44,47 @@ function HRAView() {
     highestCompletedQuestionIndex,
   } = useHRAStore()
 
-  const shouldBlock = !showStartView && !showReviewView && hra !== null
+  const shouldBlock = !showStartView && !showReviewView && hra !== null && !isNavigating
 
   const blocker = useBlocker(shouldBlock)
+
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      setShowConfirmationModal(true)
+      pendingLocationRef.current = blocker.location
+    }
+  }, [blocker.state])
+
+  const handleStartViewContinue = () => {
+    resetQuestionState()
+    setShowStartView(false)
+  }
+
+  const handleConfirmNavigation = () => {
+    const location = pendingLocationRef.current
+    if (!location)
+      return
+
+    setIsNavigating(true)
+    setShowConfirmationModal(false)
+
+    toast({
+      title: 'Progress Saved',
+      duration: 2000,
+    })
+
+    setTimeout(() => {
+      navigate(location.pathname + location.search + location.hash, {
+        replace: true,
+      })
+    }, 500)
+  }
+
+  const handleCancelNavigation = () => {
+    setShowConfirmationModal(false)
+    pendingLocationRef.current = null
+    blocker.reset?.()
+  }
 
   useEffect(() => {
     if (!shouldBlock)
@@ -68,31 +110,6 @@ function HRAView() {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [shouldBlock])
-
-  const handleStartViewContinue = () => {
-    resetQuestionState()
-    setShowStartView(false)
-  }
-
-  const handleConfirmNavigation = () => {
-    setShowConfirmationModal(false)
-    if (blocker.state === 'blocked') {
-      blocker.proceed()
-    }
-  }
-
-  const handleCancelNavigation = () => {
-    setShowConfirmationModal(false)
-    if (blocker.state === 'blocked') {
-      blocker.reset()
-    }
-  }
-
-  useEffect(() => {
-    if (blocker.state === 'blocked') {
-      setShowConfirmationModal(true)
-    }
-  }, [blocker.state])
 
   if (showStartView) {
     return (

@@ -45,7 +45,7 @@ function HRAStartView({ onContinue, onCancel }: HRAStartViewProps) {
 
   return (
     <div className=":uno: mt-12 min-h-screen w-full flex flex-col items-center">
-      <div className="mx-auto max-w-2xl w-full">
+      <div className="mx-auto max-w-xl w-full">
         <div className=":uno: mt-6 text-center text-balance">
           <h1 className="mb-4 text-32px font-bold">Let's get started</h1>
           <p className="mb-8">

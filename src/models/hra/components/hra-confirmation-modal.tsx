@@ -17,7 +17,14 @@ interface HRAConfirmationModalProps {
 
 function HRAConfirmationModal({ isOpen, onConfirm, onCancel }: HRAConfirmationModalProps) {
   return (
-    <AlertDialog open={isOpen} onOpenChange={(open: boolean) => !open && onCancel()}>
+    <AlertDialog
+      open={isOpen}
+      onOpenChange={(open: boolean) => {
+        if (!open && isOpen) {
+          onCancel()
+        }
+      }}
+    >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Pause HRA Assessment?</AlertDialogTitle>
@@ -27,10 +34,22 @@ function HRAConfirmationModal({ isOpen, onConfirm, onCancel }: HRAConfirmationMo
         </AlertDialogHeader>
         <AlertDialogFooter>
           <div>
-            <AlertDialogCancel onClick={onCancel}>Continue Assessment</AlertDialogCancel>
+            <AlertDialogCancel onClick={(e) => {
+              e.stopPropagation()
+              onCancel()
+            }}
+            >
+              Continue Assessment
+            </AlertDialogCancel>
           </div>
           <div>
-            <AlertDialogAction onClick={onConfirm}>Save & Exit</AlertDialogAction>
+            <AlertDialogAction onClick={(e) => {
+              e.stopPropagation()
+              onConfirm()
+            }}
+            >
+              Save & Exit
+            </AlertDialogAction>
           </div>
         </AlertDialogFooter>
       </AlertDialogContent>

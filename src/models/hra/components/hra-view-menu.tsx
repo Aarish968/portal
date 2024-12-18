@@ -18,7 +18,7 @@ function HRAViewMenu({ onEdit, onStopAndSave }: HRAViewMenuProps) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="icon" className="h-9 w-9">
-            <Icon icon="ph:dots-three-outline-fill" className="h-4 w-4" />
+            <Icon icon="ph:dots-three-outline-fill" className="mb-.5 h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="left" className="mb-22" sideOffset={4}>
