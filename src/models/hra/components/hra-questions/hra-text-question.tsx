@@ -1,4 +1,4 @@
-import { Button } from '@/base_submod/components/ui/button'
+import HRAQuestionContinueButton from './hra-question-continue-button'
 
 interface HRATextQuestionProps {
   answer: string
@@ -8,24 +8,16 @@ interface HRATextQuestionProps {
 
 function HRATextQuestion({ answer, onAnswer, onNext }: HRATextQuestionProps) {
   return (
-    <div className="w-full flex flex-col space-y-6">
+    <div className=":uno: w-full flex flex-col space-y-6">
       <input
         type="text"
-        className="w-full border rounded p-2"
+        className=":uno: w-full border rounded p-2"
         onChange={e => onAnswer(e.target.value)}
         value={answer || ''}
         placeholder="Type your answer here..."
       />
 
-      <div className="flex justify-center">
-        <Button
-          className="w-full rounded-full bg-[#4A3880] hover:bg-[#4A3880]/90"
-          disabled={!answer?.trim()}
-          onClick={onNext}
-        >
-          Continue
-        </Button>
-      </div>
+      <HRAQuestionContinueButton disabled={!answer?.trim()} onNext={onNext} />
     </div>
   )
 }

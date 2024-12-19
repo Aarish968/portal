@@ -13,8 +13,8 @@ function HRAYesNoQuestion({ answer, onAnswer, onNext }: HRAYesNoQuestionProps) {
   }
 
   return (
-    <div className="w-full flex flex-col items-center space-y-6">
-      <div className="flex justify-center space-x-4">
+    <div className=":uno: w-full flex flex-col items-center space-y-6">
+      <div className=":uno: flex justify-center space-x-4">
         <div>
           <Button
             variant="outline"
@@ -43,10 +43,10 @@ function HRAYesNoQuestion({ answer, onAnswer, onNext }: HRAYesNoQuestionProps) {
         </div>
       </div>
 
-      <div className="flex justify-center">
+      <div className=":uno: flex justify-center">
         <div>
           <Button
-            className="w-full rounded-full bg-[#4A3880] hover:bg-[#4A3880]/90"
+            className=":uno: w-full rounded-full bg-[#4A3880] hover:bg-[#4A3880]/90"
             disabled={answer === null}
             onClick={onNext}
           >

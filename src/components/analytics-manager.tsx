@@ -8,7 +8,7 @@ function AnalyticsManager() {
   const { t } = useTranslation()
 
   const settings = {
-    message: <div className="leading-[17.333px] font-secondary text-style-caption">{t(`frontend.policy.cookies`)}</div>,
+    message: <div className=":uno: leading-[17.333px] font-secondary text-style-caption">{t(`frontend.policy.cookies`)}</div>,
     privacyPolicyLinkText: (
       <a href="https://www.helloporter.com/terms-of-use/" target="_blank" rel="noreferrer">
         {t(`frontend.policy.cookieAndTermsOfUseLinkText`)}
@@ -36,10 +36,10 @@ function AnalyticsManager() {
     showMarketingOption: false,
     necessaryDefaultChecked: true,
     statisticsDefaultChecked: true,
-    managePreferencesButtonText: <span className="hs-cookie-link-text hs-line-height">{t(`frontend.policy.manageMyCookies`)}</span>,
+    managePreferencesButtonText: <span className=":uno: hs-cookie-link-text hs-line-height">{t(`frontend.policy.manageMyCookies`)}</span>,
     policyLink: 'https://www.helloporter.com/terms-of-use/',
   }
-  return <><CookieBanner className="hs-cookie-banner" {...settings} /></>
+  return <><CookieBanner className=":uno: hs-cookie-banner" {...settings} /></>
 }
 
 export default AnalyticsManager

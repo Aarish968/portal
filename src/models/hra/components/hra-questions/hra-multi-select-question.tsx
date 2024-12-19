@@ -1,3 +1,4 @@
+import HRAQuestionContinueButton from './hra-question-continue-button'
 import { Button } from '@/base_submod/components/ui/button'
 import { Checkbox } from '@/base_submod/components/ui/checkbox'
 
@@ -25,10 +26,10 @@ function HRAMultiSelectQuestion({
 
   if (choices.length > 6) {
     return (
-      <div className="w-full flex flex-col space-y-6">
-        <div className="mx-auto flex flex-col space-y-4">
+      <div className=":uno: w-full flex flex-col space-y-6">
+        <div className=":uno: mx-auto flex flex-col space-y-2">
           {choices?.map((choice: string) => (
-            <div key={choice} className="items-center space-x-2">
+            <div key={choice} className=":uno: items-center space-x-2">
               <Checkbox
                 id={choice}
                 checked={answer.includes(choice)}
@@ -36,7 +37,7 @@ function HRAMultiSelectQuestion({
               />
               <label
                 htmlFor={choice}
-                className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className=":uno: text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 {choice}
               </label>
@@ -44,24 +45,14 @@ function HRAMultiSelectQuestion({
           ))}
         </div>
 
-        <div className="flex justify-center">
-          <div>
-            <Button
-              className="w-full rounded-full bg-[#4A3880] hover:bg-[#4A3880]/90"
-              disabled={answer.length === 0}
-              onClick={onNext}
-            >
-              Continue
-            </Button>
-          </div>
-        </div>
+        <HRAQuestionContinueButton disabled={answer.length === 0} onNext={onNext} />
       </div>
     )
   }
 
   return (
-    <div className="w-full flex flex-col justify-center space-y-6">
-      <div className="mx-auto flex flex-col space-y-2">
+    <div className=":uno: w-full flex flex-col justify-center space-y-6">
+      <div className=":uno: mx-auto flex flex-col space-y-2">
         {choices?.map((choice: string) => (
           <div key={choice}>
             <Button
@@ -74,17 +65,7 @@ function HRAMultiSelectQuestion({
         ))}
       </div>
 
-      <div className="flex justify-center">
-        <div>
-          <Button
-            className="w-full rounded-full bg-[#4A3880] hover:bg-[#4A3880]/90"
-            disabled={answer.length === 0}
-            onClick={onNext}
-          >
-            Continue
-          </Button>
-        </div>
-      </div>
+      <HRAQuestionContinueButton disabled={answer.length === 0} onNext={onNext} />
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import HRAQuestionContinueButton from './hra-question-continue-button'
 import {
   Select,
   SelectContent,
@@ -22,9 +23,9 @@ function HRASelectSingleQuestion({
 }: HRASelectSingleQuestionProps) {
   if (choices.length > 6) {
     return (
-      <div className="w-full flex flex-col space-y-6">
+      <div className=":uno: w-full flex flex-col space-y-6">
         <Select value={answer} onValueChange={onAnswer}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className=":uno: w-full">
             <SelectValue placeholder="Choose one" />
           </SelectTrigger>
           <SelectContent>
@@ -36,27 +37,20 @@ function HRASelectSingleQuestion({
           </SelectContent>
         </Select>
 
-        <div className="flex justify-center">
-          <Button
-            className="w-full rounded-full bg-[#4A3880] hover:bg-[#4A3880]/90"
-            disabled={!answer}
-            onClick={onNext}
-          >
-            Continue
-          </Button>
-        </div>
+        <HRAQuestionContinueButton disabled={!answer} onNext={onNext} />
       </div>
     )
   }
 
   return (
-    <div className="w-full flex flex-col justify-center space-y-6">
-      <div className="mx-auto flex flex-col space-y-2">
+    <div className=":uno: w-full flex flex-col justify-center space-y-6">
+      <div className=":uno: mx-auto flex flex-col space-y-2">
         {choices?.map((choice: string) => (
           <div key={choice}>
             <Button
               variant={answer === choice ? 'default' : 'outline'}
               onClick={() => onAnswer(choice)}
+              className=":uno: normal-case"
             >
               {choice}
             </Button>
@@ -64,17 +58,7 @@ function HRASelectSingleQuestion({
         ))}
       </div>
 
-      <div className="flex justify-center">
-        <div>
-          <Button
-            className="w-full rounded-full bg-[#4A3880] hover:bg-[#4A3880]/90"
-            disabled={!answer}
-            onClick={onNext}
-          >
-            Continue
-          </Button>
-        </div>
-      </div>
+      <HRAQuestionContinueButton disabled={!answer} onNext={onNext} />
     </div>
   )
 }

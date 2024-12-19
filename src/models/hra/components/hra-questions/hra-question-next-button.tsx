@@ -19,7 +19,7 @@ function HRAQuestionNextButton({ onClick, isLastQuestion, disabled }: HRAQuestio
       >
         {isLastQuestion
           ? 'Finish'
-          : <Icon icon="ph:caret-right-bold" className="h-4 w-4 shrink-0" />}
+          : <Icon icon="ph:caret-right-bold" className=":uno: mb-1 h-4 w-4 shrink-0" />}
       </Button>
     </div>
   )

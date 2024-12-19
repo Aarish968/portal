@@ -14,9 +14,9 @@ function HRAQuestionPreviousButton({ onClick, disabled }: HRAQuestionPreviousBut
         onClick={onClick}
         disabled={disabled}
         size="icon"
-        className="h-9 w-9"
+        className=":uno: h-9 w-9"
       >
-        <Icon icon="ph:caret-left-bold" className="h-4 w-4 shrink-0" />
+        <Icon icon="ph:caret-left-bold" className=":uno: mb-1 h-4 w-4 shrink-0" />
       </Button>
     </div>
   )

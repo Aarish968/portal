@@ -18,9 +18,9 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className=":uno: space-y-4">
       <div>
-        <label htmlFor="name" className="block text-sm text-gray-700 font-medium">
+        <label htmlFor="name" className=":uno: block text-sm text-gray-700 font-medium">
           Name
         </label>
         <Input
@@ -32,7 +32,7 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
         />
       </div>
       <div>
-        <label htmlFor="email" className="block text-sm text-gray-700 font-medium">
+        <label htmlFor="email" className=":uno: block text-sm text-gray-700 font-medium">
           Email
         </label>
         <Input
@@ -44,7 +44,7 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
         />
       </div>
       <div>
-        <label htmlFor="message" className="block text-sm text-gray-700 font-medium">
+        <label htmlFor="message" className=":uno: block text-sm text-gray-700 font-medium">
           Message
         </label>
         <Textarea

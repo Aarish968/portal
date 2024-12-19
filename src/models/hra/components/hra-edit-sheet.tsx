@@ -40,8 +40,8 @@ function HRAEditSheet({ isOpen, onOpenChange, questions, onEditQuestion, answers
             onOpenChange(false)
           }}
         >
-          <div className="flex">
-            <span className="mr-2 flex-shrink-0">
+          <div className=":uno: flex">
+            <span className=":uno: mr-2 flex-shrink-0">
               {isChild ? String.fromCharCode(97 + index) : index + 1}
               .
             </span>
@@ -61,11 +61,11 @@ function HRAEditSheet({ isOpen, onOpenChange, questions, onEditQuestion, answers
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="h-full flex flex-col">
+      <SheetContent className=":uno: h-full flex flex-col">
         <SheetHeader>
           <SheetTitle>Edit HRA Questions</SheetTitle>
         </SheetHeader>
-        <div className="mt-4 flex-1 overflow-y-auto space-y-2 divide-y">
+        <div className=":uno: mt-4 flex-1 overflow-y-auto space-y-2 divide-y">
           {questions.map((question, index) => renderQuestion(question, index))}
         </div>
       </SheetContent>

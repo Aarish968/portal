@@ -33,8 +33,8 @@ function HRAStartView({ onContinue, onCancel }: HRAStartViewProps) {
 
   if (error) {
     return (
-      <div className="text-center">
-        <p className="text-red-500">
+      <div className=":uno: text-center">
+        <p className=":uno: text-red-500">
           Error loading HRA:
           {error}
         </p>
@@ -45,17 +45,17 @@ function HRAStartView({ onContinue, onCancel }: HRAStartViewProps) {
 
   return (
     <div className=":uno: mt-12 min-h-screen w-full flex flex-col items-center">
-      <div className="mx-auto max-w-xl w-full">
+      <div className=":uno: mx-auto max-w-xl w-full">
         <div className=":uno: mt-6 text-center text-balance">
-          <h1 className="mb-4 text-32px font-bold">Let's get started</h1>
-          <p className="mb-8">
+          <h1 className=":uno: mb-4 text-32px font-bold">Let's get started</h1>
+          <p className=":uno: mb-8">
             You are about to complete a HRA for the below member. Please make sure you have the correct member before proceeding.
           </p>
         </div>
 
-        <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="space-y-2">
+        <Card className=":uno: mb-6">
+          <CardContent className=":uno: p-6">
+            <div className=":uno: space-y-2">
               <p>
                 <strong>Name:</strong>
                 {' '}
@@ -78,7 +78,7 @@ function HRAStartView({ onContinue, onCancel }: HRAStartViewProps) {
               </p>
             </div>
 
-            <div className="mt-8 flex justify-center space-x-4">
+            <div className=":uno: mt-8 flex justify-center space-x-4">
               <div>
                 <Button variant="outline" onClick={onCancel}>Cancel</Button>
               </div>

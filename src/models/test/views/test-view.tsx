@@ -42,10 +42,10 @@ function TestView() {
         <pre>{JSON.stringify(accounts[0], null, 2)}</pre>
         <button onClick={handleLogout}>Sign Out</button>
 
-        <div className="mt-5">
+        <div className=":uno: mt-5">
           <button onClick={testLambda}>Test Lambda</button>
           {lambdaResponse && (
-            <pre className="mt-2.5 rounded bg-gray-100 p-2.5">
+            <pre className=":uno: mt-2.5 rounded bg-gray-100 p-2.5">
               {JSON.stringify(lambdaResponse, null, 2)}
             </pre>
           )}

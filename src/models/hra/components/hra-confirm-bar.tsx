@@ -9,9 +9,9 @@ interface HRAConfirmBarProps {
 
 function HRAConfirmBar({ isConfirmed, onConfirmChange, onSubmit }: HRAConfirmBarProps) {
   return (
-    <div className="fixed bottom-0 left-[170px] right-0 border-t bg-white p-4">
-      <div className="w-full flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+    <div className=":uno: fixed bottom-0 left-[170px] right-0 border-t bg-white p-4">
+      <div className=":uno: w-full flex items-center justify-between">
+        <div className=":uno: flex items-center space-x-2">
           <Checkbox
             id="confirm"
             checked={isConfirmed}
@@ -19,13 +19,13 @@ function HRAConfirmBar({ isConfirmed, onConfirmChange, onSubmit }: HRAConfirmBar
           />
           <label
             htmlFor="confirm"
-            className="cursor-pointer text-sm text-gray-700"
+            className=":uno: cursor-pointer text-sm text-gray-700"
           >
             I confirm that the following information is accurate and complete.
           </label>
         </div>
         <Button
-          className="rounded-full bg-[#4A3880] px-8 hover:bg-[#4A3880]/90"
+          className=":uno: rounded-full bg-[#4A3880] px-8 hover:bg-[#4A3880]/90"
           disabled={!isConfirmed}
           onClick={onSubmit}
         >

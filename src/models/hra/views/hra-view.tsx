@@ -111,6 +111,12 @@ function HRAView() {
     }
   }, [shouldBlock])
 
+  useEffect(() => {
+    if (!hra) {
+      navigate('/hra-activity')
+    }
+  }, [hra, navigate])
+
   if (showStartView) {
     return (
       <HRAStartView
@@ -136,7 +142,6 @@ function HRAView() {
   }
 
   if (!hra) {
-    navigate('/hra-activity')
     return null
   }
 
@@ -196,7 +201,7 @@ function HRAView() {
         currentQuestion={getCurrentQuestionNumber()}
         totalQuestions={getTotalQuestions()}
       />
-      <div className="mx-auto max-w-2xl w-full flex items-center justify-center gap-6">
+      <div className=":uno: mx-auto max-w-2xl w-full flex items-center justify-center gap-6">
         <HRAQuestionPreviousButton
           onClick={handlePrevious}
           disabled={editQuestionIndex === 0 || (questionPath.length === 1 && questionPath[0].questionIndex === 0)}

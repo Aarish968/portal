@@ -38,8 +38,8 @@ function HraActivityView() {
       actionButton={<HraActivityFilter onFilterChange={handleFilterChange} />}
     >
       {isLoading && (
-        <div className="flex items-center justify-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin" />
+        <div className=":uno: flex items-center justify-center p-8">
+          <Loader2 className=":uno: h-8 w-8 animate-spin" />
         </div>
       )}
 

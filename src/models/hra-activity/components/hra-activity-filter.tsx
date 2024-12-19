@@ -23,11 +23,11 @@ export function HraActivityFilter({ onFilterChange }: HraActivityFilterProps) {
   }
 
   return (
-    <div className="flex items-center">
-      <span className="mr-2 font-medium">Show:</span>
+    <div className=":uno: flex items-center">
+      <span className=":uno: mr-2 font-medium">Show:</span>
       {Object.values(FILTER_TYPES).map((option, index) => (
-        <div key={option} className="flex items-center">
-          {index > 0 && <div className="mx-1 h-4 w-px bg-gray-300" />}
+        <div key={option} className=":uno: flex items-center">
+          {index > 0 && <div className=":uno: mx-1 h-4 w-px bg-gray-300" />}
           <Button
             variant={activeFilter === option ? 'filterActive' : 'filter'}
             size="sm"

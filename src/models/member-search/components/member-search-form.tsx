@@ -109,8 +109,8 @@ function MemberSearchForm() {
                   'Searching...'
                 )
               : (
-                  <div className="flex items-center gap-1">
-                    <Icon icon="ph:magnifying-glass" className="mb-1 size-4 shrink-0" />
+                  <div className=":uno: flex items-center gap-1">
+                    <Icon icon="ph:magnifying-glass" className=":uno: mb-1 size-4 shrink-0" />
                     <span>Find Member</span>
                   </div>
                 )}

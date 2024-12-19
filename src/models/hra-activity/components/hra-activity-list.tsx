@@ -59,10 +59,10 @@ export function HraActivityList({ hraActivity }: HraActivityListProps) {
 
   return (
     <Card>
-      <CardContent className="pt-6">
+      <CardContent className=":uno: pt-6">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className=":uno: font-semibold">
               <TableHead>Name</TableHead>
               <TableHead>Assessment</TableHead>
               <TableHead>Address</TableHead>
@@ -76,7 +76,7 @@ export function HraActivityList({ hraActivity }: HraActivityListProps) {
               <TableRow
                 key={activity.assessmentID}
                 onClick={() => handleRowClick(activity)}
-                className="cursor-pointer hover:bg-muted/50"
+                className=":uno: cursor-pointer hover:bg-muted/50"
               >
                 <TableCell>{`${activity.memberFirstName} ${activity.memberLastName}`}</TableCell>
                 <TableCell>{activity.assessmentName}</TableCell>

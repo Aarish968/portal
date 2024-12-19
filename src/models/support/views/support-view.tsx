@@ -5,9 +5,9 @@ import BasePractitionerView from '@/components/layout/views/base-practitioner-vi
 
 function HeaderIcon() {
   return (
-    <div className="flex">
-      <div className="flex items-center justify-center rounded-full bg-white p-3">
-        <Icon icon="mdi:help-circle" className="h-8 w-8 text-primary" />
+    <div className=":uno: flex">
+      <div className=":uno: flex items-center justify-center rounded-full bg-white p-3">
+        <Icon icon="mdi:help-circle" className=":uno: h-8 w-8 text-primary" />
       </div>
     </div>
   )

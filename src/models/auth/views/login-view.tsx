@@ -86,26 +86,26 @@ function LoginView() {
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center bg-gray-100">
-      <Card className="w-[350px]">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-center text-2xl">
-            <img src={PorterLogo} alt="Porter Logo" className="mx-auto mb-4 w-32" />
+    <div className=":uno: relative min-h-screen flex flex-col items-center justify-center bg-gray-100">
+      <Card className=":uno: w-[350px]">
+        <CardHeader className=":uno: space-y-1">
+          <CardTitle className=":uno: text-center text-2xl">
+            <img src={PorterLogo} alt="Porter Logo" className=":uno: mx-auto mb-4 w-32" />
             Welcome
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className=":uno: text-center">
             Click the button below to sign in to your account
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-col items-center space-y-4">
+        <CardContent className=":uno: flex flex-col items-center space-y-4">
           <Button
-            className="w-full"
+            className=":uno: w-full"
             onClick={handleLogin}
             disabled={isLoading || inProgress !== InteractionStatus.None}
           >
             {isLoading || inProgress !== InteractionStatus.None ? 'Signing in...' : 'Sign in'}
           </Button>
-          {error && <p className="text-center text-sm text-red-500">{error}</p>}
+          {error && <p className=":uno: text-center text-sm text-red-500">{error}</p>}
         </CardContent>
       </Card>
     </div>

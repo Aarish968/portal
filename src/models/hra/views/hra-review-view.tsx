@@ -52,10 +52,10 @@ function HRAReviewView({ hra, onSubmit, onBack }: HRAReviewViewProps) {
     return (
       <>
         <tr key={question.questionId}>
-          <td className="px-6 py-4 text-sm text-gray-900">
+          <td className=":uno: px-6 py-4 text-sm text-gray-900">
             {`${index + 1}. ${question.questionText}`}
           </td>
-          <td className="px-6 py-4 text-sm text-gray-900">
+          <td className=":uno: px-6 py-4 text-sm text-gray-900">
             {question.answerType ? formatAnswer(answer) : ''}
           </td>
         </tr>
@@ -63,10 +63,10 @@ function HRAReviewView({ hra, onSubmit, onBack }: HRAReviewViewProps) {
           if (!question.answerType || child.childDependentValue === answerStr) {
             return (
               <tr key={child.questionId}>
-                <td className="px-6 py-4 pl-12 text-sm text-gray-900">
+                <td className=":uno: px-6 py-4 pl-12 text-sm text-gray-900">
                   {`${String.fromCharCode(97 + childIndex)}. ${child.questionText}`}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-900">
+                <td className=":uno: px-6 py-4 text-sm text-gray-900">
                   {formatAnswer(hra.answers[child.questionId])}
                 </td>
               </tr>
@@ -80,15 +80,15 @@ function HRAReviewView({ hra, onSubmit, onBack }: HRAReviewViewProps) {
 
   return (
     <BasePractitionerView title="Review and Submit HRA">
-      <div className="mb-10 overflow-hidden border rounded-lg">
-        <table className="w-full">
-          <thead className="bg-gray-50">
+      <div className=":uno: mb-10 overflow-hidden border rounded-lg">
+        <table className=":uno: w-full">
+          <thead className=":uno: bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-sm text-gray-900 font-medium">Question</th>
-              <th className="px-6 py-3 text-left text-sm text-gray-900 font-medium">Answer</th>
+              <th className=":uno: px-6 py-3 text-left text-sm text-gray-900 font-medium">Question</th>
+              <th className=":uno: px-6 py-3 text-left text-sm text-gray-900 font-medium">Answer</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className=":uno: bg-white divide-y divide-gray-200">
             {hra.screening.questions.map((question, index) =>
               renderQuestionRow(question, index),
             )}
@@ -99,7 +99,7 @@ function HRAReviewView({ hra, onSubmit, onBack }: HRAReviewViewProps) {
       <Button
         variant="outline"
         onClick={onBack}
-        className="mt-6"
+        className=":uno: mt-6"
       >
         Back to Questions
       </Button>

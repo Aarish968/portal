@@ -16,7 +16,7 @@ function HraProgress({ currentQuestion, totalQuestions }: HraProgressProps) {
       <div className=":uno: mb-2 flex select-none justify-between">
         <div>Progress</div>
         <div>
-          {/* <p className="text-center text-sm text-gray-500">
+          <p className=":uno: text-center text-sm text-gray-500">
             Question
             {' '}
             {currentQuestion}
@@ -24,10 +24,10 @@ function HraProgress({ currentQuestion, totalQuestions }: HraProgressProps) {
             of
             {' '}
             {totalQuestions}
-          </p> */}
+          </p>
         </div>
       </div>
-      <Progress value={progressPercentage} className="w-full" />
+      <Progress value={progressPercentage} className=":uno: w-full" />
     </div>
   )
 }
