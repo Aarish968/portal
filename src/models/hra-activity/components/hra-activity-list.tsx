@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import type { HraActivity, HraActivityItem } from '@/models/hra-activity/schemas/hra-activity-schema'
 import { useMemberStore } from '@/models/member/stores/member-store'
 import {
@@ -16,32 +18,98 @@ interface HraActivityListProps {
   hraActivity: HraActivity
 }
 
+type SortField = 'name' | 'assessment' | 'visit' | 'address' | 'phone' | 'payer' | 'status'
+type SortDirection = 'asc' | 'desc'
+
 export function HraActivityList({ hraActivity }: HraActivityListProps) {
   const navigate = useNavigate()
   const setSelectedMember = useMemberStore(state => state.setSelectedMember)
+  const [sortField, setSortField] = useState<SortField>('name')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
 
   function getBadgeVariant(isStarted: boolean, isCompleted: boolean) {
-    if (isCompleted) {
+    if (isCompleted)
       return 'success'
-    }
-    if (isStarted) {
+    if (isStarted)
       return 'warning'
-    }
     return 'noStatus'
   }
 
   function getStatusText(isStarted: boolean, isCompleted: boolean) {
-    if (isCompleted) {
+    if (isCompleted)
       return 'Completed'
-    }
-    if (isStarted) {
+    if (isStarted)
       return 'In Progress'
-    }
     return 'Not Started'
   }
 
   function formatAddress(address: HraActivityItem['memberAddress']) {
     return `${address.street}, ${address.city}, ${address.state} ${address.zip}`
+  }
+
+  function formatVisit(date: string | null, time: string | null) {
+    if (!date || !time)
+      return 'Not Scheduled'
+
+    const visitDate = new Date(date)
+    const [hours, minutes] = time.split(':')
+    visitDate.setHours(Number.parseInt(hours), Number.parseInt(minutes))
+
+    return visitDate.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    })
+  }
+
+  function handleSort(field: SortField) {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    }
+    else {
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  function getSortedActivities() {
+    return [...hraActivity.assessments].sort((a, b) => {
+      const direction = sortDirection === 'asc' ? 1 : -1
+
+      switch (sortField) {
+        case 'name': {
+          const nameA = `${a.memberFirstName} ${a.memberLastName}`
+          const nameB = `${b.memberFirstName} ${b.memberLastName}`
+          return nameA.localeCompare(nameB) * direction
+        }
+        case 'assessment':
+          return a.assessmentName.localeCompare(b.assessmentName) * direction
+        case 'visit': {
+          const dateA = a.visitDate && a.visitTime ? new Date(`${a.visitDate}T${a.visitTime}`) : new Date(0)
+          const dateB = b.visitDate && b.visitTime ? new Date(`${b.visitDate}T${b.visitTime}`) : new Date(0)
+          return (dateA.getTime() - dateB.getTime()) * direction
+        }
+        case 'address':
+          return formatAddress(a.memberAddress).localeCompare(formatAddress(b.memberAddress)) * direction
+        case 'phone': {
+          const phoneA = a.MemberPhone || ''
+          const phoneB = b.MemberPhone || ''
+          return phoneA.localeCompare(phoneB) * direction
+        }
+        case 'payer':
+          return a.MemberPayer.localeCompare(b.MemberPayer) * direction
+        case 'status': {
+          const statusA = getStatusText(a.IsStarted, a.IsCompletedFlag)
+          const statusB = getStatusText(b.IsStarted, b.IsCompletedFlag)
+          return statusA.localeCompare(statusB) * direction
+        }
+        default:
+          return 0
+      }
+    })
   }
 
   function handleRowClick(activity: HraActivityItem) {
@@ -57,22 +125,58 @@ export function HraActivityList({ hraActivity }: HraActivityListProps) {
     navigate('/hra')
   }
 
+  function SortIcon({ field }: { field: SortField }) {
+    if (sortField !== field)
+      return null
+
+    return sortDirection === 'asc' ? <ChevronUp className=":uno: ml-1 inline-block h-4 w-4" /> : <ChevronDown className=":uno: ml-1 inline-block h-4 w-4" />
+  }
+
   return (
     <Card>
       <CardContent className=":uno: pt-6">
         <Table>
           <TableHeader>
             <TableRow className=":uno: font-semibold">
-              <TableHead>Name</TableHead>
-              <TableHead>Assessment</TableHead>
-              <TableHead>Address</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Payer</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead onClick={() => handleSort('name')} className=":uno: cursor-pointer">
+                Name
+                {' '}
+                <SortIcon field="name" />
+              </TableHead>
+              <TableHead onClick={() => handleSort('assessment')} className=":uno: cursor-pointer">
+                Assessment
+                {' '}
+                <SortIcon field="assessment" />
+              </TableHead>
+              <TableHead onClick={() => handleSort('visit')} className=":uno: cursor-pointer">
+                Visit
+                {' '}
+                <SortIcon field="visit" />
+              </TableHead>
+              <TableHead onClick={() => handleSort('address')} className=":uno: cursor-pointer">
+                Address
+                {' '}
+                <SortIcon field="address" />
+              </TableHead>
+              <TableHead onClick={() => handleSort('phone')} className=":uno: cursor-pointer">
+                Phone
+                {' '}
+                <SortIcon field="phone" />
+              </TableHead>
+              <TableHead onClick={() => handleSort('payer')} className=":uno: cursor-pointer">
+                Payer
+                {' '}
+                <SortIcon field="payer" />
+              </TableHead>
+              <TableHead onClick={() => handleSort('status')} className=":uno: cursor-pointer">
+                Status
+                {' '}
+                <SortIcon field="status" />
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {hraActivity.assessments.map(activity => (
+            {getSortedActivities().map(activity => (
               <TableRow
                 key={activity.assessmentID}
                 onClick={() => handleRowClick(activity)}
@@ -80,6 +184,7 @@ export function HraActivityList({ hraActivity }: HraActivityListProps) {
               >
                 <TableCell>{`${activity.memberFirstName} ${activity.memberLastName}`}</TableCell>
                 <TableCell>{activity.assessmentName}</TableCell>
+                <TableCell>{formatVisit(activity.visitDate, activity.visitTime)}</TableCell>
                 <TableCell>{formatAddress(activity.memberAddress)}</TableCell>
                 <TableCell>{activity.MemberPhone || 'N/A'}</TableCell>
                 <TableCell>{activity.MemberPayer}</TableCell>

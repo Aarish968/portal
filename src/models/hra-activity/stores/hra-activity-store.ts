@@ -34,8 +34,13 @@ export const useHraActivityStore = create<HraActivityStore>()(
         const state = useHraActivityStore.getState()
         const now = Date.now()
 
+        const hasMissingFields = state.hraActivity.assessments.some(
+          assessment => !('visitDate' in assessment) || !('visitTime' in assessment),
+        )
+
         if (
-          state.lastFetchTime
+          !hasMissingFields
+          && state.lastFetchTime
           && state.hraActivity.assessments.length > 0
           && now - state.lastFetchTime < CACHE_LIFETIME
         ) {
@@ -116,6 +121,7 @@ export const useHraActivityStore = create<HraActivityStore>()(
     }),
     {
       name: 'hra-activity-storage',
+      version: 2,
     },
   ),
 )

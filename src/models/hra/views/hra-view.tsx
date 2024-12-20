@@ -23,6 +23,7 @@ function HRAView() {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const pendingLocationRef = useRef<any>(null)
   const [isNavigating, setIsNavigating] = useState(false)
+  const [blockNavigation, setBlockNavigation] = useState(false)
 
   const {
     hra,
@@ -46,25 +47,37 @@ function HRAView() {
 
   const shouldBlock = !showStartView && !showReviewView && hra !== null && !isNavigating
 
-  const blocker = useBlocker(shouldBlock)
+  useEffect(() => {
+    setBlockNavigation(shouldBlock)
+  }, [shouldBlock])
 
   useEffect(() => {
-    if (blocker.state === 'blocked') {
-      setShowConfirmationModal(true)
-      pendingLocationRef.current = blocker.location
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (blockNavigation) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
     }
-  }, [blocker.state])
 
-  const handleStartViewContinue = () => {
-    resetQuestionState()
-    setShowStartView(false)
-  }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [blockNavigation])
+
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => {
+    if (blockNavigation && currentLocation.pathname !== nextLocation.pathname) {
+      pendingLocationRef.current = nextLocation
+      setShowConfirmationModal(true)
+      return true
+    }
+    return false
+  })
 
   const handleConfirmNavigation = () => {
     const location = pendingLocationRef.current
     if (!location)
       return
 
+    setBlockNavigation(false)
     setIsNavigating(true)
     setShowConfirmationModal(false)
 
@@ -87,35 +100,15 @@ function HRAView() {
   }
 
   useEffect(() => {
-    if (!shouldBlock)
-      return
-
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault()
-      setShowConfirmationModal(true)
-      return ''
-    }
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        setShowConfirmationModal(true)
-      }
-    }
-
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
-  }, [shouldBlock])
-
-  useEffect(() => {
-    if (!hra) {
+    if (!hra && !isLoading && !showStartView && !blockNavigation) {
       navigate('/hra-activity')
     }
-  }, [hra, navigate])
+  }, [hra, isLoading, navigate, showStartView, blockNavigation])
+
+  const handleStartViewContinue = () => {
+    resetQuestionState()
+    setShowStartView(false)
+  }
 
   if (showStartView) {
     return (

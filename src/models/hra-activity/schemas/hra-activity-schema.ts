@@ -19,6 +19,8 @@ export const HraActivityItemSchema = z.object({
   IsCompletedFlag: z.boolean(),
   CompletedDate: z.string().nullable(),
   message: z.string(),
+  visitDate: z.string().nullable(),
+  visitTime: z.string().nullable(),
 })
 
 export const HraActivitySchema = z.object({
