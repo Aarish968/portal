@@ -49,6 +49,17 @@ export const useHraActivityStore = create<HraActivityStore>()(
 
         set({ isLoading: true, error: null })
         try {
+          const authStore = useAuthStore.getState()
+          if (!authStore.idToken) {
+            await new Promise<void>((resolve) => {
+              const handler = () => {
+                window.removeEventListener('auth-ready', handler)
+                resolve()
+              }
+              window.addEventListener('auth-ready', handler)
+            })
+          }
+
           let username = 'esther@helloporter2.com'
 
           if (import.meta.env.VITE_DEV_TEST !== 'true') {
@@ -62,12 +73,10 @@ export const useHraActivityStore = create<HraActivityStore>()(
             username = currentUsername
           }
 
-          const response = await fetch(`${API_URL}?username=${username}`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
+          const response = await fetch(`${API_URL}/get`, {
+            method: 'POST',
+            headers: await useAuthStore.getState().getAuthHeaders(),
+            body: JSON.stringify({ username }),
           })
 
           if (!response.ok) {

@@ -37,6 +37,10 @@ function LoginView() {
               environment: userAccount.environment,
               idTokenClaims: userAccount.idTokenClaims as any,
             })
+
+            if (result.idToken) {
+              useAuthStore.getState().setIdToken(result.idToken)
+            }
           }
           navigate(ROUTES.app.hraActivity.href)
         }

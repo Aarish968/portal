@@ -6,7 +6,7 @@ import ROUTES from '@/data/routing/routes'
 
 export function RootRedirect() {
   const { instance, inProgress } = useMsal()
-  const { isAuthenticated, isAuthDisabled } = useAuthStore()
+  const { isAuthenticated } = useAuthStore()
 
   if (inProgress !== InteractionStatus.None) {
     return null
@@ -14,7 +14,7 @@ export function RootRedirect() {
 
   const activeAccount = instance.getAllAccounts()[0]
 
-  if (isAuthDisabled || isAuthenticated || activeAccount) {
+  if (isAuthenticated || activeAccount) {
     return <Navigate to={ROUTES.app.hraActivity.href} replace />
   }
 

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { HRA, HRAQuestion } from '../schemas/hra-schema'
 import { HRAResponseSchema, HRASchema } from '../schemas/hra-schema'
+import { useAuthStore } from '@/models/auth/stores/auth-store'
 
 interface QuestionPath {
   questionIndex: number
@@ -194,12 +195,21 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
     })
 
     try {
-      const response = await fetch(`${API_URL}?assessmentId=${assessmentId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+      const authStore = useAuthStore.getState()
+      if (!authStore.idToken) {
+        await new Promise<void>((resolve) => {
+          const handler = () => {
+            window.removeEventListener('auth-ready', handler)
+            resolve()
+          }
+          window.addEventListener('auth-ready', handler)
+        })
+      }
+
+      const response = await fetch(`${API_URL}/get`, {
+        method: 'POST',
+        headers: await useAuthStore.getState().getAuthHeaders(),
+        body: JSON.stringify({ assessmentId }),
       })
 
       if (!response.ok) {

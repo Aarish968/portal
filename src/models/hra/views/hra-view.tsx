@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { useBlocker, useNavigate } from 'react-router-dom'
+import { Navigate, useBlocker, useNavigate } from 'react-router-dom'
 import { Button } from '@/base_submod/components/ui/button'
 import { useHRAStore } from '@/models/hra/stores/hra-store'
+import { useMemberStore } from '@/models/member/stores/member-store'
 import HRAStartView from '@/models/hra/views/hra-start-view'
 import HRAReviewView from '@/models/hra/views/hra-review-view'
 import HraProgress from '@/models/hra/components/hra-progress'
@@ -25,6 +26,7 @@ function HRAView() {
   const [isNavigating, setIsNavigating] = useState(false)
   const [blockNavigation, setBlockNavigation] = useState(false)
 
+  const selectedMember = useMemberStore(state => state.selectedMember)
   const {
     hra,
     error,
@@ -45,6 +47,10 @@ function HRAView() {
     highestCompletedQuestionIndex,
   } = useHRAStore()
 
+  if (!selectedMember) {
+    return <Navigate to="/hra-activity" replace />
+  }
+
   const shouldBlock = !showStartView && !showReviewView && hra !== null && !isNavigating
 
   useEffect(() => {
@@ -55,7 +61,7 @@ function HRAView() {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (blockNavigation) {
         e.preventDefault()
-        e.returnValue = ''
+        return e.preventDefault()
       }
     }
 
@@ -74,9 +80,6 @@ function HRAView() {
 
   const handleConfirmNavigation = () => {
     const location = pendingLocationRef.current
-    if (!location)
-      return
-
     setBlockNavigation(false)
     setIsNavigating(true)
     setShowConfirmationModal(false)
@@ -87,9 +90,14 @@ function HRAView() {
     })
 
     setTimeout(() => {
-      navigate(location.pathname + location.search + location.hash, {
-        replace: true,
-      })
+      if (location) {
+        navigate(location.pathname + location.search + location.hash, {
+          replace: true,
+        })
+      }
+      else {
+        navigate('/hra-activity')
+      }
     }, 500)
   }
 
@@ -98,12 +106,6 @@ function HRAView() {
     pendingLocationRef.current = null
     blocker.reset?.()
   }
-
-  useEffect(() => {
-    if (!hra && !isLoading && !showStartView && !blockNavigation) {
-      navigate('/hra-activity')
-    }
-  }, [hra, isLoading, navigate, showStartView, blockNavigation])
 
   const handleStartViewContinue = () => {
     resetQuestionState()
@@ -135,7 +137,7 @@ function HRAView() {
   }
 
   if (!hra) {
-    return null
+    return <Navigate to="/hra-activity" replace />
   }
 
   if (showReviewView) {
@@ -213,7 +215,10 @@ function HRAView() {
       </div>
       <HRAViewMenu
         onEdit={() => setIsSheetOpen(true)}
-        onStopAndSave={() => setShowConfirmationModal(true)}
+        onStopAndSave={() => {
+          pendingLocationRef.current = null
+          setShowConfirmationModal(true)
+        }}
       />
       <HRAEditSheet
         isOpen={isSheetOpen}

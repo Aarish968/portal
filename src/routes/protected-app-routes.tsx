@@ -8,7 +8,6 @@ import SettingsPage from '@/models/settings/pages/settings-page'
 import HraActivityPage from '@/models/hra-activity/pages/hra-activity-page'
 import TestPage from '@/models/test/pages/test-page'
 import ProtectedRoute from '@/base_submod/components/auth/protected-route'
-import { useAuthStore } from '@/models/auth/stores/auth-store'
 
 export const protectedRoutes: RouteObject[] = [
   {
@@ -44,9 +43,8 @@ export const protectedRoutes: RouteObject[] = [
 ]
 
 function ProtectedWrapper() {
-  const isAuthDisabled = useAuthStore(state => state.isAuthDisabled)
   return (
-    <ProtectedRoute bypassAuth={isAuthDisabled}>
+    <ProtectedRoute>
       <Outlet />
     </ProtectedRoute>
   )
