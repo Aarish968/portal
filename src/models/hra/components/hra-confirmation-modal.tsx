@@ -13,9 +13,10 @@ interface HRAConfirmationModalProps {
   isOpen: boolean
   onConfirm: () => void
   onCancel: () => void
+  onExitWithoutSaving: () => void
 }
 
-function HRAConfirmationModal({ isOpen, onConfirm, onCancel }: HRAConfirmationModalProps) {
+function HRAConfirmationModal({ isOpen, onConfirm, onCancel, onExitWithoutSaving }: HRAConfirmationModalProps) {
   return (
     <AlertDialog
       open={isOpen}
@@ -27,29 +28,44 @@ function HRAConfirmationModal({ isOpen, onConfirm, onCancel }: HRAConfirmationMo
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Pause HRA Assessment?</AlertDialogTitle>
+          <AlertDialogTitle>Exit HRA Assessment?</AlertDialogTitle>
           <AlertDialogDescription>
-            Your progress will be saved and you can continue later. Are you sure you want to exit?
+            Choose how you would like to exit:
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
-          <div>
-            <AlertDialogCancel onClick={(e) => {
-              e.stopPropagation()
-              onCancel()
-            }}
+        <AlertDialogFooter className="flex flex-col gap-2">
+          <div className="w-full">
+            <AlertDialogAction
+              onClick={(e) => {
+                e.stopPropagation()
+                onExitWithoutSaving()
+              }}
+              className="w-full bg-destructive hover:bg-destructive/90"
             >
-              Continue Assessment
-            </AlertDialogCancel>
+              Exit
+            </AlertDialogAction>
           </div>
-          <div>
-            <AlertDialogAction onClick={(e) => {
-              e.stopPropagation()
-              onConfirm()
-            }}
+          <div className="w-full">
+            <AlertDialogAction
+              onClick={(e) => {
+                e.stopPropagation()
+                onConfirm()
+              }}
+              className="w-full whitespace-nowrap"
             >
               Save & Exit
             </AlertDialogAction>
+          </div>
+          <div className="w-full">
+            <AlertDialogCancel
+              onClick={(e) => {
+                e.stopPropagation()
+                onCancel()
+              }}
+              className="w-full whitespace-nowrap"
+            >
+              Continue HRA
+            </AlertDialogCancel>
           </div>
         </AlertDialogFooter>
       </AlertDialogContent>

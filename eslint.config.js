@@ -4,12 +4,8 @@ export default antfu({
   unocss: true,
   stylistic: true,
   files: ['**/*.ts', '**/*.tsx'],
-  overrides: [
-    {
-      files: ['**/*.ts', '**/*.tsx'],
-      rules: {
-        'no-console': 'off',
-      },
-    },
-  ],
+  rules: {
+    // 'no-console': 'off',
+    'import/order': 'off',
+  },
 })

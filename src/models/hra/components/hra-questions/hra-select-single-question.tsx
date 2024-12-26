@@ -1,12 +1,7 @@
+import { HRACheckbox } from '../hra-checkbox'
+import HRASelectedAnswerButton from './hra-selected-answer-button'
 import HRAQuestionContinueButton from './hra-question-continue-button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/base_submod/components/ui/select'
-import { Button } from '@/base_submod/components/ui/button'
+import { formatChoice, hasLongChoices } from '@/models/hra/utils/question-utils'
 
 interface HRASelectSingleQuestionProps {
   choices: string[]
@@ -21,45 +16,41 @@ function HRASelectSingleQuestion({
   onAnswer,
   onNext,
 }: HRASelectSingleQuestionProps) {
-  if (choices.length > 6) {
+  if (hasLongChoices(choices) || choices.length > 6) {
     return (
-      <div className=":uno: w-full flex flex-col space-y-6">
-        <Select value={answer} onValueChange={onAnswer}>
-          <SelectTrigger className=":uno: w-full">
-            <SelectValue placeholder="Choose one" />
-          </SelectTrigger>
-          <SelectContent>
-            {choices?.map((choice: string) => (
-              <SelectItem key={choice} value={choice}>
-                {choice}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
+      <div className=":uno: flex flex-col justify-start space-y-2">
+        <div className=":uno: mx-auto max-w-[400px] w-full flex flex-col items-center space-y-4">
+          {choices?.map((choice: string) => (
+            <HRACheckbox
+              key={choice}
+              id={choice}
+              label={formatChoice(choice)}
+              checked={answer === choice}
+              onCheckedChange={checked => checked && onAnswer(choice)}
+            />
+          ))}
+        </div>
         <HRAQuestionContinueButton disabled={!answer} onNext={onNext} />
       </div>
     )
   }
 
   return (
-    <div className=":uno: w-full flex flex-col justify-center space-y-6">
-      <div className=":uno: mx-auto flex flex-col space-y-2">
+    <>
+      <div className=":uno: w-full flex flex-col items-center space-y-4">
         {choices?.map((choice: string) => (
           <div key={choice}>
-            <Button
-              variant={answer === choice ? 'default' : 'outline'}
+            <HRASelectedAnswerButton
+              isSelected={answer === choice}
               onClick={() => onAnswer(choice)}
-              className=":uno: normal-case"
             >
-              {choice}
-            </Button>
+              {formatChoice(choice)}
+            </HRASelectedAnswerButton>
           </div>
         ))}
       </div>
-
       <HRAQuestionContinueButton disabled={!answer} onNext={onNext} />
-    </div>
+    </>
   )
 }
 

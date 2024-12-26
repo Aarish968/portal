@@ -8,7 +8,7 @@ interface HRATextQuestionProps {
 
 function HRATextQuestion({ answer, onAnswer, onNext }: HRATextQuestionProps) {
   return (
-    <div className=":uno: w-full flex flex-col space-y-6">
+    <>
       <input
         type="text"
         className=":uno: w-full border rounded p-2"
@@ -16,9 +16,8 @@ function HRATextQuestion({ answer, onAnswer, onNext }: HRATextQuestionProps) {
         value={answer || ''}
         placeholder="Type your answer here..."
       />
-
       <HRAQuestionContinueButton disabled={!answer?.trim()} onNext={onNext} />
-    </div>
+    </>
   )
 }
 

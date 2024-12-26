@@ -1,100 +1,78 @@
 import { useState } from 'react'
+import { Check } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import HRAConfirmBar from '../components/hra-confirm-bar'
 import { useToast } from '@/base_submod/hooks/use-toast'
-import type { HRA, HRAQuestion } from '@/models/hra/schemas/hra-schema'
+import HRAConfirmBar from '../components/hra-confirm-bar'
+import type { HRA } from '@/models/hra/schemas/hra-schema'
 import { Button } from '@/base_submod/components/ui/button'
+import { HRAReviewTable } from '../components/hra-review/hra-review-table'
 import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
+import { HRAReviewEditButton } from '../components/hra-review/hra-review-edit-button'
 
 interface HRAReviewViewProps {
   hra: HRA
   onSubmit: () => void
   onBack: () => void
+  onSubmitNavigate?: () => void
 }
 
-function HRAReviewView({ hra, onSubmit, onBack }: HRAReviewViewProps) {
+function HRAReviewView({ hra, onSubmit, onBack, onSubmitNavigate }: HRAReviewViewProps) {
   const [isConfirmed, setIsConfirmed] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedAnswers, setEditedAnswers] = useState<Record<string, any>>(hra.answers)
   const { toast } = useToast()
   const navigate = useNavigate()
 
-  const formatAnswer = (answer: any) => {
-    if (typeof answer === 'boolean') {
-      return answer ? 'Yes' : 'No'
-    }
-    if (Array.isArray(answer)) {
-      return answer.join(', ')
-    }
-    return String(answer)
+  const handleAnswerChange = (questionId: string, value: string | string[] | boolean) => {
+    setEditedAnswers(prev => ({
+      ...prev,
+      [questionId]: value,
+    }))
   }
 
   const handleSubmit = () => {
+    if (isEditing) {
+      hra.answers = editedAnswers
+      setIsEditing(false)
+      toast({
+        title: 'Changes Saved',
+        duration: 2000,
+        icon: <Check className=":uno: h-4 w-4 text-green-500" />,
+      })
+      return
+    }
+
     toast({
       title: 'HRA Submitted',
       duration: 2000,
+      icon: <Check className=":uno: h-4 w-4 text-green-500" />,
     })
 
+    onSubmit()
+
     setTimeout(() => {
-      onSubmit()
-      navigate('/hra-activity')
-    }, 500)
-  }
-
-  const renderQuestionRow = (question: HRAQuestion, index: number) => {
-    const answer = hra.answers[question.questionId]
-    const answerStr = Array.isArray(answer) ? answer[0] : String(answer)
-
-    const hasChildren = question.children?.length > 0
-    const showChildren = hasChildren && (
-      !question.answerType
-      || question.children.some((child: HRAQuestion) => child.childDependentValue === answerStr)
-    )
-
-    return (
-      <>
-        <tr key={question.questionId}>
-          <td className=":uno: px-6 py-4 text-sm text-gray-900">
-            {`${index + 1}. ${question.questionText}`}
-          </td>
-          <td className=":uno: px-6 py-4 text-sm text-gray-900">
-            {question.answerType ? formatAnswer(answer) : ''}
-          </td>
-        </tr>
-        {showChildren && question.children?.map((child: HRAQuestion, childIndex: number) => {
-          if (!question.answerType || child.childDependentValue === answerStr) {
-            return (
-              <tr key={child.questionId}>
-                <td className=":uno: px-6 py-4 pl-12 text-sm text-gray-900">
-                  {`${String.fromCharCode(97 + childIndex)}. ${child.questionText}`}
-                </td>
-                <td className=":uno: px-6 py-4 text-sm text-gray-900">
-                  {formatAnswer(hra.answers[child.questionId])}
-                </td>
-              </tr>
-            )
-          }
-          return null
-        })}
-      </>
-    )
+      if (onSubmitNavigate) {
+        onSubmitNavigate()
+      }
+      else {
+        navigate('/hra-activity')
+      }
+    }, 100)
   }
 
   return (
     <BasePractitionerView title="Review and Submit HRA">
-      <div className=":uno: mb-10 overflow-hidden border rounded-lg">
-        <table className=":uno: w-full">
-          <thead className=":uno: bg-gray-50">
-            <tr>
-              <th className=":uno: px-6 py-3 text-left text-sm text-gray-900 font-medium">Question</th>
-              <th className=":uno: px-6 py-3 text-left text-sm text-gray-900 font-medium">Answer</th>
-            </tr>
-          </thead>
-          <tbody className=":uno: bg-white divide-y divide-gray-200">
-            {hra.screening.questions.map((question, index) =>
-              renderQuestionRow(question, index),
-            )}
-          </tbody>
-        </table>
-      </div>
+      <HRAReviewEditButton
+        isEditing={isEditing}
+        onClick={() => setIsEditing(!isEditing)}
+      />
+
+      <HRAReviewTable
+        hra={hra}
+        isEditing={isEditing}
+        editedAnswers={editedAnswers}
+        onAnswerChange={handleAnswerChange}
+      />
 
       <Button
         variant="outline"
@@ -108,6 +86,8 @@ function HRAReviewView({ hra, onSubmit, onBack }: HRAReviewViewProps) {
         isConfirmed={isConfirmed}
         onConfirmChange={setIsConfirmed}
         onSubmit={handleSubmit}
+        submitText={isEditing ? 'Save Changes' : 'Submit HRA'}
+        isEditing={isEditing}
       />
     </BasePractitionerView>
   )

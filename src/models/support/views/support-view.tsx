@@ -14,16 +14,17 @@ function HeaderIcon() {
 }
 
 function SupportView() {
-  const handleSubmit = (_formData: { name: string, email: string, message: string }) => {
+  const handleSubmit = (_formData: { type: string, message: string }) => {
   }
 
   return (
     <BasePractitionerView
       title="We're here to help!"
-      description="Please fill out the form or contact us using the information below."
+      description="Please fill out the form or contact us using the number below."
       headerIcon={<HeaderIcon />}
     >
       <ContactInfo />
+      <div className=":uno: flex flex-col gap-4 font-semibold">Do not submit any PHI or other sensitive information.</div>
       <ContactForm onSubmit={handleSubmit} />
     </BasePractitionerView>
   )

@@ -4,7 +4,7 @@ import { SOCIAL_MEDIA_ROUTES, type SocialMediaRoutes } from '@/base_submod/data/
 import type { AppRoutes } from '@/data/routing/app-routes'
 import { APP_ROUTES } from '@/data/routing/app-routes'
 
-export const APP_NAME = 'Nurse Practitioner Portal'
+export const APP_NAME = 'Porter Provider Portal'
 
 interface Routes {
   auth: AuthRoutes

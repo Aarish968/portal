@@ -12,7 +12,7 @@ function HraProgress({ currentQuestion, totalQuestions }: HraProgressProps) {
     : Math.max(2, (currentQuestion / totalQuestions) * 100)
 
   return (
-    <div className=":uno: w-full flex flex-col">
+    <div className=":uno: max-w-80% w-full flex flex-col">
       <div className=":uno: mb-2 flex select-none justify-between">
         <div>Progress</div>
         <div>

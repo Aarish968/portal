@@ -68,16 +68,16 @@ function shouldShowChildQuestions(question: HRAQuestion, answer: string | boolea
     return false
   }
 
-  if (!question.answerType) {
-    return true
+  if (question.answerType === 'Select Single') {
+    return question.children.some((child: HRAQuestion) => child.childDependentValue === answer)
   }
 
   if (question.children.some((child: HRAQuestion) => child.childDependentValue)) {
-    const answerStr = Array.isArray(answer) ? answer[0] : String(answer)
+    const answerStr = Array.isArray(answer) ? answer[0] : answer === true ? 'Yes' : 'No'
     return question.children.some((child: HRAQuestion) => child.childDependentValue === answerStr)
   }
 
-  return false
+  return true
 }
 
 function findNextQuestion(

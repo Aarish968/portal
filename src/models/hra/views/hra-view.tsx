@@ -1,19 +1,20 @@
+import { AnimatePresence } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
-import { Navigate, useBlocker, useNavigate } from 'react-router-dom'
+import { useToast } from '@/base_submod/hooks/use-toast'
 import { Button } from '@/base_submod/components/ui/button'
 import { useHRAStore } from '@/models/hra/stores/hra-store'
-import { useMemberStore } from '@/models/member/stores/member-store'
 import HRAStartView from '@/models/hra/views/hra-start-view'
 import HRAReviewView from '@/models/hra/views/hra-review-view'
 import HraProgress from '@/models/hra/components/hra-progress'
 import HRAViewMenu from '@/models/hra/components/hra-view-menu'
 import HRAEditSheet from '@/models/hra/components/hra-edit-sheet'
+import { Navigate, useBlocker, useNavigate } from 'react-router-dom'
+import { useMemberStore } from '@/models/member/stores/member-store'
+import HRAConfirmationModal from '@/models/hra/components/hra-confirmation-modal'
 import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
 import HRAQuestionCard from '@/models/hra/components/hra-questions/hra-question-card'
 import HRAQuestionNextButton from '@/models/hra/components/hra-questions/hra-question-next-button'
 import HRAQuestionPreviousButton from '@/models/hra/components/hra-questions/hra-question-previous-button'
-import HRAConfirmationModal from '@/models/hra/components/hra-confirmation-modal'
-import { useToast } from '@/base_submod/hooks/use-toast'
 
 function HRAView() {
   const navigate = useNavigate()
@@ -25,6 +26,7 @@ function HRAView() {
   const pendingLocationRef = useRef<any>(null)
   const [isNavigating, setIsNavigating] = useState(false)
   const [blockNavigation, setBlockNavigation] = useState(false)
+  const [direction, setDirection] = useState(1)
 
   const selectedMember = useMemberStore(state => state.selectedMember)
   const {
@@ -47,27 +49,19 @@ function HRAView() {
     highestCompletedQuestionIndex,
   } = useHRAStore()
 
+  useEffect(() => {
+    setDirection(1)
+  }, [])
+
   if (!selectedMember) {
     return <Navigate to="/hra-activity" replace />
   }
 
-  const shouldBlock = !showStartView && !showReviewView && hra !== null && !isNavigating
+  const shouldBlock = (!showStartView && (hra !== null || showReviewView)) && !isNavigating
 
   useEffect(() => {
     setBlockNavigation(shouldBlock)
   }, [shouldBlock])
-
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (blockNavigation) {
-        e.preventDefault()
-        return e.preventDefault()
-      }
-    }
-
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [blockNavigation])
 
   const blocker = useBlocker(({ currentLocation, nextLocation }) => {
     if (blockNavigation && currentLocation.pathname !== nextLocation.pathname) {
@@ -78,11 +72,36 @@ function HRAView() {
     return false
   })
 
-  const handleConfirmNavigation = () => {
-    const location = pendingLocationRef.current
-    setBlockNavigation(false)
-    setIsNavigating(true)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (blockNavigation) {
+        e.returnValue = ''
+        return ''
+      }
+    }
+
+    if (blockNavigation) {
+      window.addEventListener('beforeunload', handleBeforeUnload)
+      return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [blockNavigation])
+
+  const handleExitWithoutSaving = () => {
     setShowConfirmationModal(false)
+    setIsNavigating(true)
+    setBlockNavigation(false)
+
+    setTimeout(() => {
+      blocker.reset?.()
+      pendingLocationRef.current = null
+      navigate('/hra-activity', { replace: true })
+    }, 100)
+  }
+
+  const handleConfirmNavigation = () => {
+    setShowConfirmationModal(false)
+    setIsNavigating(true)
+    setBlockNavigation(false)
 
     toast({
       title: 'Progress Saved',
@@ -90,6 +109,8 @@ function HRAView() {
     })
 
     setTimeout(() => {
+      blocker.reset?.()
+      const location = pendingLocationRef.current
       if (location) {
         navigate(location.pathname + location.search + location.hash, {
           replace: true,
@@ -98,6 +119,7 @@ function HRAView() {
       else {
         navigate('/hra-activity')
       }
+      pendingLocationRef.current = null
     }, 500)
   }
 
@@ -142,11 +164,26 @@ function HRAView() {
 
   if (showReviewView) {
     return (
-      <HRAReviewView
-        hra={hra}
-        onSubmit={() => {}}
-        onBack={() => setShowReviewView(false)}
-      />
+      <>
+        <HRAReviewView
+          hra={hra}
+          onSubmit={() => {
+            setBlockNavigation(false)
+            setIsNavigating(true)
+            blocker.reset?.()
+          }}
+          onBack={() => setShowReviewView(false)}
+          onSubmitNavigate={() => {
+            navigate('/hra-activity')
+          }}
+        />
+        <HRAConfirmationModal
+          isOpen={showConfirmationModal}
+          onConfirm={handleConfirmNavigation}
+          onCancel={handleCancelNavigation}
+          onExitWithoutSaving={handleExitWithoutSaving}
+        />
+      </>
     )
   }
 
@@ -156,7 +193,8 @@ function HRAView() {
     return <div>Question not found</div>
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    await setDirection(1)
     if (isLastQuestion() && hra?.answers[displayQuestion.questionId] !== undefined) {
       setShowReviewView(true)
       return
@@ -175,7 +213,8 @@ function HRAView() {
     }
   }
 
-  const handlePrevious = () => {
+  const handlePrevious = async () => {
+    await setDirection(-1)
     if (editQuestionIndex !== null) {
       if (editQuestionIndex > 0) {
         setEditQuestionIndex(editQuestionIndex - 1)
@@ -192,26 +231,50 @@ function HRAView() {
 
   return (
     <BasePractitionerView>
-      <HraProgress
-        currentQuestion={getCurrentQuestionNumber()}
-        totalQuestions={getTotalQuestions()}
-      />
-      <div className=":uno: mx-auto max-w-2xl w-full flex items-center justify-center gap-6">
-        <HRAQuestionPreviousButton
-          onClick={handlePrevious}
-          disabled={editQuestionIndex === 0 || (questionPath.length === 1 && questionPath[0].questionIndex === 0)}
-        />
-        <HRAQuestionCard
-          question={displayQuestion}
-          answer={hra.answers[displayQuestion.questionId]}
-          onAnswer={handleAnswer}
-          onNext={handleNext}
-        />
-        <HRAQuestionNextButton
-          onClick={handleNext}
-          isLastQuestion={isLastQuestion()}
-          disabled={!canMoveNext()}
-        />
+      <div className=":uno: w-full flex flex-col gap-6">
+        <div className=":uno: flex flex-col items-center justify-center">
+          <HraProgress
+            currentQuestion={getCurrentQuestionNumber()}
+            totalQuestions={getTotalQuestions()}
+          />
+        </div>
+        <div className=":uno: mx-auto flex items-center justify-center gap-6 container">
+          <div className=":uno: w-[32px] flex-shrink-0">
+            <AnimatePresence mode="wait">
+              <HRAQuestionPreviousButton
+                key={`prev-${displayQuestion.questionId}`}
+                questionId={displayQuestion.questionId}
+                onClick={handlePrevious}
+                disabled={editQuestionIndex === 0 || (questionPath.length === 1 && questionPath[0].questionIndex === 0)}
+              />
+            </AnimatePresence>
+          </div>
+
+          <div className=":uno: max-w-[640px] w-full">
+            <AnimatePresence mode="wait">
+              <HRAQuestionCard
+                key={displayQuestion.questionId}
+                question={displayQuestion}
+                answer={hra.answers[displayQuestion.questionId]}
+                onAnswer={handleAnswer}
+                onNext={handleNext}
+                direction={direction}
+              />
+            </AnimatePresence>
+          </div>
+
+          <div className=":uno: w-[92px] flex-shrink-0">
+            <AnimatePresence mode="wait">
+              <HRAQuestionNextButton
+                key={`next-${displayQuestion.questionId}`}
+                questionId={displayQuestion.questionId}
+                onClick={handleNext}
+                isLastQuestion={isLastQuestion()}
+                disabled={!canMoveNext()}
+              />
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
       <HRAViewMenu
         onEdit={() => setIsSheetOpen(true)}
@@ -231,6 +294,7 @@ function HRAView() {
         isOpen={showConfirmationModal}
         onConfirm={handleConfirmNavigation}
         onCancel={handleCancelNavigation}
+        onExitWithoutSaving={handleExitWithoutSaving}
       />
     </BasePractitionerView>
   )

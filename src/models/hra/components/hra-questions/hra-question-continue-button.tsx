@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Button } from '@/base_submod/components/ui/button'
 
 interface HRAQuestionContinueButtonProps {
@@ -6,11 +7,23 @@ interface HRAQuestionContinueButtonProps {
 }
 
 function HRAQuestionContinueButton({ disabled, onNext }: HRAQuestionContinueButtonProps) {
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !disabled) {
+        e.preventDefault()
+        onNext()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [disabled, onNext])
+
   return (
-    <div className=":uno: flex justify-center">
+    <div className=":uno: flex justify-center pt-6">
       <div>
         <Button
-          className=":uno: w-full rounded-full bg-[#4A3880] hover:bg-[#4A3880]/90"
+          className=":uno: min-w-[211px] w-full rounded-full !bg-[#352368] !normal-case hover:!bg-[#352368]/90"
           disabled={disabled}
           onClick={onNext}
         >

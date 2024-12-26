@@ -1,11 +1,11 @@
-import { Icon } from '@iconify/react'
-import { Button } from '@/base_submod/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/base_submod/components/ui/dropdown-menu'
+import { Icon } from '@iconify/react'
+import { Button } from '@/base_submod/components/ui/button'
 
 interface HRAViewMenuProps {
   onEdit: () => void
@@ -17,7 +17,7 @@ function HRAViewMenu({ onEdit, onStopAndSave }: HRAViewMenuProps) {
     <div className=":uno: absolute bottom-8 right-8">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="icon" className=":uno: h-9 w-9">
+          <Button variant="outline" size="icon" className=":uno: h-9 w-9 shrink-0">
             <Icon icon="ph:dots-three-outline-fill" className=":uno: mb-.5 h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
