@@ -8,6 +8,8 @@ resource "aws_cloudfront_distribution" "provider_portal_cf" {
     }
   }
 
+  aliases = ["${var.alternative_domain}"]
+
   enabled             = true
   is_ipv6_enabled     = true
   comment             = "CloudFront distribution for Provider Portal"
@@ -57,7 +59,8 @@ resource "aws_cloudfront_distribution" "provider_portal_cf" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    acm_certificate_arn      = data.aws_acm_certificate.certificate_global.arn
+    ssl_support_method       = "sni-only"
   }
 
   tags = {

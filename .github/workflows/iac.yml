@@ -1,0 +1,62 @@
+name: Provision Infrastructure Resources
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment"
+        required: true
+        default: "Sandbox"
+        type: choice
+        options:
+          - Sandbox
+          - Development
+          - QA
+          - Production
+
+jobs:
+  terraform:
+    environment: ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    env:
+      BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
+      AWS_ACCESS_KEY_ID: ${{ secrets[format('AWS_{0}_ACCESS_KEY_ID', github.event.inputs.environment == 'Sandbox' && 'SBX' || github.event.inputs.environment == 'Development' && 'DEV' || github.event.inputs.environment == 'QA' && 'QA' || 'PROD')] }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets[format('AWS_{0}_SECRET_ACCESS_KEY', github.event.inputs.environment == 'Sandbox' && 'SBX' || github.event.inputs.environment == 'Development' && 'DEV' || github.event.inputs.environment == 'QA' && 'QA' || 'PROD')] }}
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    # Checkout code
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GH_PAT }}
+        submodules: 'recursive'
+
+    # Setup Terraform
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.2.8
+
+    # Terraform Init
+    - name: Terraform Init
+      working-directory: .deployments/root
+      run: terraform init -backend-config="../backend/${{ github.event.inputs.environment }}.tfvars"
+
+    # Terraform Validate
+    - name: Terraform Validate
+      run: terraform validate
+
+    # Terraform Plan
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan -var-file="../config/${{ github.event.inputs.environment }}.tfvars" -out=tfplan
+
+    # Terraform Apply
+    - name: Terraform Apply
+      if: github.ref == 'main'
+      working-directory: .deployments/root
+      run: terraform apply -auto-approve tfplan

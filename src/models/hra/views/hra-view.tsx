@@ -57,11 +57,19 @@ function HRAView() {
     return <Navigate to="/hra-activity" replace />
   }
 
-  const shouldBlock = (!showStartView && (hra !== null || showReviewView)) && !isNavigating
+  const shouldBlock = (!showStartView && (hra !== null || showReviewView))
 
   useEffect(() => {
-    setBlockNavigation(shouldBlock)
-  }, [shouldBlock])
+    if (!isNavigating) {
+      setBlockNavigation(shouldBlock)
+    }
+  }, [shouldBlock, isNavigating])
+
+  useEffect(() => {
+    if (isNavigating) {
+      setBlockNavigation(false)
+    }
+  }, [isNavigating])
 
   const blocker = useBlocker(({ currentLocation, nextLocation }) => {
     if (blockNavigation && currentLocation.pathname !== nextLocation.pathname) {
@@ -74,58 +82,59 @@ function HRAView() {
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (blockNavigation) {
+      if (!showStartView && (hra !== null || showReviewView)) {
+        e.preventDefault()
         e.returnValue = ''
         return ''
       }
     }
 
-    if (blockNavigation) {
+    if (!showStartView && (hra !== null || showReviewView)) {
       window.addEventListener('beforeunload', handleBeforeUnload)
       return () => window.removeEventListener('beforeunload', handleBeforeUnload)
     }
-  }, [blockNavigation])
+  }, [showStartView, hra, showReviewView])
 
-  const handleExitWithoutSaving = () => {
-    setShowConfirmationModal(false)
-    setIsNavigating(true)
-    setBlockNavigation(false)
+  useEffect(() => {
+    if (isNavigating && !blockNavigation && pendingLocationRef.current) {
+      const location = pendingLocationRef.current
+      const { pathname, search, hash } = location
 
-    setTimeout(() => {
-      blocker.reset?.()
       pendingLocationRef.current = null
-      navigate('/hra-activity', { replace: true })
-    }, 100)
+      blocker.reset?.()
+      navigate(pathname + search + hash, { replace: true })
+      setIsNavigating(false)
+    }
+  }, [isNavigating, blockNavigation, navigate])
+
+  const handleExitWithoutSaving = (e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    const targetLocation = pendingLocationRef.current || { pathname: '/hra-activity', search: '', hash: '' }
+
+    setShowConfirmationModal(false)
+    pendingLocationRef.current = targetLocation
+    setIsNavigating(true)
   }
 
-  const handleConfirmNavigation = () => {
+  const handleConfirmNavigation = (e?: React.MouseEvent) => {
+    e?.stopPropagation()
+    const targetLocation = pendingLocationRef.current || { pathname: '/hra-activity', search: '', hash: '' }
+
     setShowConfirmationModal(false)
+    pendingLocationRef.current = targetLocation
     setIsNavigating(true)
-    setBlockNavigation(false)
 
     toast({
       title: 'Progress Saved',
       duration: 2000,
     })
-
-    setTimeout(() => {
-      blocker.reset?.()
-      const location = pendingLocationRef.current
-      if (location) {
-        navigate(location.pathname + location.search + location.hash, {
-          replace: true,
-        })
-      }
-      else {
-        navigate('/hra-activity')
-      }
-      pendingLocationRef.current = null
-    }, 500)
   }
 
-  const handleCancelNavigation = () => {
+  const handleCancelNavigation = (e?: React.MouseEvent) => {
+    e?.stopPropagation()
     setShowConfirmationModal(false)
     pendingLocationRef.current = null
+    setIsNavigating(false)
     blocker.reset?.()
   }
 
@@ -170,11 +179,11 @@ function HRAView() {
           onSubmit={() => {
             setBlockNavigation(false)
             setIsNavigating(true)
-            blocker.reset?.()
+            pendingLocationRef.current = { pathname: '/hra-activity', search: '', hash: '' }
           }}
           onBack={() => setShowReviewView(false)}
           onSubmitNavigate={() => {
-            navigate('/hra-activity')
+            navigate('/hra-activity', { replace: true })
           }}
         />
         <HRAConfirmationModal

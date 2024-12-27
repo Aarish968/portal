@@ -10,3 +10,8 @@ variable "force_destroy" {
   description = "For setting up value of force destroy attribute for s3 bucket"
   type        = bool
 }
+
+variable "alternative_domain" {
+  description = "CF alternative domain name"
+  type = string
+}

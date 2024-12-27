@@ -37,8 +37,15 @@ interface PersistedState {
   isAuthenticated: boolean
 }
 
-function normalizeTimestamp(timestamp: number): number {
-  return timestamp > Date.now() ? timestamp * 1000 : timestamp
+function isTokenExpired(exp: number): boolean {
+  const expirationMs = exp * 1000
+  const now = Date.now()
+  return now >= expirationMs
+}
+
+function getTokenRemainingTime(exp: number): number {
+  const expirationMs = exp * 1000
+  return expirationMs - Date.now()
 }
 
 async function refreshToken(set: (state: Partial<AuthStore>) => void) {
@@ -59,11 +66,13 @@ async function refreshToken(set: (state: Partial<AuthStore>) => void) {
     }
 
     const decodedToken = jwtDecode<{ exp: number }>(response.idToken)
-    const expiration = normalizeTimestamp(decodedToken.exp)
+    if (!decodedToken.exp) {
+      throw new Error('Token missing expiration')
+    }
 
     set({
       idToken: response.idToken,
-      tokenExpiration: expiration,
+      tokenExpiration: decodedToken.exp * 1000,
       isAuthenticated: true,
     })
     return true
@@ -148,7 +157,7 @@ export const useAuthStore = create<AuthStore>()(
         if (get().idToken) {
           try {
             const decodedToken = jwtDecode<{ exp: number }>(get().idToken!)
-            return normalizeTimestamp(decodedToken.exp)
+            return decodedToken.exp * 1000
           }
           catch (error) {
             console.error('Failed to decode token for expiration check:', error)
@@ -166,17 +175,24 @@ export const useAuthStore = create<AuthStore>()(
           return
         }
 
-        const timeUntilExpiration = expiration - Date.now()
-        if (timeUntilExpiration <= TOKEN_REFRESH_BUFFER) {
+        if (isTokenExpired(expiration / 1000) || getTokenRemainingTime(expiration / 1000) <= TOKEN_REFRESH_BUFFER) {
           await refreshToken(set)
         }
       },
 
       getAuthHeaders: async () => {
         try {
-          await get().refreshTokenIfNeeded()
-          const idToken = get().idToken
+          const currentToken = get().idToken
+          const expiration = get().getTokenExpiration()
 
+          if (!currentToken || !expiration || isTokenExpired(expiration / 1000)) {
+            await refreshToken(set)
+          }
+          else if (getTokenRemainingTime(expiration / 1000) <= TOKEN_REFRESH_BUFFER) {
+            await refreshToken(set)
+          }
+
+          const idToken = get().idToken
           if (!idToken) {
             redirectToLogin()
             return {

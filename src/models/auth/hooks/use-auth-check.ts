@@ -53,7 +53,6 @@ export function useAuthCheck() {
   useEffect(() => {
     checkAuthStatus()
 
-    // Check token every 30 seconds
     refreshIntervalRef.current = window.setInterval(() => {
       refreshTokenIfNeeded()
     }, 30000)
