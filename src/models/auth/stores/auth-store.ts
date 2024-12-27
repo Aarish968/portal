@@ -1,13 +1,16 @@
+import type { StateCreator } from 'zustand'
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { type PersistOptions, persist } from 'zustand/middleware'
 import { type AuthUser, AuthUserSchema } from '@/models/auth/schemas/auth-schema'
 import { jwtDecode } from 'jwt-decode'
 import { msalInstance } from '@/base_submod/utils/MSAL'
 import ROUTES from '@/data/routing/routes'
 
-const redirectToLogin = () => {
+function redirectToLogin() {
   window.location.href = ROUTES.auth.login.href
 }
+
+const TOKEN_REFRESH_BUFFER = 5 * 60 * 1000
 
 interface AuthStore {
   isAuthenticated: boolean
@@ -23,11 +26,63 @@ interface AuthStore {
   updateUserProfile: (updates: Partial<AuthUser>) => void
   setIdToken: (token: string) => void
   getAuthHeaders: () => Promise<Record<string, string>>
+  refreshTokenIfNeeded: () => Promise<void>
+  getTokenExpiration: () => number | null
 }
 
+interface PersistedState {
+  idToken: string | null
+  tokenExpiration: number | null
+  currentUser: AuthUser | null
+  isAuthenticated: boolean
+}
+
+function normalizeTimestamp(timestamp: number): number {
+  return timestamp > Date.now() ? timestamp * 1000 : timestamp
+}
+
+async function refreshToken(set: (state: Partial<AuthStore>) => void) {
+  try {
+    const currentAccount = msalInstance.getAllAccounts()[0]
+    if (!currentAccount) {
+      throw new Error('No account found')
+    }
+
+    const silentRequest = {
+      account: currentAccount,
+      scopes: ['openid', 'profile', 'email'],
+    }
+
+    const response = await msalInstance.acquireTokenSilent(silentRequest)
+    if (!response.idToken) {
+      throw new Error('No token in response')
+    }
+
+    const decodedToken = jwtDecode<{ exp: number }>(response.idToken)
+    const expiration = normalizeTimestamp(decodedToken.exp)
+
+    set({
+      idToken: response.idToken,
+      tokenExpiration: expiration,
+      isAuthenticated: true,
+    })
+    return true
+  }
+  catch (error) {
+    console.error('Token refresh failed:', error)
+    redirectToLogin()
+    return false
+  }
+}
+
+type AuthStorePersist = (
+  config: StateCreator<AuthStore>,
+  options: PersistOptions<AuthStore, PersistedState>
+) => StateCreator<AuthStore>
+
 export const useAuthStore = create<AuthStore>()(
-  persist(
-    set => ({
+  (persist as AuthStorePersist)(
+    (set, get) => ({
       isAuthenticated: false,
       currentUser: null,
       isLoading: false,
@@ -35,7 +90,7 @@ export const useAuthStore = create<AuthStore>()(
       idToken: null,
       tokenExpiration: null,
 
-      setIsAuthenticated: value => set({ isAuthenticated: value }),
+      setIsAuthenticated: (value: boolean) => set({ isAuthenticated: value }),
 
       setCurrentUser: (user: AuthUser) => {
         const parsedUser = AuthUserSchema.safeParse(user)
@@ -78,72 +133,74 @@ export const useAuthStore = create<AuthStore>()(
       setIdToken: (token: string) => {
         try {
           const decodedToken = jwtDecode<{ exp: number }>(token)
-          set({ 
-            idToken: token, 
-            tokenExpiration: decodedToken.exp * 1000
+          set({
+            idToken: token,
+            tokenExpiration: decodedToken.exp * 1000,
           })
-        } catch (error) {
+        }
+        catch (error) {
           console.error('Failed to decode token:', error)
           set({ idToken: null, tokenExpiration: null })
         }
       },
 
-      getAuthHeaders: async () => {
-        const state = useAuthStore.getState()
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        }
-
-        if (state.idToken && state.tokenExpiration) {
-          const now = Date.now()
-          if (now < state.tokenExpiration) {
-            headers.Authorization = `Bearer ${state.idToken}`
-            return headers
-          }
-          
+      getTokenExpiration: () => {
+        if (get().idToken) {
           try {
-            const currentAccount = msalInstance.getAllAccounts()[0]
-            if (currentAccount) {
-              const silentRequest = {
-                account: currentAccount,
-                scopes: ['openid', 'profile', 'email'],
-              }
-              
-              const response = await msalInstance.acquireTokenSilent(silentRequest)
-              if (response.idToken) {
-                set({ 
-                  idToken: response.idToken,
-                  tokenExpiration: jwtDecode<{ exp: number }>(response.idToken).exp * 1000,
-                  isAuthenticated: true
-                })
-                headers.Authorization = `Bearer ${response.idToken}`
-                return headers
-              }
-            } else {
-              set({ 
-                idToken: null, 
-                tokenExpiration: null,
-                isAuthenticated: false,
-                currentUser: null
-              })
-              redirectToLogin()
-            }
-          } catch (error) {
-            console.error('Failed to refresh token:', error)
-            set({ 
-              idToken: null, 
-              tokenExpiration: null,
-              isAuthenticated: false,
-              currentUser: null
-            })
-            redirectToLogin()
+            const decodedToken = jwtDecode<{ exp: number }>(get().idToken!)
+            return normalizeTimestamp(decodedToken.exp)
           }
-        } else {
-          redirectToLogin()
+          catch (error) {
+            console.error('Failed to decode token for expiration check:', error)
+            return null
+          }
+        }
+        return null
+      },
+
+      refreshTokenIfNeeded: async () => {
+        const expiration = get().getTokenExpiration()
+
+        if (!expiration) {
+          await refreshToken(set)
+          return
         }
 
-        return headers
+        const timeUntilExpiration = expiration - Date.now()
+        if (timeUntilExpiration <= TOKEN_REFRESH_BUFFER) {
+          await refreshToken(set)
+        }
+      },
+
+      getAuthHeaders: async () => {
+        try {
+          await get().refreshTokenIfNeeded()
+          const idToken = get().idToken
+
+          if (!idToken) {
+            redirectToLogin()
+            return {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'Authorization': '',
+            }
+          }
+
+          return {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${idToken}`,
+          }
+        }
+        catch (error) {
+          console.error('Error getting auth headers:', error)
+          redirectToLogin()
+          return {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': '',
+          }
+        }
       },
     }),
     {

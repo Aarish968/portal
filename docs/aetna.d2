@@ -1,0 +1,449 @@
+direction: down
+
+classes: {
+  question: {
+    shape: rectangle
+    style: {
+      stroke: "#2563eb"
+      stroke-width: 2
+      fill: "#dbeafe"
+      border-radius: 4
+    }
+  }
+  child: {
+    shape: rectangle
+    style: {
+      stroke: "#059669"
+      stroke-width: 2
+      fill: "#d1fae5"
+      border-radius: 4
+    }
+  }
+  container: {
+    style: {
+      fill: transparent
+      stroke: transparent
+    }
+  }
+  conditional: {
+    style: {
+      stroke: "#059669"
+      stroke-dash: 5
+    }
+  }
+}
+
+questions: {
+  direction: down
+  class: container
+
+  q1_container: " " {
+    class: container
+    q1: "How is the Health Risk Assessment being completed?\n(a0DO3000009T7vNMAS)" {
+      class: question
+    }
+  }
+
+  q2_container: " " {
+    class: container
+    q2: "Who is answering the questions?\n(a0DO3000009T7vOMAS)" {
+      class: question
+    }
+  }
+
+  q3_container: " " {
+    class: container
+    direction: right
+    q3: "What is your preferred language?\n(a0DO3000009T7vPMAS)" {
+      class: question
+    }
+    q3_child: "Please specify if Other\n(a0DO3000009T7vmMAC)" {
+      class: child
+    }
+    q3 -> q3_child: "if Other" {
+      class: conditional
+    }
+  }
+
+  q4_container: " " {
+    class: container
+    direction: right
+    q4: "Are you a veteran?\n(a0DO3000009T7vQMAS)" {
+      class: question
+    }
+    q4_child1: "Do you get health care at the VA?\n(a0DO3000009T7vnMAC)" {
+      class: child
+    }
+    q4_child2: "If yes, provide VA clinic/address\n(a0DO3000009T7wLMAS)" {
+      class: child
+    }
+    q4 -> q4_child1: "if Yes" {
+      class: conditional
+    }
+    q4_child1 -> q4_child2: "if Yes" {
+      class: conditional
+    }
+  }
+
+  q5_container: " " {
+    class: container
+    q5: "What is your marital status?\n(a0DO3000009T7vRMAS)" {
+      class: question
+    }
+  }
+
+  q6_container: " " {
+    class: container
+    direction: right
+    q6: "Do you have a Primary Care Physician?\n(a0DO3000009T7vSMAS)" {
+      class: question
+    }
+    q6_child1: "If yes, provide PCP Name\n(a0DO3000009T7voMAC)" {
+      class: child
+    }
+    q6_child2: "When was your last visit?\n(a0DO3000009T7vpMAC)" {
+      class: child
+    }
+    q6 -> q6_child1: "if Yes" {
+      class: conditional
+    }
+    q6 -> q6_child2: "if Yes" {
+      class: conditional
+    }
+  }
+
+  q7_container: " " {
+    class: container
+    q7: "Has your PCP discussed seeing a specialist?\n(a0DO3000009T7vTMAS)" {
+      class: question
+    }
+  }
+
+  q8_container: " " {
+    class: container
+    q8: "Have you had an in-home visit this year?\n(a0DO3000009T7vUMAS)" {
+      class: question
+    }
+  }
+
+  q9_container: " " {
+    class: container
+    direction: right
+    q9: "Do you have a Caregiver?\n(a0DO3000009T7vVMAS)" {
+      class: question
+    }
+    q9_child: "If yes, Caregiver name and phone number\n(a0DO3000009T7vqMAC)" {
+      class: child
+    }
+    q9 -> q9_child: "if Yes" {
+      class: conditional
+    }
+  }
+
+  q10_container: " " {
+    class: container
+    q10: "How many prescriptions do you take each day?\n(a0DO3000009T7vXMAS)" {
+      class: question
+    }
+  }
+
+  q11_container: " " {
+    class: container
+    q11: "Do you smoke or use tobacco products?\n(a0DO3000009T7vZMAS)" {
+      class: question
+    }
+  }
+
+  q12_container: " " {
+    class: container
+    q12: "What health conditions do you currently have?\n(a0DO3000009T7vYMAS)" {
+      class: question
+    }
+  }
+
+  q13_container: " " {
+    class: container
+    q13: "Do you currently or have you ever been told you have Diabetes?\n(a0DO3000009T7vaMAC)" {
+      class: question
+    }
+  }
+
+  q14_container: " " {
+    class: container
+    direction: right
+    q14: "Do you need help with any of the following?\n(a0DO3000009T7vWMAS)" {
+      class: question
+    }
+    q14_child1: "Bathing\n(a0DO3000009T7vrMAC)" {
+      class: child
+    }
+    q14_child2: "Transferring\n(a0DO3000009T7vsMAC)" {
+      class: child
+    }
+    q14_child3: "Dressing\n(a0DO3000009T7vtMAC)" {
+      class: child
+    }
+    q14_child4: "Eating\n(a0DO3000009T7vuMAC)" {
+      class: child
+    }
+    q14_child5: "Using the bathroom\n(a0DO3000009T7vvMAC)" {
+      class: child
+    }
+    q14_child6: "Walking\n(a0DO3000009T7vwMAC)" {
+      class: child
+    }
+    q14_child7: "Making meals\n(a0DO3000009T7vxMAC)" {
+      class: child
+    }
+    q14_child8: "Shopping\n(a0DO3000009T7vyMAC)" {
+      class: child
+    }
+    q14_child9: "Medication management\n(a0DO3000009T7vzMAC)" {
+      class: child
+    }
+    q14 -> q14_child1: "ADL Assessment" {
+      class: conditional
+    }
+    q14 -> q14_child2: "ADL Assessment" {
+      class: conditional
+    }
+    q14 -> q14_child3: "ADL Assessment" {
+      class: conditional
+    }
+    q14 -> q14_child4: "ADL Assessment" {
+      class: conditional
+    }
+    q14 -> q14_child5: "ADL Assessment" {
+      class: conditional
+    }
+    q14 -> q14_child6: "ADL Assessment" {
+      class: conditional
+    }
+    q14 -> q14_child7: "ADL Assessment" {
+      class: conditional
+    }
+    q14 -> q14_child8: "ADL Assessment" {
+      class: conditional
+    }
+    q14 -> q14_child9: "ADL Assessment" {
+      class: conditional
+    }
+  }
+
+  q15_container: " " {
+    class: container
+    direction: right
+    q15: "Are you experiencing any issues related to:\n(a0DO3000009T7vcMAC)" {
+      class: question
+    }
+    q15_child1: "Access to food\n(a0DO3000009T7w0MAC)" {
+      class: child
+    }
+    q15_child2: "Access to housing\n(a0DO3000009T7w1MAC)" {
+      class: child
+    }
+    q15_child3: "Access to transportation\n(a0DO3000009T7w3MAC)" {
+      class: child
+    }
+    q15_child4: "Trouble paying your bills\n(a0DO3000009T7w2MAC)" {
+      class: child
+    }
+    q15 -> q15_child1: "Issues Assessment" {
+      class: conditional
+    }
+    q15 -> q15_child2: "Issues Assessment" {
+      class: conditional
+    }
+    q15 -> q15_child3: "Issues Assessment" {
+      class: conditional
+    }
+    q15 -> q15_child4: "Issues Assessment" {
+      class: conditional
+    }
+  }
+
+  q16_container: " " {
+    class: container
+    q16: "Within the last 12 months have you worried that your food would run out?\n(a0DO3000009T7vdMAC)" {
+      class: question
+    }
+  }
+
+  q17_container: " " {
+    class: container
+    q17: "Within the last 12 months, the food you bought didn't last and you didn't have money to get more?\n(a0DO3000009T7vbMAC)" {
+      class: question
+    }
+  }
+
+  q18_container: " " {
+    class: container
+    q18: "Within the last 12 months, did you avoid getting a prescription medication due to cost?\n(a0DO3000009T7veMAC)" {
+      class: question
+    }
+  }
+
+  q19_container: " " {
+    class: container
+    direction: right
+    q19: "Do you have problems with any of the following at the place you live?\n(a0DO3000009T7vfMAC)" {
+      class: question
+    }
+    q19_child1: "Bug Infestation\n(a0DO3000009T7w4MAC)" {
+      class: child
+    }
+    q19_child2: "Mold\n(a0DO3000009T7w5MAC)" {
+      class: child
+    }
+    q19_child3: "Lead Pipes\n(a0DO3000009T7w6MAC)" {
+      class: child
+    }
+    q19_child4: "No solid hand rails\n(a0DO3000009T7w9MAC)" {
+      class: child
+    }
+    q19_child5: "Oven or stove not working\n(a0DO3000009T7w7MAC)" {
+      class: child
+    }
+    q19_child6: "No or non-working smoke detectors\n(a0DO3000009T7wAMAS)" {
+      class: child
+    }
+    q19_child7: "Water leaks\n(a0DO3000009T7wBMAS)" {
+      class: child
+    }
+    q19_child8: "Loose Rugs\n(a0DO3000009T7w8MAC)" {
+      class: child
+    }
+    q19_child9: "No or not working Carbon Monoxide detector\n(a0DO3000009T7wCMAS)" {
+      class: child
+    }
+    q19_child10: "No good lighting in walkways\n(a0DO3000009T7wDMAS)" {
+      class: child
+    }
+    q19_child11: "None\n(a0DO3000009T7wEMAS)" {
+      class: child
+    }
+    
+    q19 -> q19_child1: "House Assessment" {
+      class: conditional
+    }
+    q19 -> q19_child2: "House Assessment" {
+      class: conditional
+    }
+    q19 -> q19_child3: "House Assessment" {
+      class: conditional
+    }
+    q19 -> q19_child4: "House Assessment" {
+      class: conditional
+    }
+    q19 -> q19_child5: "House Assessment" {
+      class: conditional
+    }
+    q19 -> q19_child6: "House Assessment" {
+      class: conditional
+    }
+    q19 -> q19_child7: "House Assessment" {
+      class: conditional
+    }
+    q19 -> q19_child8: "House Assessment" {
+      class: conditional
+    }
+    q19 -> q19_child9: "House Assessment" {
+      class: conditional
+    }
+    q19 -> q19_child10: "House Assessment" {
+      class: conditional
+    }
+    q19 -> q19_child11: "House Assessment" {
+      class: conditional
+    }
+  }
+
+  q20_container: " " {
+    class: container
+    direction: right
+    q20: "FEMALE AGED 45+: Have you had a mammogram in the past 24 months?\n(a0DO3000009T7vgMAC)" {
+      class: question
+    }
+    q20_child1: "If yes, when (month/year)\n(a0DO3000009T7wFMAS)" {
+      class: child
+    }
+    q20_child2: "If yes, where (PCP, Imaging Center, etc)\n(a0DO3000009T7wGMAS)" {
+      class: child
+    }
+    
+    q20 -> q20_child1: "if Yes" {
+      class: conditional
+    }
+    q20 -> q20_child2: "if Yes" {
+      class: conditional
+    }
+  }
+
+  q21_container: " " {
+    class: container
+    direction: right
+    q21: "MALE/FEMALE 45+ Have you had a colorectal cancer screening?\n(a0DO3000009T7vhMAC)" {
+      class: question
+    }
+    q21_child1: "If yes, where (PCP, Imaging Center, mailed kit, etc)\n(a0DO3000009T7wHMAS)" {
+      class: child
+    }
+    q21_child2: "What type of colorectal screening have you had?\n(a0DO3000009T7wIMAS)" {
+      class: child
+    }
+    q21_child3: "Date of your last Colorectal screening\n(a0DO3000009T7wJMAS)" {
+      class: child
+    }
+    q21_child4: "Results of your last colorectal screening\n(a0DO3000009T7wKMAS)" {
+      class: child
+    }
+    
+    q21 -> q21_child1: "if Yes" {
+      class: conditional
+    }
+    q21 -> q21_child2: "if Yes" {
+      class: conditional
+    }
+    q21 -> q21_child3: "if Yes" {
+      class: conditional
+    }
+    q21 -> q21_child4: "if Yes" {
+      class: conditional
+    }
+  }
+
+  q22_container: " " {
+    class: container
+    q22: "When was your last HbA1c test?\n(a0DO3000009T7viMAC)" {
+      class: question
+    }
+  }
+
+  q23_container: " " {
+    class: container
+    q23: "When was your last diabetic retinal eye exam?\n(a0DO3000009T7vjMAC)" {
+      class: question
+    }
+  }
+
+  q24_container: " " {
+    class: container
+    q24: "Do you know if your doctor arranged for a kidney health screening?\n(a0DO3000009T7vkMAC)" {
+      class: question
+    }
+  }
+
+  q25_container: " " {
+    class: container
+    q25: "Have you had a Flu Vaccine in the last year?\n(a0DO3000009T7vlMAC)" {
+      class: question
+    }
+  }
+
+  # Connect the main flow
+  q1_container.q1 -> q2_container.q2 -> q3_container.q3 -> q4_container.q4 -> q5_container.q5 -> q6_container.q6
+  q6_container.q6 -> q7_container.q7 -> q8_container.q8 -> q9_container.q9 -> q10_container.q10 -> q11_container.q11
+  q11_container.q11 -> q12_container.q12 -> q13_container.q13 -> q14_container.q14 -> q15_container.q15 -> q16_container.q16
+  q16_container.q16 -> q17_container.q17 -> q18_container.q18 -> q19_container.q19 -> q20_container.q20 -> q21_container.q21
+  q21_container.q21 -> q22_container.q22 -> q23_container.q23 -> q24_container.q24 -> q25_container.q25 
+}

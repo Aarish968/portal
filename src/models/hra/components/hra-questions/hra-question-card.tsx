@@ -7,7 +7,6 @@ import HRADateQuestion from './hra-date-question'
 import type { HRAQuestion } from '@/models/hra/schemas/hra-schema'
 import { Card, CardContent } from '@/base_submod/components/ui/card'
 import HRAQuestionCardQuestionText from './hra-question-card-question-text'
-import { isDateQuestion } from '@/models/hra/utils/question-utils'
 
 interface HRAQuestionCardProps {
   question: HRAQuestion
@@ -75,7 +74,7 @@ function HRAQuestionCard({
                   />
                 )}
 
-                {question.answerType === 'Text' && !isDateQuestion(question.questionText) && (
+                {question.answerType === 'Text' && (
                   <HRATextQuestion
                     answer={answer as string}
                     onAnswer={answer => onAnswer(question.questionId, answer)}
@@ -83,11 +82,12 @@ function HRAQuestionCard({
                   />
                 )}
 
-                {question.answerType === 'Text' && isDateQuestion(question.questionText) && (
+                {question.answerType === 'Date' && (
                   <HRADateQuestion
                     answer={answer as string}
                     onAnswer={answer => onAnswer(question.questionId, answer)}
                     onNext={onNext}
+                    dateFormat={question.dateFormat || 'YYYY-MM-DD'}
                   />
                 )}
               </div>

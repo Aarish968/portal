@@ -5,12 +5,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/base_submod/components/ui/select'
+import { format, isValid } from 'date-fns'
 import { HRACheckbox } from '../hra-checkbox'
+import HRADateSelect from '../hra-date-select'
+import { MONTHS } from '@/models/hra/utils/date-utils'
 import { Input } from '@/base_submod/components/ui/input'
 import type { HRA, HRAQuestion } from '@/models/hra/schemas/hra-schema'
-import { format } from 'date-fns'
-import HRADateSelect from '../hra-date-select'
-import { isDateQuestion } from '@/models/hra/utils/question-utils'
 
 interface HRAReviewTableProps {
   hra: HRA
@@ -27,8 +27,19 @@ export function HRAReviewTable({ hra, isEditing, editedAnswers, onAnswerChange }
     if (Array.isArray(answer)) {
       return answer.join(', ')
     }
-    if (question.answerType === 'Text' && isDateQuestion(question.questionText) && answer) {
-      return format(new Date(answer), 'PPP')
+    if (question.answerType === 'Date' && answer) {
+      if (question.dateFormat === 'YYYY') {
+        return answer
+      }
+      if (question.dateFormat?.includes('MM') && question.dateFormat?.includes('YYYY') && !question.dateFormat?.includes('DD')) {
+        const [month, year] = answer.split('-')
+        const monthIndex = Number.parseInt(month) - 1
+        return `${MONTHS[monthIndex]} ${year}`
+      }
+      const date = new Date(answer)
+      if (isValid(date)) {
+        return format(date, 'PPP')
+      }
     }
     return String(answer)
   }
@@ -38,12 +49,13 @@ export function HRAReviewTable({ hra, isEditing, editedAnswers, onAnswerChange }
       return formatAnswer(question, answer)
     }
 
-    if (question.answerType === 'Text' && isDateQuestion(question.questionText)) {
+    if (question.answerType === 'Date') {
       return (
         <div className=":uno: flex justify-center">
           <HRADateSelect
             value={answer || ''}
             onChange={value => onAnswerChange(question.questionId, value)}
+            dateFormat={question.dateFormat || 'YYYY-MM-DD'}
           />
         </div>
       )
@@ -120,60 +132,132 @@ export function HRAReviewTable({ hra, isEditing, editedAnswers, onAnswerChange }
     return formatAnswer(question, answer)
   }
 
-  const renderQuestionRow = (question: HRAQuestion, index: number) => {
+  const renderQuestionRow = (question: HRAQuestion, index: number, level = 0) => {
     const answer = editedAnswers[question.questionId]
-    const answerStr = Array.isArray(answer) ? answer[0] : String(answer)
+    const answerStr = typeof answer === 'boolean'
+      ? (answer ? 'Yes' : 'No')
+      : Array.isArray(answer)
+        ? answer[0]
+        : String(answer)
 
-    const hasChildren = question.children?.length > 0
-    const showChildren = hasChildren && (
-      !question.answerType
-      || question.children.some((child: HRAQuestion) => child.childDependentValue === answerStr)
-    )
+    const indentClass = [
+      '',
+      'pl-4',
+      'pl-8',
+      'pl-12',
+      'pl-16',
+    ][level] || 'pl-0'
 
-    return (
-      <>
-        <tr key={question.questionId}>
-          <td className=":uno: px-6 py-4 text-sm text-gray-900">
-            {`${index + 1}. ${question.questionText}`}
-          </td>
-          <td className=":uno: px-6 py-4 text-sm text-gray-900">
-            {question.answerType ? renderAnswer(question, answer) : ''}
-          </td>
-        </tr>
-        {showChildren && question.children?.map((child: HRAQuestion, childIndex: number) => {
-          if (!question.answerType || child.childDependentValue === answerStr) {
-            return (
-              <tr key={child.questionId}>
-                <td className=":uno: px-6 py-4 pl-12 text-sm text-gray-900">
-                  {`${String.fromCharCode(97 + childIndex)}. ${child.questionText}`}
-                </td>
-                <td className=":uno: px-6 py-4 text-sm text-gray-900">
-                  {renderAnswer(child, editedAnswers[child.questionId])}
-                </td>
-              </tr>
-            )
-          }
-          return null
-        })}
-      </>
-    )
+    const getQuestionIndex = (level: number, index: number) => {
+      if (level === 0)
+        return `${index + 1}.`
+      if (level === 1)
+        return `${String.fromCharCode(97 + index)}.`
+      return `${String.fromCharCode(97 + index)}${level - 1}.`
+    }
+
+    const rows = [(
+      <tr key={question.questionId}>
+        <td className=":uno: px-6 py-4 text-sm text-gray-900">
+          <div className={`:uno: ${indentClass}`}>
+            {`${getQuestionIndex(level, index)} ${question.questionText}`}
+          </div>
+        </td>
+        <td className=":uno: px-6 py-4 text-sm text-gray-900">
+          {question.answerType ? renderAnswer(question, answer) : ''}
+        </td>
+      </tr>
+    )]
+
+    if (question.children?.length) {
+      question.children.forEach((child: HRAQuestion, childIndex: number) => {
+        if (!child.childDependentValue || child.childDependentValue === answerStr) {
+          rows.push(...renderQuestionRow(child, childIndex, level + 1))
+        }
+      })
+    }
+
+    return rows
   }
 
+  const findUnansweredQuestions = () => {
+    const unanswered: { index: string, text: string }[] = []
+
+    const checkQuestion = (question: HRAQuestion, index: number, level = 0) => {
+      const answer = editedAnswers[question.questionId]
+      const answerStr = typeof answer === 'boolean'
+        ? (answer ? 'Yes' : 'No')
+        : Array.isArray(answer)
+          ? answer[0]
+          : String(answer)
+
+      const getQuestionIndex = (level: number, index: number) => {
+        if (level === 0)
+          return `${index + 1}`
+        if (level === 1)
+          return `${String.fromCharCode(97 + index)}`
+        return `${String.fromCharCode(97 + index)}${level - 1}`
+      }
+
+      if (question.answerType && (answer === undefined || answer === '')) {
+        unanswered.push({
+          index: getQuestionIndex(level, index),
+          text: question.questionText,
+        })
+      }
+
+      if (question.children?.length) {
+        question.children.forEach((child: HRAQuestion, childIndex: number) => {
+          if (!child.childDependentValue || child.childDependentValue === answerStr) {
+            checkQuestion(child, childIndex, level + 1)
+          }
+        })
+      }
+    }
+
+    hra.screening.questions.forEach((question, index) => checkQuestion(question, index, 0))
+    return unanswered
+  }
+
+  const unansweredQuestions = findUnansweredQuestions()
+
   return (
-    <div className=":uno: mb-10 overflow-hidden border rounded-lg">
-      <table className=":uno: w-full">
-        <thead className=":uno: bg-gray-50">
-          <tr>
-            <th className=":uno: px-6 py-3 text-left text-sm text-gray-900 font-medium">Question</th>
-            <th className=":uno: px-6 py-3 text-left text-sm text-gray-900 font-medium">Answer</th>
-          </tr>
-        </thead>
-        <tbody className=":uno: bg-white divide-y divide-gray-200">
-          {hra.screening.questions.map((question, index) =>
-            renderQuestionRow(question, index),
-          )}
-        </tbody>
-      </table>
+    <div className=":uno: space-y-4">
+      {unansweredQuestions.length > 0 && (
+        <div className=":uno: border-l-4 border-red-400 bg-red-50 p-4">
+          <div className=":uno: text-red-700">
+            Please answer the following questions:
+            <ul className=":uno: mt-2 list-disc pl-8">
+              {unansweredQuestions.map(({ index, text }) => (
+                <li key={index}>
+                  Question
+                  {' '}
+                  {index}
+                  :
+                  {' '}
+                  {text}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
+      <div className=":uno: mb-10 overflow-hidden border rounded-lg">
+        <table className=":uno: w-full">
+          <thead className=":uno: bg-gray-50">
+            <tr>
+              <th className=":uno: px-6 py-3 text-left text-sm text-gray-900 font-medium">Question</th>
+              <th className=":uno: px-6 py-3 text-left text-sm text-gray-900 font-medium">Answer</th>
+            </tr>
+          </thead>
+          <tbody className=":uno: bg-white divide-y divide-gray-200">
+            {hra.screening.questions.flatMap((question, index) =>
+              renderQuestionRow(question, index, 0),
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

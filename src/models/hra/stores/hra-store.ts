@@ -90,39 +90,36 @@ function findNextQuestion(
     return null
 
   if (!currentQuestion.answerType && currentQuestion.children?.length) {
-    let currentChildIndex = 0
-    for (let i = 0; i < currentQuestion.children.length; i++) {
+    const currentChildIndex = currentPath[0].childIndex ?? 0
+    for (let i = currentChildIndex; i < currentQuestion.children.length; i++) {
       if (answers[currentQuestion.children[i].questionId] === undefined) {
-        currentChildIndex = i
-        break
-      }
-      if (i === currentQuestion.children.length - 1) {
-        currentChildIndex = i
-      }
-    }
-
-    const currentChild = currentQuestion.children[currentChildIndex]
-    if (answers[currentChild.questionId] !== undefined) {
-      if (currentChildIndex < currentQuestion.children.length - 1) {
         return [{
           questionIndex: currentPath[0].questionIndex,
           parentId: null,
-          childIndex: currentChildIndex + 1,
+          childIndex: i,
         }]
       }
-      return [{
-        questionIndex: currentPath[0].questionIndex + 1,
-        parentId: null,
-      }]
     }
     return [{
-      questionIndex: currentPath[0].questionIndex,
+      questionIndex: currentPath[0].questionIndex + 1,
       parentId: null,
-      childIndex: currentChildIndex,
     }]
   }
 
   const currentAnswer = answers[currentQuestion.questionId]
+
+  if (currentPath.length > 1) {
+    const parentQuestion = findQuestionByPath(questions, currentPath.slice(0, -1))
+    if (parentQuestion?.children) {
+      const currentChildIndex = currentPath[currentPath.length - 1].questionIndex
+      if (currentChildIndex < parentQuestion.children.length - 1) {
+        const nextPath = [...currentPath.slice(0, -1)]
+        nextPath.push({ questionIndex: currentChildIndex + 1, parentId: parentQuestion.questionId })
+        return nextPath
+      }
+    }
+    return [{ questionIndex: currentPath[0].questionIndex + 1, parentId: null }]
+  }
 
   if (shouldShowChildQuestions(currentQuestion, currentAnswer)) {
     return [...currentPath, { questionIndex: 0, parentId: currentQuestion.questionId }]

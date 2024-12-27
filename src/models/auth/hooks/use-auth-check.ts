@@ -1,56 +1,62 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useMsal } from '@azure/msal-react'
 import { useAuthStore } from '../stores/auth-store'
 
 export function useAuthCheck() {
   const { instance } = useMsal()
-  const { setCurrentUser, clearCurrentUser, setIdToken } = useAuthStore()
+  const { setCurrentUser, clearCurrentUser, setIdToken, refreshTokenIfNeeded } = useAuthStore()
+  const refreshIntervalRef = useRef<number>()
 
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      const currentAccounts = instance.getAllAccounts()
+  const checkAuthStatus = useCallback(async () => {
+    const currentAccounts = instance.getAllAccounts()
 
-      if (currentAccounts.length > 0) {
-        const account = currentAccounts[0]
+    if (currentAccounts.length > 0) {
+      const account = currentAccounts[0]
 
-        try {
-          const silentRequest = {
-            account,
-            scopes: ['openid', 'profile', 'email'],
-          }
-
-          const response = await instance.acquireTokenSilent(silentRequest)
-
-          setCurrentUser({
-            id: account.localAccountId,
-            name: account.name || '',
-            username: account.username,
-            role: 'user',
-            createdAt: new Date(),
-            lastLogin: new Date(),
-            homeAccountId: account.homeAccountId,
-            tenantId: account.tenantId,
-            localAccountId: account.localAccountId,
-            environment: account.environment,
-            idTokenClaims: account.idTokenClaims as any,
-          })
-
-          if (response.idToken) {
-            setIdToken(response.idToken)
-            window.dispatchEvent(new Event('auth-ready'))
-          }
+      try {
+        const silentRequest = {
+          account,
+          scopes: ['openid', 'profile', 'email'],
         }
-        catch (error) {
-          console.error('Failed to acquire token silently:', error)
-          clearCurrentUser()
+
+        const response = await instance.acquireTokenSilent(silentRequest)
+
+        setCurrentUser({
+          id: account.localAccountId,
+          name: account.name || '',
+          username: account.username,
+          role: 'user',
+          createdAt: new Date(),
+          lastLogin: new Date(),
+          homeAccountId: account.homeAccountId,
+          tenantId: account.tenantId,
+          localAccountId: account.localAccountId,
+          environment: account.environment,
+          idTokenClaims: account.idTokenClaims as any,
+        })
+
+        if (response.idToken) {
+          setIdToken(response.idToken)
+          window.dispatchEvent(new Event('auth-ready'))
         }
       }
-      else {
+      catch (error) {
+        console.error('Failed to acquire token silently:', error)
         clearCurrentUser()
       }
     }
+    else {
+      clearCurrentUser()
+    }
+  }, [instance, setCurrentUser, clearCurrentUser, setIdToken])
 
+  useEffect(() => {
     checkAuthStatus()
+
+    // Check token every 30 seconds
+    refreshIntervalRef.current = window.setInterval(() => {
+      refreshTokenIfNeeded()
+    }, 30000)
 
     const callback = (event: any) => {
       if (event.eventType === 'msal:loginSuccess') {
@@ -67,6 +73,9 @@ export function useAuthCheck() {
       if (callbackId) {
         instance.removeEventCallback(callbackId)
       }
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current)
+      }
     }
-  }, [instance, setCurrentUser, clearCurrentUser, setIdToken])
+  }, [instance, checkAuthStatus, clearCurrentUser, refreshTokenIfNeeded])
 }
