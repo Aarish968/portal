@@ -80,59 +80,6 @@ function shouldShowChildQuestions(question: HRAQuestion, answer: string | boolea
   return true
 }
 
-function findNextQuestion(
-  questions: HRAQuestion[],
-  answers: Record<string, string | boolean | string[]>,
-  currentPath: QuestionPath[],
-): QuestionPath[] | null {
-  const currentQuestion = findQuestionByPath(questions, currentPath)
-  if (!currentQuestion)
-    return null
-
-  if (!currentQuestion.answerType && currentQuestion.children?.length) {
-    const currentChildIndex = currentPath[0].childIndex ?? 0
-    for (let i = currentChildIndex; i < currentQuestion.children.length; i++) {
-      if (answers[currentQuestion.children[i].questionId] === undefined) {
-        return [{
-          questionIndex: currentPath[0].questionIndex,
-          parentId: null,
-          childIndex: i,
-        }]
-      }
-    }
-    return [{
-      questionIndex: currentPath[0].questionIndex + 1,
-      parentId: null,
-    }]
-  }
-
-  const currentAnswer = answers[currentQuestion.questionId]
-
-  if (currentPath.length > 1) {
-    const parentQuestion = findQuestionByPath(questions, currentPath.slice(0, -1))
-    if (parentQuestion?.children) {
-      const currentChildIndex = currentPath[currentPath.length - 1].questionIndex
-      if (currentChildIndex < parentQuestion.children.length - 1) {
-        const nextPath = [...currentPath.slice(0, -1)]
-        nextPath.push({ questionIndex: currentChildIndex + 1, parentId: parentQuestion.questionId })
-        return nextPath
-      }
-    }
-    return [{ questionIndex: currentPath[0].questionIndex + 1, parentId: null }]
-  }
-
-  if (shouldShowChildQuestions(currentQuestion, currentAnswer)) {
-    return [...currentPath, { questionIndex: 0, parentId: currentQuestion.questionId }]
-  }
-
-  const nextRootIndex = currentPath[0].questionIndex + 1
-  if (nextRootIndex < questions.length) {
-    return [{ questionIndex: nextRootIndex, parentId: null }]
-  }
-
-  return null
-}
-
 function calculateTotalQuestions(questions: HRAQuestion[]): number {
   return questions.length
 }
@@ -299,20 +246,21 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
         return state
 
       if (state.editQuestionIndex !== null) {
-        const nextIndex = state.editQuestionIndex + 1
-        if (nextIndex <= state.highestCompletedQuestionIndex) {
+        if (state.editQuestionIndex < state.highestCompletedQuestionIndex) {
           return {
             ...state,
-            editQuestionIndex: nextIndex,
+            editQuestionIndex: state.editQuestionIndex + 1,
           }
         }
-        return {
-          ...state,
-          editQuestionIndex: null,
-          questionPath: [{
-            questionIndex: state.highestCompletedQuestionIndex + 1,
-            parentId: null,
-          }],
+        else {
+          return {
+            ...state,
+            editQuestionIndex: null,
+            questionPath: [{
+              questionIndex: state.highestCompletedQuestionIndex + 1,
+              parentId: null,
+            }],
+          }
         }
       }
 
@@ -322,32 +270,116 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
 
       const currentAnswer = state.hra.answers[currentQuestion.questionId]
 
-      if (shouldShowChildQuestions(currentQuestion, currentAnswer)) {
+      if (state.questionPath.length > 1) {
+        const parentPath = state.questionPath.slice(0, -1)
+        const parentQuestion = findQuestionByPath(state.hra.screening.questions, parentPath)
+        if (!parentQuestion?.children)
+          return state
+
+        const currentChildIndex = state.questionPath[state.questionPath.length - 1].questionIndex
+
+        if (shouldShowChildQuestions(currentQuestion, currentAnswer) && currentQuestion.children?.length) {
+          return {
+            ...state,
+            questionPath: [
+              ...state.questionPath,
+              { questionIndex: 0, parentId: currentQuestion.questionId },
+            ],
+          }
+        }
+
+        if (state.questionPath.length > 2) {
+          const grandParentPath = state.questionPath.slice(0, -2)
+          const grandParentQuestion = findQuestionByPath(state.hra.screening.questions, grandParentPath)
+          if (!grandParentQuestion?.children)
+            return state
+
+          const parentIndex = state.questionPath[state.questionPath.length - 2].questionIndex
+
+          if (parentIndex < grandParentQuestion.children.length - 1) {
+            return {
+              ...state,
+              questionPath: [
+                ...grandParentPath,
+                { questionIndex: parentIndex + 1, parentId: grandParentQuestion.questionId },
+              ],
+            }
+          }
+
+          return {
+            ...state,
+            questionPath: [{
+              questionIndex: state.questionPath[0].questionIndex + 1,
+              parentId: null,
+            }],
+          }
+        }
+
+        if (currentChildIndex < parentQuestion.children.length - 1) {
+          const nextChild = parentQuestion.children[currentChildIndex + 1]
+          const nextPath = [
+            ...state.questionPath.slice(0, -1),
+            {
+              questionIndex: currentChildIndex + 1,
+              parentId: parentQuestion.questionId,
+            },
+          ]
+
+          if (nextChild.childDependentValue) {
+            const parentAnswer = state.hra.answers[parentQuestion.questionId]
+            const answerStr = typeof parentAnswer === 'boolean' ? (parentAnswer ? 'Yes' : 'No') : parentAnswer
+            if (answerStr !== nextChild.childDependentValue) {
+              return {
+                ...state,
+                questionPath: [{
+                  questionIndex: state.questionPath[0].questionIndex + 1,
+                  parentId: null,
+                }],
+              }
+            }
+          }
+
+          return {
+            ...state,
+            questionPath: nextPath,
+          }
+        }
+
         return {
           ...state,
-          questionPath: [...state.questionPath, { questionIndex: 0, parentId: currentQuestion.questionId }],
-          highestCompletedQuestionIndex: Math.max(state.highestCompletedQuestionIndex, state.questionPath[0].questionIndex),
+          questionPath: [{
+            questionIndex: state.questionPath[0].questionIndex + 1,
+            parentId: null,
+          }],
         }
       }
 
-      const nextPath = findNextQuestion(
-        state.hra.screening.questions,
-        state.hra.answers,
-        state.questionPath,
-      )
-
-      if (!nextPath) {
+      if (shouldShowChildQuestions(currentQuestion, currentAnswer) && currentQuestion.children?.length) {
         return {
           ...state,
-          hra: { ...state.hra, status: 'completed' },
-          highestCompletedQuestionIndex: state.questionPath[0].questionIndex,
+          questionPath: [
+            ...state.questionPath,
+            { questionIndex: 0, parentId: currentQuestion.questionId },
+          ],
+        }
+      }
+
+      if (!currentQuestion.answerType && currentQuestion.children?.length) {
+        return {
+          ...state,
+          questionPath: [
+            ...state.questionPath,
+            { questionIndex: 0, parentId: currentQuestion.questionId },
+          ],
         }
       }
 
       return {
         ...state,
-        questionPath: nextPath,
-        highestCompletedQuestionIndex: Math.max(state.highestCompletedQuestionIndex, state.questionPath[0].questionIndex),
+        questionPath: [{
+          questionIndex: state.questionPath[0].questionIndex + 1,
+          parentId: null,
+        }],
       }
     })
   },
@@ -357,17 +389,91 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
       if (!state.hra)
         return state
 
+      if (state.editQuestionIndex !== null) {
+        if (state.editQuestionIndex > 0) {
+          return {
+            ...state,
+            editQuestionIndex: state.editQuestionIndex - 1,
+          }
+        }
+        return state
+      }
+
       if (state.questionPath.length > 1) {
+        const parentPath = state.questionPath.slice(0, -1)
+        const parentQuestion = findQuestionByPath(state.hra.screening.questions, parentPath)
+        if (!parentQuestion)
+          return state
+
+        const currentChildIndex = state.questionPath[state.questionPath.length - 1].questionIndex
+
+        if (currentChildIndex > 0) {
+          const previousChild = parentQuestion.children?.[currentChildIndex - 1]
+          if (!previousChild)
+            return state
+
+          const previousAnswer = state.hra.answers[previousChild.questionId]
+          if (shouldShowChildQuestions(previousChild, previousAnswer) && previousChild.children?.length) {
+            return {
+              ...state,
+              questionPath: [
+                ...parentPath,
+                { questionIndex: currentChildIndex - 1, parentId: parentQuestion.questionId },
+                { questionIndex: previousChild.children.length - 1, parentId: previousChild.questionId },
+              ],
+            }
+          }
+
+          return {
+            ...state,
+            questionPath: [
+              ...parentPath,
+              { questionIndex: currentChildIndex - 1, parentId: parentQuestion.questionId },
+            ],
+          }
+        }
+
         return {
           ...state,
-          questionPath: state.questionPath.slice(0, -1),
+          questionPath: parentPath,
+        }
+      }
+
+      if (state.questionPath[0].questionIndex === 0) {
+        return state
+      }
+
+      const previousIndex = state.questionPath[0].questionIndex - 1
+      const previousQuestion = state.hra.screening.questions[previousIndex]
+
+      if (previousQuestion?.children?.length) {
+        const lastChild = previousQuestion.children[previousQuestion.children.length - 1]
+        const lastChildAnswer = state.hra.answers[lastChild.questionId]
+
+        if (shouldShowChildQuestions(lastChild, lastChildAnswer) && lastChild.children?.length) {
+          return {
+            ...state,
+            questionPath: [
+              { questionIndex: previousIndex, parentId: null },
+              { questionIndex: previousQuestion.children.length - 1, parentId: previousQuestion.questionId },
+              { questionIndex: lastChild.children.length - 1, parentId: lastChild.questionId },
+            ],
+          }
+        }
+
+        return {
+          ...state,
+          questionPath: [
+            { questionIndex: previousIndex, parentId: null },
+            { questionIndex: previousQuestion.children.length - 1, parentId: previousQuestion.questionId },
+          ],
         }
       }
 
       return {
         ...state,
         questionPath: [{
-          questionIndex: Math.max(0, state.questionPath[0].questionIndex - 1),
+          questionIndex: previousIndex,
           parentId: null,
         }],
       }
@@ -415,12 +521,25 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
       return null
 
     if (!currentQuestion.answerType && currentQuestion.children?.length) {
-      const childIndex = state.questionPath[0].childIndex || 0
+      const childIndex = state.questionPath.length > 1
+        ? state.questionPath[state.questionPath.length - 1].questionIndex
+        : 0
       const child = currentQuestion.children[childIndex]
       return {
         ...child,
         parentQuestionText: currentQuestion.questionText,
         questionText: child.questionText,
+      }
+    }
+
+    if (state.questionPath.length > 1) {
+      const parentQuestion = findQuestionByPath(state.hra.screening.questions, state.questionPath.slice(0, -1))
+      if (parentQuestion && !parentQuestion.answerType) {
+        return {
+          ...currentQuestion,
+          parentQuestionText: parentQuestion.questionText,
+          questionText: currentQuestion.questionText,
+        }
       }
     }
 

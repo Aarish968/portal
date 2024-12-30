@@ -5,6 +5,7 @@ import { type AuthUser, AuthUserSchema } from '@/models/auth/schemas/auth-schema
 import { jwtDecode } from 'jwt-decode'
 import { msalInstance } from '@/base_submod/utils/MSAL'
 import ROUTES from '@/data/routing/routes'
+import { InteractionRequiredAuthError } from '@azure/msal-browser'
 
 function redirectToLogin() {
   window.location.href = ROUTES.auth.login.href
@@ -58,6 +59,8 @@ async function refreshToken(set: (state: Partial<AuthStore>) => void) {
     const silentRequest = {
       account: currentAccount,
       scopes: ['openid', 'profile', 'email'],
+      forceRefresh: true,
+      refreshTokenExpirationOffsetSeconds: 7200,
     }
 
     const response = await msalInstance.acquireTokenSilent(silentRequest)
@@ -79,7 +82,30 @@ async function refreshToken(set: (state: Partial<AuthStore>) => void) {
   }
   catch (error) {
     console.error('Token refresh failed:', error)
-    redirectToLogin()
+    if (error instanceof InteractionRequiredAuthError) {
+      const currentAccount = msalInstance.getAllAccounts()[0]
+      if (currentAccount) {
+        try {
+          const popupRequest = {
+            account: currentAccount,
+            scopes: ['openid', 'profile', 'email'],
+          }
+          const response = await msalInstance.acquireTokenPopup(popupRequest)
+          if (response.idToken) {
+            const decodedToken = jwtDecode<{ exp: number }>(response.idToken)
+            set({
+              idToken: response.idToken,
+              tokenExpiration: decodedToken.exp * 1000,
+              isAuthenticated: true,
+            })
+            return true
+          }
+        }
+        catch (popupError) {
+          console.error('Popup token refresh failed:', popupError)
+        }
+      }
+    }
     return false
   }
 }

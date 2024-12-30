@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useMsal } from '@azure/msal-react'
+import { InteractionRequiredAuthError } from '@azure/msal-browser'
 import { useAuthStore } from '../stores/auth-store'
+
+const TOKEN_CHECK_INTERVAL = 5 * 60 * 1000
 
 export function useAuthCheck() {
   const { instance } = useMsal()
@@ -17,6 +20,8 @@ export function useAuthCheck() {
         const silentRequest = {
           account,
           scopes: ['openid', 'profile', 'email'],
+          forceRefresh: true,
+          refreshTokenExpirationOffsetSeconds: 7200,
         }
 
         const response = await instance.acquireTokenSilent(silentRequest)
@@ -42,7 +47,26 @@ export function useAuthCheck() {
       }
       catch (error) {
         console.error('Failed to acquire token silently:', error)
-        clearCurrentUser()
+        if (error instanceof InteractionRequiredAuthError) {
+          try {
+            const popupRequest = {
+              account,
+              scopes: ['openid', 'profile', 'email'],
+            }
+            const response = await instance.acquireTokenPopup(popupRequest)
+            if (response.idToken) {
+              setIdToken(response.idToken)
+              window.dispatchEvent(new Event('auth-ready'))
+            }
+          }
+          catch (popupError) {
+            console.error('Failed to acquire token with popup:', popupError)
+            clearCurrentUser()
+          }
+        }
+        else {
+          clearCurrentUser()
+        }
       }
     }
     else {
@@ -55,7 +79,7 @@ export function useAuthCheck() {
 
     refreshIntervalRef.current = window.setInterval(() => {
       refreshTokenIfNeeded()
-    }, 30000)
+    }, TOKEN_CHECK_INTERVAL)
 
     const callback = (event: any) => {
       if (event.eventType === 'msal:loginSuccess') {
