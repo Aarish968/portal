@@ -150,7 +150,7 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
         })
       }
 
-      const response = await fetch(`${API_URL}/get`, {
+      const response = await fetch(`${API_URL}/hra/get`, {
         method: 'POST',
         headers: await useAuthStore.getState().getAuthHeaders(),
         body: JSON.stringify({ assessmentId }),

@@ -8,18 +8,57 @@ import {
   SelectValue,
 } from '@/base_submod/components/ui/select'
 import { Textarea } from '@/base_submod/components/ui/textarea'
+import { useAuthStore } from '@/models/auth/stores/auth-store'
+import { useMsal } from '@azure/msal-react'
+
+const API_URL = import.meta.env.VITE_API_URL || ''
 
 interface ContactFormProps {
-  onSubmit: (formData: { type: string, message: string }) => void
+  onSubmit?: (formData: { type: string, message: string }) => void
 }
 
 export function ContactForm({ onSubmit }: ContactFormProps) {
+  const { accounts } = useMsal()
   const [type, setType] = useState('')
   const [message, setMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit({ type, message })
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch(`${API_URL}/support/email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(await useAuthStore.getState().getAuthHeaders()),
+        },
+        body: JSON.stringify({
+          name: accounts[0]?.name || '',
+          email: accounts[0]?.username || '',
+          subject: type,
+          message,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to send message')
+      }
+
+      if (onSubmit) {
+        onSubmit({ type, message })
+      }
+
+      setType('')
+      setMessage('')
+    }
+    catch (error) {
+      console.error('Error sending message:', error)
+    }
+    finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -50,7 +89,9 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
           required
         />
       </div>
-      <Button type="submit">Send Message</Button>
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Sending...' : 'Send Message'}
+      </Button>
     </form>
   )
 }

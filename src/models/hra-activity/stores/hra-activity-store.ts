@@ -73,7 +73,7 @@ export const useHraActivityStore = create<HraActivityStore>()(
             username = currentUsername
           }
 
-          const response = await fetch(`${API_URL}/get`, {
+          const response = await fetch(`${API_URL}/hra/get`, {
             method: 'POST',
             headers: await useAuthStore.getState().getAuthHeaders(),
             body: JSON.stringify({ username }),
