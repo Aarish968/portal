@@ -17,6 +17,12 @@ interface ContactFormProps {
   onSubmit?: (formData: { type: string, message: string }) => void
 }
 
+const typeDisplayMap = {
+  feedback: 'Feedback',
+  feature: 'Feature Request',
+  support: 'Support Issue',
+}
+
 export function ContactForm({ onSubmit }: ContactFormProps) {
   const { accounts } = useMsal()
   const [type, setType] = useState('')
@@ -37,7 +43,7 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
         body: JSON.stringify({
           name: accounts[0]?.name || '',
           email: accounts[0]?.username || '',
-          subject: type,
+          subject: typeDisplayMap[type as keyof typeof typeDisplayMap] || type,
           message,
         }),
       })

@@ -2,6 +2,7 @@ import { Icon } from '@iconify/react'
 import { ContactForm } from '../components/contact-form'
 import ContactInfo from '@/models/support/components/contact-info'
 import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
+import { PhiBanner } from '@/models/support/components/phi-banner'
 
 function HeaderIcon() {
   return (
@@ -22,9 +23,9 @@ function SupportView() {
       title="We're here to help!"
       description="Please fill out the form or contact us using the number below."
       headerIcon={<HeaderIcon />}
+      topContent={<PhiBanner />}
     >
       <ContactInfo />
-      <div className=":uno: flex flex-col gap-4 font-semibold">Do not submit any PHI or other sensitive information.</div>
       <ContactForm onSubmit={handleSubmit} />
     </BasePractitionerView>
   )
