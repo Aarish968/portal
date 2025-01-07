@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import type { HRA, HRAQuestion } from '../schemas/hra-schema'
 import { HRAResponseSchema, HRASchema } from '../schemas/hra-schema'
 import { useAuthStore } from '@/models/auth/stores/auth-store'
-import { finishedHealthyman } from '@/models/hra/stores/finished-healthyman'
 import {
   type QuestionPath,
   calculateCurrentQuestionNumber,
