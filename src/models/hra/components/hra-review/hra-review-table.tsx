@@ -11,16 +11,21 @@ import HRADateSelect from '../hra-date-select'
 import { MONTHS } from '@/models/hra/utils/date-utils'
 import { Input } from '@/base_submod/components/ui/input'
 import type { HRA, HRAQuestion } from '@/models/hra/schemas/hra-schema'
+import { useEffect } from 'react'
 
 interface HRAReviewTableProps {
   hra: HRA
   isEditing: boolean
   editedAnswers: Record<string, any>
   onAnswerChange: (questionId: string, value: string | string[] | boolean) => void
+  onUnansweredQuestionsChange?: (count: number) => void
 }
 
-export function HRAReviewTable({ hra, isEditing, editedAnswers, onAnswerChange }: HRAReviewTableProps) {
+export function HRAReviewTable({ hra, isEditing, editedAnswers, onAnswerChange, onUnansweredQuestionsChange }: HRAReviewTableProps) {
   const formatAnswer = (question: HRAQuestion, answer: any) => {
+    if (answer === undefined || answer === '') {
+      return 'Needs Answer'
+    }
     if (typeof answer === 'boolean') {
       return answer ? 'Yes' : 'No'
     }
@@ -148,6 +153,9 @@ export function HRAReviewTable({ hra, isEditing, editedAnswers, onAnswerChange }
       'pl-16',
     ][level] || 'pl-0'
 
+    const isUnanswered = question.answerType && (answer === undefined || answer === '')
+    const cellClass = isUnanswered ? ':uno: px-6 py-4 text-sm text-red-700 bg-red-50' : ':uno: px-6 py-4 text-sm text-gray-900'
+
     const getQuestionIndex = (level: number, index: number) => {
       if (level === 0)
         return `${index + 1}.`
@@ -158,12 +166,12 @@ export function HRAReviewTable({ hra, isEditing, editedAnswers, onAnswerChange }
 
     const rows = [(
       <tr key={question.questionId}>
-        <td className=":uno: px-6 py-4 text-sm text-gray-900">
+        <td className={cellClass}>
           <div className={`:uno: ${indentClass}`}>
             {`${getQuestionIndex(level, index)} ${question.questionText}`}
           </div>
         </td>
-        <td className=":uno: px-6 py-4 text-sm text-gray-900">
+        <td className={cellClass}>
           {question.answerType ? renderAnswer(question, answer) : ''}
         </td>
       </tr>
@@ -183,7 +191,7 @@ export function HRAReviewTable({ hra, isEditing, editedAnswers, onAnswerChange }
   const findUnansweredQuestions = () => {
     const unanswered: { index: string, text: string }[] = []
 
-    const checkQuestion = (question: HRAQuestion, index: number, level = 0) => {
+    const checkQuestion = (question: HRAQuestion, index: number, level = 0, parentIndex?: string) => {
       const answer = editedAnswers[question.questionId]
       const answerStr = typeof answer === 'boolean'
         ? (answer ? 'Yes' : 'No')
@@ -191,17 +199,19 @@ export function HRAReviewTable({ hra, isEditing, editedAnswers, onAnswerChange }
           ? answer[0]
           : String(answer)
 
-      const getQuestionIndex = (level: number, index: number) => {
+      const getQuestionIndex = (level: number, index: number, parentIdx?: string) => {
         if (level === 0)
           return `${index + 1}`
         if (level === 1)
-          return `${String.fromCharCode(97 + index)}`
-        return `${String.fromCharCode(97 + index)}${level - 1}`
+          return `${parentIdx}.${String.fromCharCode(97 + index)}`
+        return `${parentIdx}.${String.fromCharCode(97 + index)}${level - 1}`
       }
+
+      const currentIndex = getQuestionIndex(level, index, parentIndex)
 
       if (question.answerType && (answer === undefined || answer === '')) {
         unanswered.push({
-          index: getQuestionIndex(level, index),
+          index: currentIndex,
           text: question.questionText,
         })
       }
@@ -209,7 +219,7 @@ export function HRAReviewTable({ hra, isEditing, editedAnswers, onAnswerChange }
       if (question.children?.length) {
         question.children.forEach((child: HRAQuestion, childIndex: number) => {
           if (!child.childDependentValue || child.childDependentValue === answerStr) {
-            checkQuestion(child, childIndex, level + 1)
+            checkQuestion(child, childIndex, level + 1, currentIndex)
           }
         })
       }
@@ -220,6 +230,10 @@ export function HRAReviewTable({ hra, isEditing, editedAnswers, onAnswerChange }
   }
 
   const unansweredQuestions = findUnansweredQuestions()
+
+  useEffect(() => {
+    onUnansweredQuestionsChange?.(unansweredQuestions.length)
+  }, [unansweredQuestions.length, onUnansweredQuestionsChange])
 
   return (
     <div className=":uno: space-y-4">

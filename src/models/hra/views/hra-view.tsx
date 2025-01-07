@@ -1,20 +1,22 @@
 import { AnimatePresence } from 'motion/react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useToast } from '@/base_submod/hooks/use-toast'
-import { Button } from '@/base_submod/components/ui/button'
 import { useHRAStore } from '@/models/hra/stores/hra-store'
 import HRAStartView from '@/models/hra/views/hra-start-view'
 import HRAReviewView from '@/models/hra/views/hra-review-view'
+import HRASavingView from '@/models/hra/views/hra-saving-view'
+import HRAErrorView from '@/models/hra/views/hra-error-view'
 import HraProgress from '@/models/hra/components/hra-progress'
 import HRAViewMenu from '@/models/hra/components/hra-view-menu'
 import HRAEditSheet from '@/models/hra/components/hra-edit-sheet'
-import { Navigate, useBlocker, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { useMemberStore } from '@/models/member/stores/member-store'
 import HRAConfirmationModal from '@/models/hra/components/hra-confirmation-modal'
 import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
 import HRAQuestionCard from '@/models/hra/components/hra-questions/hra-question-card'
 import HRAQuestionNextButton from '@/models/hra/components/hra-questions/hra-question-next-button'
 import HRAQuestionPreviousButton from '@/models/hra/components/hra-questions/hra-question-previous-button'
+import { useHRABlocker } from '@/models/hra/hooks/use-hra-blocker'
 
 function HRAView() {
   const navigate = useNavigate()
@@ -22,10 +24,6 @@ function HRAView() {
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [showStartView, setShowStartView] = useState(true)
   const [showReviewView, setShowReviewView] = useState(false)
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false)
-  const pendingLocationRef = useRef<any>(null)
-  const [isNavigating, setIsNavigating] = useState(false)
-  const [blockNavigation, setBlockNavigation] = useState(false)
   const [direction, setDirection] = useState(1)
 
   const selectedMember = useMemberStore(state => state.selectedMember)
@@ -41,7 +39,6 @@ function HRAView() {
     previousQuestion,
     editQuestionIndex,
     getTotalQuestions,
-    resetQuestionState,
     getDisplayQuestion,
     setEditQuestionIndex,
     returnToCurrentQuestion,
@@ -53,94 +50,45 @@ function HRAView() {
     setDirection(1)
   }, [])
 
+  const handleStartViewContinue = () => {
+    setShowStartView(false)
+  }
+
   if (!selectedMember) {
     return <Navigate to="/hra-activity" replace />
   }
 
   const shouldBlock = (!showStartView && (hra !== null || showReviewView))
 
-  useEffect(() => {
-    if (!isNavigating) {
-      setBlockNavigation(shouldBlock)
+  const {
+    showConfirmationModal,
+    handleExitWithoutSaving,
+    handleConfirmNavigation,
+    handleCancelNavigation,
+    setIsNavigating,
+    pendingLocationRef,
+    isSaving,
+  } = useHRABlocker({ shouldBlock })
+
+  const handleHRASubmit = async () => {
+    try {
+      await useHRAStore.getState().saveHRA(true, true)
+      toast({
+        title: 'HRA Submitted Successfully',
+        duration: 2000,
+      })
+      setIsNavigating(true)
+      pendingLocationRef.current = { pathname: '/hra-activity', search: '', hash: '' }
     }
-  }, [shouldBlock, isNavigating])
-
-  useEffect(() => {
-    if (isNavigating) {
-      setBlockNavigation(false)
+    catch (error) {
+      toast({
+        title: 'Failed to submit HRA',
+        description: error instanceof Error ? error.message : 'An error occurred',
+        variant: 'destructive',
+        duration: 3000,
+      })
+      console.error('Failed to save HRA:', error)
     }
-  }, [isNavigating])
-
-  const blocker = useBlocker(({ currentLocation, nextLocation }) => {
-    if (blockNavigation && currentLocation.pathname !== nextLocation.pathname) {
-      pendingLocationRef.current = nextLocation
-      setShowConfirmationModal(true)
-      return true
-    }
-    return false
-  })
-
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (!showStartView && (hra !== null || showReviewView)) {
-        e.preventDefault()
-        e.returnValue = ''
-        return ''
-      }
-    }
-
-    if (!showStartView && (hra !== null || showReviewView)) {
-      window.addEventListener('beforeunload', handleBeforeUnload)
-      return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-    }
-  }, [showStartView, hra, showReviewView])
-
-  useEffect(() => {
-    if (isNavigating && !blockNavigation && pendingLocationRef.current) {
-      const location = pendingLocationRef.current
-      const { pathname, search, hash } = location
-
-      pendingLocationRef.current = null
-      blocker.reset?.()
-      navigate(pathname + search + hash, { replace: true })
-      setIsNavigating(false)
-    }
-  }, [isNavigating, blockNavigation, navigate])
-
-  const handleExitWithoutSaving = (e?: React.MouseEvent) => {
-    e?.stopPropagation()
-    const targetLocation = pendingLocationRef.current || { pathname: '/hra-activity', search: '', hash: '' }
-
-    setShowConfirmationModal(false)
-    pendingLocationRef.current = targetLocation
-    setIsNavigating(true)
-  }
-
-  const handleConfirmNavigation = (e?: React.MouseEvent) => {
-    e?.stopPropagation()
-    const targetLocation = pendingLocationRef.current || { pathname: '/hra-activity', search: '', hash: '' }
-
-    setShowConfirmationModal(false)
-    pendingLocationRef.current = targetLocation
-    setIsNavigating(true)
-
-    toast({
-      title: 'Progress Saved',
-      duration: 2000,
-    })
-  }
-
-  const handleCancelNavigation = (e?: React.MouseEvent) => {
-    e?.stopPropagation()
-    setShowConfirmationModal(false)
-    pendingLocationRef.current = null
-    setIsNavigating(false)
-    blocker.reset?.()
-  }
-
-  const handleStartViewContinue = () => {
-    resetQuestionState()
-    setShowStartView(false)
   }
 
   if (showStartView) {
@@ -152,19 +100,12 @@ function HRAView() {
     )
   }
 
-  if (isLoading) {
-    return <div>Loading HRA...</div>
+  if (isLoading || isSaving) {
+    return <HRASavingView isSaving={isSaving} />
   }
 
   if (error) {
-    return (
-      <div>
-        Error:
-        {' '}
-        {error}
-        <Button onClick={() => navigate('/hra-activity')}>Back to HRA Activity</Button>
-      </div>
-    )
+    return <HRAErrorView error={error} onBack={() => navigate('/hra-activity')} />
   }
 
   if (!hra) {
@@ -176,11 +117,7 @@ function HRAView() {
       <>
         <HRAReviewView
           hra={hra}
-          onSubmit={() => {
-            setBlockNavigation(false)
-            setIsNavigating(true)
-            pendingLocationRef.current = { pathname: '/hra-activity', search: '', hash: '' }
-          }}
+          onSubmit={handleHRASubmit}
           onBack={() => setShowReviewView(false)}
           onSubmitNavigate={() => {
             navigate('/hra-activity', { replace: true })
@@ -287,10 +224,6 @@ function HRAView() {
       </div>
       <HRAViewMenu
         onEdit={() => setIsSheetOpen(true)}
-        onStopAndSave={() => {
-          pendingLocationRef.current = null
-          setShowConfirmationModal(true)
-        }}
       />
       <HRAEditSheet
         isOpen={isSheetOpen}

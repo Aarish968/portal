@@ -1,6 +1,7 @@
 import { Icon } from '@iconify/react'
 import { motion } from 'motion/react'
 import { Button } from '@/base_submod/components/ui/button'
+import { useDebounceClick } from '@/hooks/use-debounce-click'
 
 interface HRAQuestionNextButtonProps {
   onClick: () => void
@@ -10,6 +11,8 @@ interface HRAQuestionNextButtonProps {
 }
 
 function HRAQuestionNextButton({ onClick, isLastQuestion, disabled, questionId }: HRAQuestionNextButtonProps) {
+  const { handleClick, isDebouncing } = useDebounceClick(onClick)
+
   return (
     <motion.div
       key={`next-${questionId}`}
@@ -34,8 +37,8 @@ function HRAQuestionNextButton({ onClick, isLastQuestion, disabled, questionId }
         variant="outline"
         size={isLastQuestion ? 'sm' : 'icon'}
         className={isLastQuestion ? 'px-4 py-2 w-full text-center shrink-0' : 'h-9 w-9 shrink-0'}
-        onClick={onClick}
-        disabled={disabled}
+        onClick={handleClick}
+        disabled={disabled || isDebouncing}
       >
         {isLastQuestion
           ? <span className=":uno: items-center pt-1 text-center">Finish</span>

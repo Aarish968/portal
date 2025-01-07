@@ -1,6 +1,7 @@
 import { Icon } from '@iconify/react'
 import { motion } from 'motion/react'
 import { Button } from '@/base_submod/components/ui/button'
+import { useDebounceClick } from '@/hooks/use-debounce-click'
 
 interface HRAQuestionPreviousButtonProps {
   onClick: () => void
@@ -9,6 +10,8 @@ interface HRAQuestionPreviousButtonProps {
 }
 
 function HRAQuestionPreviousButton({ onClick, disabled, questionId }: HRAQuestionPreviousButtonProps) {
+  const { handleClick, isDebouncing } = useDebounceClick(onClick)
+
   return (
     <motion.div
       key={`prev-${questionId}`}
@@ -31,8 +34,8 @@ function HRAQuestionPreviousButton({ onClick, disabled, questionId }: HRAQuestio
     >
       <Button
         variant="outline"
-        onClick={onClick}
-        disabled={disabled}
+        onClick={handleClick}
+        disabled={disabled || isDebouncing}
         size="icon"
         className="h-9 w-9 shrink-0"
       >

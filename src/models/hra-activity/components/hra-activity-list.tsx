@@ -65,6 +65,17 @@ export function HraActivityList({ hraActivity }: HraActivityListProps) {
     })
   }
 
+  function formatPhoneNumber(phone: string | null): string {
+    if (!phone)
+      return 'N/A'
+
+    const cleaned = phone.replace(/\D/g, '')
+    if (cleaned.length !== 10)
+      return phone
+
+    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`
+  }
+
   function handleSort(field: SortField) {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
@@ -186,7 +197,7 @@ export function HraActivityList({ hraActivity }: HraActivityListProps) {
                 <TableCell>{activity.assessmentName}</TableCell>
                 <TableCell>{formatVisit(activity.visitDate, activity.visitTime)}</TableCell>
                 <TableCell>{formatAddress(activity.memberAddress)}</TableCell>
-                <TableCell>{activity.MemberPhone || 'N/A'}</TableCell>
+                <TableCell>{formatPhoneNumber(activity.MemberPhone)}</TableCell>
                 <TableCell>{activity.MemberPayer}</TableCell>
                 <TableCell>
                   <Badge variant={getBadgeVariant(activity.IsStarted, activity.IsCompletedFlag)}>

@@ -7,6 +7,7 @@ interface HRAConfirmBarProps {
   onSubmit: () => void
   submitText?: string
   isEditing?: boolean
+  disabled?: boolean
 }
 
 function HRAConfirmBar({
@@ -15,6 +16,7 @@ function HRAConfirmBar({
   onSubmit,
   submitText = 'Submit HRA',
   isEditing = false,
+  disabled = false,
 }: HRAConfirmBarProps) {
   return (
     <div className=":uno: fixed bottom-0 left-[170px] right-0 border-t bg-white p-4">
@@ -38,7 +40,7 @@ function HRAConfirmBar({
         {isEditing && <div />}
         <Button
           className=":uno: rounded-full bg-[#4A3880] px-8 hover:bg-[#4A3880]/90"
-          disabled={!isEditing && !isConfirmed}
+          disabled={(!isEditing && !isConfirmed) || disabled}
           onClick={onSubmit}
         >
           {submitText}

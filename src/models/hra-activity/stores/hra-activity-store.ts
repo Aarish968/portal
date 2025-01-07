@@ -21,7 +21,7 @@ const defaultHraActivity: HraActivity = {
 
 const API_URL = import.meta.env.VITE_API_URL || ''
 
-const CACHE_LIFETIME = 10 * 60 * 1000
+const CACHE_LIFETIME = 2 * 60 * 1000
 
 export const useHraActivityStore = create<HraActivityStore>()(
   persist(
@@ -60,7 +60,8 @@ export const useHraActivityStore = create<HraActivityStore>()(
             })
           }
 
-          let username = 'Mark.Stocksdale@helloporter.com'
+          // let username = 'Mark.Stocksdale@helloporter.com'
+          let username = 'esther@helloporter2.com'
 
           if (import.meta.env.VITE_DEV_TEST !== 'true') {
             const authStore = useAuthStore.getState()

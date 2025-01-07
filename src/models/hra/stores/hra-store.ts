@@ -2,12 +2,14 @@ import { create } from 'zustand'
 import type { HRA, HRAQuestion } from '../schemas/hra-schema'
 import { HRAResponseSchema, HRASchema } from '../schemas/hra-schema'
 import { useAuthStore } from '@/models/auth/stores/auth-store'
-
-interface QuestionPath {
-  questionIndex: number
-  parentId: string | null
-  childIndex?: number
-}
+import { finishedHealthyman } from '@/models/hra/stores/finished-healthyman'
+import {
+  type QuestionPath,
+  calculateCurrentQuestionNumber,
+  findQuestionByPath,
+  shouldShowChildQuestions,
+  transformHRAData,
+} from '@/models/hra/utils/hra-store-utils'
 
 interface HRAStore {
   hra: HRA | null
@@ -29,71 +31,10 @@ interface HRAStore {
   getDisplayQuestion: () => HRAQuestion | null
   isLastQuestion: () => boolean
   canMoveNext: () => boolean
+  saveHRA: (isStarted?: boolean, isCompleted?: boolean) => Promise<void>
 }
 
 const API_URL = import.meta.env.VITE_API_URL || ''
-
-export function findQuestionByPath(questions: HRAQuestion[], path: QuestionPath[]): HRAQuestion | null {
-  let currentQuestion: HRAQuestion | null = null
-  let currentQuestions = questions
-
-  for (const { questionIndex, parentId } of path) {
-    if (parentId) {
-      const parent = currentQuestions.find(q => q.questionId === parentId)
-      if (!parent?.children) {
-        return null
-      }
-      currentQuestions = parent.children
-    }
-
-    if (questionIndex >= currentQuestions.length) {
-      return null
-    }
-
-    currentQuestion = currentQuestions[questionIndex]
-    if (!currentQuestion) {
-      return null
-    }
-  }
-
-  return currentQuestion
-}
-
-function shouldShowChildQuestions(question: HRAQuestion, answer: string | boolean | string[] | undefined): boolean {
-  if (!question.children || question.children.length === 0) {
-    return false
-  }
-
-  if (!answer) {
-    return false
-  }
-
-  if (question.answerType === 'Select Single') {
-    return question.children.some((child: HRAQuestion) => child.childDependentValue === answer)
-  }
-
-  if (question.children.some((child: HRAQuestion) => child.childDependentValue)) {
-    const answerStr = Array.isArray(answer) ? answer[0] : answer === true ? 'Yes' : 'No'
-    return question.children.some((child: HRAQuestion) => child.childDependentValue === answerStr)
-  }
-
-  return true
-}
-
-function calculateTotalQuestions(questions: HRAQuestion[]): number {
-  return questions.length
-}
-
-function calculateCurrentQuestionNumber(
-  editQuestionIndex: number | null,
-  questionPath: QuestionPath[],
-): number {
-  if (editQuestionIndex !== null) {
-    return editQuestionIndex + 1
-  }
-
-  return questionPath[0].questionIndex + 1
-}
 
 interface HRAStoreState {
   hra: HRA | null
@@ -139,6 +80,66 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
     })
 
     try {
+      // const dev_test = import.meta.env.VITE_DEV_TEST === 'true'
+
+      if (true && assessmentId === 'a0EO3000004otQPMAY') {
+        const parsedHRA = HRASchema.safeParse(finishedHealthyman)
+        if (!parsedHRA.success) {
+          throw new Error('Failed to transform HRA data')
+        }
+
+        const findHighestAnsweredIndex = (questions: HRAQuestion[], answers: Record<string, any>) => {
+          let highestIndex = -1
+
+          for (let i = 0; i < questions.length; i++) {
+            const question = questions[i]
+
+            if (question.answerType && answers[question.questionId] !== undefined) {
+              highestIndex = i
+            }
+            else if (question.children) {
+              let allChildrenAnswered = true
+              for (const child of question.children) {
+                if (child.answerType) {
+                  const parentAnswer = answers[question.questionId]
+                  const shouldShow = !child.childDependentValue
+                    || (parentAnswer !== undefined
+                    && String(parentAnswer) === child.childDependentValue)
+
+                  if (shouldShow && answers[child.questionId] === undefined) {
+                    allChildrenAnswered = false
+                    break
+                  }
+                }
+              }
+              if (allChildrenAnswered) {
+                highestIndex = i
+              }
+              else {
+                break
+              }
+            }
+            else if (question.answerType && answers[question.questionId] === undefined) {
+              break
+            }
+          }
+
+          return highestIndex
+        }
+
+        const highestAnsweredIndex = findHighestAnsweredIndex(parsedHRA.data.screening.questions, parsedHRA.data.answers)
+
+        set({
+          hra: parsedHRA.data,
+          isLoading: false,
+          questionPath: [{ questionIndex: highestAnsweredIndex + 1, parentId: null }],
+          editQuestionIndex: null,
+          highestCompletedQuestionIndex: highestAnsweredIndex,
+          lastAssessmentId: assessmentId,
+        })
+        return
+      }
+
       const authStore = useAuthStore.getState()
       if (!authStore.idToken) {
         await new Promise<void>((resolve) => {
@@ -189,17 +190,80 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
         answers: {},
       }
 
+      const extractAnswers = (questions: HRAQuestion[]) => {
+        const answers: Record<string, string | boolean | string[]> = {}
+        questions.forEach((q) => {
+          if (q.answer !== null) {
+            if (q.answerType === 'Yes/No') {
+              answers[q.questionId] = q.answer === 'Yes'
+            }
+            else if (q.answerType === 'Select Multiple') {
+              answers[q.questionId] = q.answer.split(',').map((a: string) => a.trim())
+            }
+            else {
+              answers[q.questionId] = q.answer
+            }
+          }
+          if (q.children) {
+            Object.assign(answers, extractAnswers(q.children))
+          }
+        })
+        return answers
+      }
+
+      hraData.answers = extractAnswers(screening.questions)
+
       const parsedHRA = HRASchema.safeParse(hraData)
       if (!parsedHRA.success) {
         throw new Error('Failed to transform HRA data')
       }
 
+      const findFirstUnansweredPath = (questions: HRAQuestion[], answers: Record<string, any>): QuestionPath[] => {
+        const checkQuestion = (question: HRAQuestion, currentPath: QuestionPath[]): QuestionPath[] | null => {
+          if (question.answerType && answers[question.questionId] === undefined) {
+            return currentPath
+          }
+
+          if (question.children) {
+            for (let i = 0; i < question.children.length; i++) {
+              const child = question.children[i]
+              const shouldShow = !child.childDependentValue
+                || (answers[question.questionId] !== undefined
+                && String(answers[question.questionId]) === child.childDependentValue)
+
+              if (shouldShow) {
+                const childPath = checkQuestion(child, [
+                  ...currentPath,
+                  { questionIndex: i, parentId: question.questionId },
+                ])
+                if (childPath) {
+                  return childPath
+                }
+              }
+            }
+          }
+          return null
+        }
+
+        for (let i = 0; i < questions.length; i++) {
+          const path = checkQuestion(questions[i], [{ questionIndex: i, parentId: null }])
+          if (path) {
+            return path
+          }
+        }
+
+        return [{ questionIndex: questions.length - 1, parentId: null }]
+      }
+
+      const questionPath = findFirstUnansweredPath(screening.questions, hraData.answers)
+      const highestAnsweredIndex = Math.max(0, questionPath[0].questionIndex - 1)
+
       set({
         hra: parsedHRA.data,
         isLoading: false,
-        questionPath: [{ questionIndex: 0, parentId: null }],
+        questionPath,
         editQuestionIndex: null,
-        highestCompletedQuestionIndex: -1,
+        highestCompletedQuestionIndex: highestAnsweredIndex,
         lastAssessmentId: assessmentId,
       })
     }
@@ -495,7 +559,7 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
     const state = get() as HRAStoreState
     if (!state.hra)
       return 0
-    return calculateTotalQuestions(state.hra.screening.questions)
+    return state.hra.screening.questions.length
   },
 
   getCurrentQuestionNumber: () => {
@@ -565,5 +629,48 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
     return state.isLastQuestion()
       ? state.hra.answers[displayQuestion.questionId] !== undefined
       : state.hra.answers[displayQuestion.questionId] !== undefined
+  },
+
+  saveHRA: async (isStarted?: boolean, isCompleted?: boolean) => {
+    const state = get()
+    if (!state.hra || !state.lastAssessmentId) {
+      throw new Error('No HRA data to save')
+    }
+
+    set({ isLoading: true, error: null })
+
+    try {
+      const authStore = useAuthStore.getState()
+      if (!authStore.idToken) {
+        await new Promise<void>((resolve) => {
+          const handler = () => {
+            window.removeEventListener('auth-ready', handler)
+            resolve()
+          }
+          window.addEventListener('auth-ready', handler)
+        })
+      }
+
+      const transformedData = transformHRAData(state.hra, isStarted, isCompleted)
+
+      const response = await fetch(`${API_URL}/hra`, {
+        method: 'POST',
+        headers: await useAuthStore.getState().getAuthHeaders(),
+        body: JSON.stringify(transformedData),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save HRA data')
+      }
+
+      set({ isLoading: false })
+    }
+    catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to save HRA data',
+        isLoading: false,
+      })
+      throw error
+    }
   },
 }))

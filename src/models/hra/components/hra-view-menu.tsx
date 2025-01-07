@@ -6,13 +6,13 @@ import {
 } from '@/base_submod/components/ui/dropdown-menu'
 import { Icon } from '@iconify/react'
 import { Button } from '@/base_submod/components/ui/button'
+import { Link } from 'react-router-dom'
 
 interface HRAViewMenuProps {
   onEdit: () => void
-  onStopAndSave: () => void
 }
 
-function HRAViewMenu({ onEdit, onStopAndSave }: HRAViewMenuProps) {
+function HRAViewMenu({ onEdit }: HRAViewMenuProps) {
   return (
     <div className=":uno: absolute bottom-8 right-8">
       <DropdownMenu>
@@ -26,9 +26,11 @@ function HRAViewMenu({ onEdit, onStopAndSave }: HRAViewMenuProps) {
             <Icon icon="ph:pencil" className=":uno: mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={onStopAndSave}>
-            <Icon icon="ph:door" className=":uno: mr-2 h-4 w-4" />
-            Stop and Save
+          <DropdownMenuItem asChild>
+            <Link to="/hra-activity" className=":uno: text-black no-underline font-normal">
+              <Icon icon="ph:door" className=":uno: mr-2 h-4 w-4" />
+              Stop and Save
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

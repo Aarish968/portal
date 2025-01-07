@@ -24,6 +24,7 @@ function HRAQuestionCard({
   direction,
 }: HRAQuestionCardProps) {
   const xOffset = 100
+  const dev_test = import.meta.env.VITE_DEV_TEST === 'true'
 
   return (
     <motion.div
@@ -41,6 +42,13 @@ function HRAQuestionCard({
       <Card className=":uno: w-full">
         <CardContent className=":uno: p-6">
           <div className=":uno: flex flex-col items-center justify-center gap-4">
+            {dev_test && (
+              <div className=":uno: w-full text-left text-sm text-gray-500">
+                ID:
+                {' '}
+                {question.questionId}
+              </div>
+            )}
             <HRAQuestionCardQuestionText
               parentQuestionText={question.parentQuestionText}
               questionText={question.questionText}
