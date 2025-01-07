@@ -82,63 +82,63 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
     try {
       // const dev_test = import.meta.env.VITE_DEV_TEST === 'true'
 
-      if (true && assessmentId === 'a0EO3000004otQPMAY') {
-        const parsedHRA = HRASchema.safeParse(finishedHealthyman)
-        if (!parsedHRA.success) {
-          throw new Error('Failed to transform HRA data')
-        }
+      // if (false && assessmentId === 'a0EO3000004otQPMAY') {
+      //   const parsedHRA = HRASchema.safeParse(finishedHealthyman)
+      //   if (!parsedHRA.success) {
+      //     throw new Error('Failed to transform HRA data')
+      //   }
 
-        const findHighestAnsweredIndex = (questions: HRAQuestion[], answers: Record<string, any>) => {
-          let highestIndex = -1
+      //   const findHighestAnsweredIndex = (questions: HRAQuestion[], answers: Record<string, any>) => {
+      //     let highestIndex = -1
 
-          for (let i = 0; i < questions.length; i++) {
-            const question = questions[i]
+      //     for (let i = 0; i < questions.length; i++) {
+      //       const question = questions[i]
 
-            if (question.answerType && answers[question.questionId] !== undefined) {
-              highestIndex = i
-            }
-            else if (question.children) {
-              let allChildrenAnswered = true
-              for (const child of question.children) {
-                if (child.answerType) {
-                  const parentAnswer = answers[question.questionId]
-                  const shouldShow = !child.childDependentValue
-                    || (parentAnswer !== undefined
-                    && String(parentAnswer) === child.childDependentValue)
+      //       if (question.answerType && answers[question.questionId] !== undefined) {
+      //         highestIndex = i
+      //       }
+      //       else if (question.children) {
+      //         let allChildrenAnswered = true
+      //         for (const child of question.children) {
+      //           if (child.answerType) {
+      //             const parentAnswer = answers[question.questionId]
+      //             const shouldShow = !child.childDependentValue
+      //               || (parentAnswer !== undefined
+      //               && String(parentAnswer) === child.childDependentValue)
 
-                  if (shouldShow && answers[child.questionId] === undefined) {
-                    allChildrenAnswered = false
-                    break
-                  }
-                }
-              }
-              if (allChildrenAnswered) {
-                highestIndex = i
-              }
-              else {
-                break
-              }
-            }
-            else if (question.answerType && answers[question.questionId] === undefined) {
-              break
-            }
-          }
+      //             if (shouldShow && answers[child.questionId] === undefined) {
+      //               allChildrenAnswered = false
+      //               break
+      //             }
+      //           }
+      //         }
+      //         if (allChildrenAnswered) {
+      //           highestIndex = i
+      //         }
+      //         else {
+      //           break
+      //         }
+      //       }
+      //       else if (question.answerType && answers[question.questionId] === undefined) {
+      //         break
+      //       }
+      //     }
 
-          return highestIndex
-        }
+      //     return highestIndex
+      //   }
 
-        const highestAnsweredIndex = findHighestAnsweredIndex(parsedHRA.data.screening.questions, parsedHRA.data.answers)
+      //   const highestAnsweredIndex = findHighestAnsweredIndex(parsedHRA.data.screening.questions, parsedHRA.data.answers)
 
-        set({
-          hra: parsedHRA.data,
-          isLoading: false,
-          questionPath: [{ questionIndex: highestAnsweredIndex + 1, parentId: null }],
-          editQuestionIndex: null,
-          highestCompletedQuestionIndex: highestAnsweredIndex,
-          lastAssessmentId: assessmentId,
-        })
-        return
-      }
+      //   set({
+      //     hra: parsedHRA.data,
+      //     isLoading: false,
+      //     questionPath: [{ questionIndex: highestAnsweredIndex + 1, parentId: null }],
+      //     editQuestionIndex: null,
+      //     highestCompletedQuestionIndex: highestAnsweredIndex,
+      //     lastAssessmentId: assessmentId,
+      //   })
+      //   return
+      // }
 
       const authStore = useAuthStore.getState()
       if (!authStore.idToken) {
