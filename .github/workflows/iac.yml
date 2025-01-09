@@ -47,6 +47,13 @@ jobs:
         terraform_version: 1.2.8
 
     # Terraform Init
+
+    - name: Debug Environment Variables
+      run: |
+        echo "AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID"
+        echo "AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY"
+        echo "BUCKET_NAME: $BUCKET_NAME"
+
     - name: Terraform Init
       working-directory: .deployments/root
       run: terraform init -backend-config="../backend/${{ github.event.inputs.environment }}.tfvars"
