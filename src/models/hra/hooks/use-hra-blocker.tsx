@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useBlocker, useNavigate } from 'react-router-dom'
 import { useToast } from '@/base_submod/hooks/use-toast'
 import { useHRAStore } from '@/models/hra/stores/hra-store'
+import { useMemberStore } from '@/models/member/stores/member-store'
 
 interface UseHRABlockerProps {
   shouldBlock: boolean
@@ -15,12 +16,14 @@ export function useHRABlocker({ shouldBlock }: UseHRABlockerProps) {
   const [blockNavigation, setBlockNavigation] = useState(false)
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const selectedMember = useMemberStore(state => state.selectedMember)
+  const isCompleted = selectedMember?.isCompleted
 
   useEffect(() => {
     if (!isNavigating) {
-      setBlockNavigation(shouldBlock)
+      setBlockNavigation(shouldBlock && !isCompleted)
     }
-  }, [shouldBlock, isNavigating])
+  }, [shouldBlock, isNavigating, isCompleted])
 
   useEffect(() => {
     if (isNavigating) {
@@ -29,7 +32,7 @@ export function useHRABlocker({ shouldBlock }: UseHRABlockerProps) {
   }, [isNavigating])
 
   const blocker = useBlocker(({ currentLocation, nextLocation }) => {
-    if (blockNavigation && currentLocation.pathname !== nextLocation.pathname) {
+    if (blockNavigation && currentLocation.pathname !== nextLocation.pathname && !isCompleted) {
       pendingLocationRef.current = nextLocation
       setShowConfirmationModal(true)
       return true

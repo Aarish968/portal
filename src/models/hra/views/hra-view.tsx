@@ -51,6 +51,9 @@ function HRAView() {
   }, [])
 
   const handleStartViewContinue = () => {
+    if (selectedMember?.isCompleted) {
+      setShowReviewView(true)
+    }
     setShowStartView(false)
   }
 

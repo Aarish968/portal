@@ -31,6 +31,7 @@ interface HRAStore {
   isLastQuestion: () => boolean
   canMoveNext: () => boolean
   saveHRA: (isStarted?: boolean, isCompleted?: boolean) => Promise<void>
+  isHraCompleted: () => boolean
 }
 
 const API_URL = import.meta.env.VITE_API_URL || ''
@@ -671,5 +672,15 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
       })
       throw error
     }
+  },
+
+  isHraCompleted: () => {
+    const state = get()
+    if (!state.hra)
+      return false
+
+    return state.editQuestionIndex !== null
+      ? state.editQuestionIndex === state.hra.screening.questions.length - 1
+      : state.questionPath[0].questionIndex === state.hra.screening.questions.length - 1 && state.questionPath.length === 1
   },
 }))

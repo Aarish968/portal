@@ -9,6 +9,7 @@ import { HRAReviewTable } from '../components/hra-review/hra-review-table'
 import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
 import { HRAReviewEditButton } from '../components/hra-review/hra-review-edit-button'
 import { transformHRAData } from '../utils/hra-store-utils'
+import { useMemberStore } from '@/models/member/stores/member-store'
 
 interface HRAReviewViewProps {
   hra: HRA
@@ -25,6 +26,8 @@ function HRAReviewView({ hra, onSubmit, onBack, onSubmitNavigate }: HRAReviewVie
   const { toast } = useToast()
   const navigate = useNavigate()
   const isDev = import.meta.env.VITE_DEV_TEST === 'true'
+  const selectedMember = useMemberStore(state => state.selectedMember)
+  const isCompleted = selectedMember?.isCompleted
 
   const handleAnswerChange = (questionId: string, value: string | string[] | boolean) => {
     setEditedAnswers(prev => ({
@@ -64,19 +67,22 @@ function HRAReviewView({ hra, onSubmit, onBack, onSubmitNavigate }: HRAReviewVie
   }
 
   return (
-    <BasePractitionerView title="Review and Submit HRA">
+    <BasePractitionerView title={isCompleted ? 'Review Completed HRA' : 'Review and Submit HRA'}>
       <div className=":uno: flex flex-col gap-1">
-        <HRAReviewEditButton
-          isEditing={isEditing}
-          onClick={() => setIsEditing(!isEditing)}
-        />
+        {!isCompleted && (
+          <HRAReviewEditButton
+            isEditing={isEditing}
+            onClick={() => setIsEditing(!isEditing)}
+          />
+        )}
 
         <HRAReviewTable
           hra={hra}
-          isEditing={isEditing}
+          isEditing={isEditing && !isCompleted}
           editedAnswers={editedAnswers}
           onAnswerChange={handleAnswerChange}
           onUnansweredQuestionsChange={count => setHasUnansweredQuestions(count > 0)}
+          isCompleted={isCompleted}
         />
       </div>
 
@@ -98,14 +104,6 @@ function HRAReviewView({ hra, onSubmit, onBack, onSubmitNavigate }: HRAReviewVie
         </>
       )}
 
-      <Button
-        variant="outline"
-        onClick={onBack}
-        className=":uno: mt-6"
-      >
-        Back to Questions
-      </Button>
-
       <HRAConfirmBar
         isConfirmed={isConfirmed}
         onConfirmChange={setIsConfirmed}
@@ -113,7 +111,19 @@ function HRAReviewView({ hra, onSubmit, onBack, onSubmitNavigate }: HRAReviewVie
         submitText={isEditing ? 'Save Changes' : 'Submit HRA'}
         isEditing={isEditing}
         disabled={!isEditing && hasUnansweredQuestions}
+        isCompleted={isCompleted}
+        onReturn={() => navigate('/hra-activity')}
       />
+
+      {!isCompleted && (
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className=":uno: mt-6"
+        >
+          Back to Questions
+        </Button>
+      )}
     </BasePractitionerView>
   )
 }

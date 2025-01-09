@@ -132,6 +132,8 @@ export function HraActivityList({ hraActivity }: HraActivityListProps) {
       phone: activity.MemberPhone || '',
       assessmentName: activity.assessmentName,
       assessmentId: activity.assessmentID,
+      isStarted: activity.IsStarted,
+      isCompleted: activity.IsCompletedFlag,
     })
     navigate('/hra')
   }

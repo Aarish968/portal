@@ -8,6 +8,8 @@ interface HRAConfirmBarProps {
   submitText?: string
   isEditing?: boolean
   disabled?: boolean
+  isCompleted?: boolean
+  onReturn?: () => void
 }
 
 function HRAConfirmBar({
@@ -17,7 +19,24 @@ function HRAConfirmBar({
   submitText = 'Submit HRA',
   isEditing = false,
   disabled = false,
+  isCompleted = false,
+  onReturn,
 }: HRAConfirmBarProps) {
+  if (isCompleted && onReturn) {
+    return (
+      <div className=":uno: fixed bottom-0 left-[170px] right-0 border-t bg-white p-4">
+        <div className=":uno: w-full flex items-center justify-end">
+          <Button
+            className=":uno: rounded-full bg-[#4A3880] px-8 hover:bg-[#4A3880]/90"
+            onClick={onReturn}
+          >
+            Return to HRA Activity
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className=":uno: fixed bottom-0 left-[170px] right-0 border-t bg-white p-4">
       <div className=":uno: w-full flex items-center justify-between">

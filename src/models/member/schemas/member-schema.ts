@@ -13,6 +13,8 @@ export const MemberSchema = z.object({
   notes: z.string().optional(),
   assessmentName: z.string().optional(),
   assessmentId: z.string().optional(),
+  isStarted: z.boolean().optional(),
+  isCompleted: z.boolean().optional(),
 })
 
 export type Member = z.infer<typeof MemberSchema>
