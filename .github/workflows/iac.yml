@@ -20,8 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
-      AWS_ACCESS_KEY_ID: ${{ secrets[format('AWS_{0}_ACCESS_KEY_ID', github.event.inputs.environment == 'sandbox' && 'SBX' || github.event.inputs.environment == 'development' && 'DEV' || github.event.inputs.environment == 'qa' && 'QA' || github.event.inputs.environment == 'production' && 'PROD')] }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets[format('AWS_{0}_SECRET_ACCESS_KEY', github.event.inputs.environment == 'sandbox' && 'SBX' || github.event.inputs.environment == 'development' && 'DEV' || github.event.inputs.environment == 'qa' && 'QA' || github.event.inputs.environment == 'production' && 'PROD')] }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }} #${{ secrets[format('AWS_{0}ACCESS_KEY_ID', github.event.inputs.environment == 'sandbox' && '' || github.event.inputs.environment == 'development' && '' || github.event.inputs.environment == 'qa' && '' || github.event.inputs.environment == 'production' && '')] }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }} #${{ secrets[format('AWS_{0}SECRET_ACCESS_KEY', github.event.inputs.environment == 'sandbox' && '' || github.event.inputs.environment == 'development' && '' || github.event.inputs.environment == 'qa' && '' || github.event.inputs.environment == 'production' && '')] }}
 
     permissions:
       id-token: write
@@ -47,6 +47,13 @@ jobs:
         terraform_version: 1.2.8
 
     # Terraform Init
+
+    - name: Debug Environment Variables
+      run: |
+        echo "AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID"
+        echo "AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY"
+        echo "BUCKET_NAME: $BUCKET_NAME"
+
     - name: Terraform Init
       working-directory: .deployments/root
       run: terraform init -backend-config="../backend/${{ github.event.inputs.environment }}.tfvars"
@@ -85,8 +92,8 @@ jobs:
     if: ${{ github.event.inputs.approved != 'false' }}
     env:
       BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
-      AWS_ACCESS_KEY_ID: ${{ secrets[format('AWS_{0}_ACCESS_KEY_ID', github.event.inputs.environment == 'sandbox' && 'SBX' || github.event.inputs.environment == 'development' && 'DEV' || github.event.inputs.environment == 'qa' && 'QA' || github.event.inputs.environment == 'production' && 'PROD')] }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets[format('AWS_{0}_SECRET_ACCESS_KEY', github.event.inputs.environment == 'sandbox' && 'SBX' || github.event.inputs.environment == 'development' && 'DEV' || github.event.inputs.environment == 'qa' && 'QA' || github.event.inputs.environment == 'production' && 'PROD')] }}
+      AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }} #${{ secrets[format('AWS_{0}_ACCESS_KEY_ID', github.event.inputs.environment == 'sandbox' && '' || github.event.inputs.environment == 'development' && '' || github.event.inputs.environment == 'qa' && '' || github.event.inputs.environment == 'production' && '')] }}
+      AWS_SECRET_ACCESS_KEY:  ${{ secrets.AWS_SECRET_ACCESS_KEY }} #${{ secrets[format('AWS_{0}_SECRET_ACCESS_KEY', github.event.inputs.environment == 'sandbox' && '' || github.event.inputs.environment == 'development' && '' || github.event.inputs.environment == 'qa' && '' || github.event.inputs.environment == 'production' && '')] }}
       
     steps:
       - name: Checkout repository
@@ -103,7 +110,7 @@ jobs:
           echo "AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY"
           echo "BUCKET_NAME: $BUCKET_NAME"
       - name: Download Plan
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: tfplan
           path: .deployments/root
