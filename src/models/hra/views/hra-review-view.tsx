@@ -68,41 +68,44 @@ function HRAReviewView({ hra, onSubmit, onBack, onSubmitNavigate }: HRAReviewVie
 
   return (
     <BasePractitionerView title={isCompleted ? 'Review Completed HRA' : 'Review and Submit HRA'}>
-      <div className=":uno: flex flex-col gap-1">
-        {!isCompleted && (
-          <HRAReviewEditButton
-            isEditing={isEditing}
-            onClick={() => setIsEditing(!isEditing)}
+      <div className=":uno: max-w-[975px] xl:max-w-none">
+        <div className=":uno: flex flex-col gap-1">
+          {!isCompleted && (
+            <HRAReviewEditButton
+              isEditing={isEditing}
+              onClick={() => setIsEditing(!isEditing)}
+            />
+          )}
+
+          <HRAReviewTable
+            hra={hra}
+            isEditing={isEditing && !isCompleted}
+            editedAnswers={editedAnswers}
+            onAnswerChange={handleAnswerChange}
+            onUnansweredQuestionsChange={count => setHasUnansweredQuestions(count > 0)}
+            isCompleted={isCompleted}
+            isReview={true}
           />
+        </div>
+
+        {isDev && (
+          <>
+            <div className=":uno: mt-6 border rounded-lg p-4">
+              <div className=":uno: mb-2 text-sm font-medium">Debug: Raw HRA Data</div>
+              <pre className=":uno: max-h-96 overflow-auto rounded bg-gray-50 p-4 text-xs">
+                {JSON.stringify(hra, null, 2)}
+              </pre>
+            </div>
+
+            <div className=":uno: mt-6 border rounded-lg p-4">
+              <div className=":uno: mb-2 text-sm font-medium">Debug: Transformed HRA Data</div>
+              <pre className=":uno: max-h-96 overflow-auto rounded bg-gray-50 p-4 text-xs">
+                {JSON.stringify(transformHRAData(hra), null, 2)}
+              </pre>
+            </div>
+          </>
         )}
-
-        <HRAReviewTable
-          hra={hra}
-          isEditing={isEditing && !isCompleted}
-          editedAnswers={editedAnswers}
-          onAnswerChange={handleAnswerChange}
-          onUnansweredQuestionsChange={count => setHasUnansweredQuestions(count > 0)}
-          isCompleted={isCompleted}
-        />
       </div>
-
-      {isDev && (
-        <>
-          <div className=":uno: mt-6 border rounded-lg p-4">
-            <div className=":uno: mb-2 text-sm font-medium">Debug: Raw HRA Data</div>
-            <pre className=":uno: max-h-96 overflow-auto rounded bg-gray-50 p-4 text-xs">
-              {JSON.stringify(hra, null, 2)}
-            </pre>
-          </div>
-
-          <div className=":uno: mt-6 border rounded-lg p-4">
-            <div className=":uno: mb-2 text-sm font-medium">Debug: Transformed HRA Data</div>
-            <pre className=":uno: max-h-96 overflow-auto rounded bg-gray-50 p-4 text-xs">
-              {JSON.stringify(transformHRAData(hra), null, 2)}
-            </pre>
-          </div>
-        </>
-      )}
 
       <HRAConfirmBar
         isConfirmed={isConfirmed}

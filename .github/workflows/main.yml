@@ -20,9 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
-      AWS_ACCESS_KEY_ID: ${{ secrets[format('AWS_{0}_ACCESS_KEY_ID', github.event.inputs.environment == 'Sandbox' && 'SBX' || github.event.inputs.environment == 'Development' && 'DEV' || github.event.inputs.environment == 'QA' && 'QA' || 'PROD')] }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets[format('AWS_{0}_SECRET_ACCESS_KEY', github.event.inputs.environment == 'Sandbox' && 'SBX' || github.event.inputs.environment == 'Development' && 'DEV' || github.event.inputs.environment == 'QA' && 'QA' || 'PROD')] }}
-
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3

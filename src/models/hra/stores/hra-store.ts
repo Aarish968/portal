@@ -342,7 +342,23 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
 
         const currentChildIndex = state.questionPath[state.questionPath.length - 1].questionIndex
 
-        if (shouldShowChildQuestions(currentQuestion, currentAnswer) && currentQuestion.children?.length) {
+        if (currentQuestion.answerType === 'Select Multiple' && currentQuestion.children?.length) {
+          const selectedAnswers = Array.isArray(currentAnswer) ? currentAnswer : []
+          const hasMatchingChild = currentQuestion.children.some((child: HRAQuestion) =>
+            selectedAnswers.includes(child.childDependentValue),
+          )
+
+          if (hasMatchingChild) {
+            return {
+              ...state,
+              questionPath: [
+                ...state.questionPath,
+                { questionIndex: 0, parentId: currentQuestion.questionId },
+              ],
+            }
+          }
+        }
+        else if (shouldShowChildQuestions(currentQuestion, currentAnswer) && currentQuestion.children?.length) {
           return {
             ...state,
             questionPath: [
