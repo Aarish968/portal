@@ -41,16 +41,26 @@ export function shouldShowChildQuestions(question: HRAQuestion, answer: string |
     return false
   }
 
+  if (question.answerType === 'Select Multiple' && Array.isArray(answer)) {
+    return question.children.some((child: HRAQuestion) =>
+      answer.includes(child.childDependentValue),
+    )
+  }
+
   if (question.answerType === 'Select Single') {
-    return question.children.some((child: HRAQuestion) => child.childDependentValue === answer)
+    return question.children.some((child: HRAQuestion) =>
+      child.childDependentValue === answer,
+    )
   }
 
-  if (question.children.some((child: HRAQuestion) => child.childDependentValue)) {
-    const answerStr = Array.isArray(answer) ? answer[0] : answer === true ? 'Yes' : 'No'
-    return question.children.some((child: HRAQuestion) => child.childDependentValue === answerStr)
+  if (typeof answer === 'boolean') {
+    const answerStr = answer ? 'Yes' : 'No'
+    return question.children.some((child: HRAQuestion) =>
+      child.childDependentValue === answerStr,
+    )
   }
 
-  return true
+  return false
 }
 
 export function calculateCurrentQuestionNumber(

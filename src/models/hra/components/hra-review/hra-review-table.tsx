@@ -31,9 +31,7 @@ export function HRAReviewTable({ hra, isEditing, editedAnswers, onAnswerChange, 
     const answer = editedAnswers[question.questionId]
     const answerStr = typeof answer === 'boolean'
       ? (answer ? 'Yes' : 'No')
-      : Array.isArray(answer)
-        ? answer[0]
-        : String(answer)
+      : String(answer)
 
     const indentClass = [
       '',
@@ -44,25 +42,36 @@ export function HRAReviewTable({ hra, isEditing, editedAnswers, onAnswerChange, 
     ][level] || 'pl-0'
 
     const isUnanswered = question.answerType && (answer === undefined || answer === '')
-    const cellClass = isUnanswered ? ':uno: px-6 py-4 text-sm text-red-700 bg-red-50' : ':uno: px-6 py-4 text-sm text-gray-900'
+    const cellClass = isUnanswered
+      ? ':uno: px-6 py-4 text-sm text-red-700 bg-red-50'
+      : ':uno: px-6 py-4 text-sm text-gray-900'
 
     const rows = [(
       <tr key={question.questionId}>
         <td className={cellClass}>
-          <div className={`:uno: ${indentClass} max-w-[50ch]`}>
+          <div className={`:uno: ${indentClass} max-w-[60ch]`}>
             {`${getQuestionIndex(level, index)} ${question.questionText}`}
           </div>
         </td>
-        <td className={cellClass}>
-          {question.answerType ? renderAnswer(question, answer) : ''}
+        <td className={`:uno: ${cellClass}`}>
+          <div className=":uno: max-w-[30ch] break-words">
+            {question.answerType ? renderAnswer(question, answer) : ''}
+          </div>
         </td>
       </tr>
     )]
 
     if (question.children?.length) {
       question.children.forEach((child: HRAQuestion, childIndex: number) => {
-        if (!child.childDependentValue || child.childDependentValue === answerStr) {
-          rows.push(...renderQuestionRow(child, childIndex, level + 1))
+        if (question.answerType === 'Select Multiple' && Array.isArray(answer)) {
+          if (answer.includes(child.childDependentValue)) {
+            rows.push(...renderQuestionRow(child, childIndex, level + 1))
+          }
+        }
+        else {
+          if (!child.childDependentValue || child.childDependentValue === answerStr) {
+            rows.push(...renderQuestionRow(child, childIndex, level + 1))
+          }
         }
       })
     }
@@ -103,8 +112,8 @@ export function HRAReviewTable({ hra, isEditing, editedAnswers, onAnswerChange, 
           {isReview && (
             <thead className=":uno: bg-gray-50">
               <tr>
-                <th className=":uno: w-[60%] px-6 py-3 text-left text-sm text-gray-900 font-medium">Question</th>
-                <th className=":uno: w-[40%] px-6 py-3 text-left text-sm text-gray-900 font-medium">Answer</th>
+                <th className=":uno: w-[70%] px-4 py-2 text-left text-sm text-gray-900 font-medium">Question</th>
+                <th className=":uno: w-[30%] px-4 py-2 text-left text-sm text-gray-900 font-medium">Answer</th>
               </tr>
             </thead>
           )}

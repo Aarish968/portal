@@ -23,13 +23,13 @@ export function SettingsForm({ user }: { user: AuthUser }) {
           </Avatar>
           <div className=":uno: grid gap-1">
             <h3 className=":uno: text-lg font-semibold">{user.name}</h3>
-            <p className=":uno: text-sm text-muted-foreground">DNS-4D3251</p>
+            {/* <p className=":uno: text-sm text-muted-foreground">DNS-4D3251</p> */}
           </div>
         </div>
 
         <div className=":uno: grid gap-2 text-sm">
           <div className=":uno: grid gap-4">
-            <div>
+            {/* <div>
               <div className=":uno: text-muted-foreground">Address</div>
               <div>12345 N 17th St.</div>
               <div>Boise, Idaho, 83702</div>
@@ -37,7 +37,7 @@ export function SettingsForm({ user }: { user: AuthUser }) {
             <div>
               <div className=":uno: text-muted-foreground">Phone</div>
               <div>1-555-555-5555</div>
-            </div>
+            </div> */}
             <div>
               <div className=":uno: text-muted-foreground">Email</div>
               <div>{accounts[0]?.username}</div>

@@ -85,3 +85,31 @@ export function getQuestionIndex(level: number, index: number): string {
     return `${String.fromCharCode(97 + index)}.`
   return `${String.fromCharCode(97 + index)}${level - 1}.`
 }
+
+export function shouldShowChildQuestions(question: HRAQuestion, answer: string | boolean | string[] | null): boolean {
+  if (!question.children?.length) {
+    return false
+  }
+
+  if (question.answerType === 'Select Multiple' && Array.isArray(answer)) {
+    return question.children.some((child: HRAQuestion) => {
+      const match = answer.includes(child.childDependentValue)
+      return match
+    })
+  }
+
+  if (question.answerType === 'Yes/No') {
+    const answerStr = answer === true ? 'Yes' : 'No'
+    return question.children.some((child: HRAQuestion) =>
+      !child.childDependentValue || child.childDependentValue === answerStr,
+    )
+  }
+
+  if (answer !== null) {
+    return question.children.some((child: HRAQuestion) =>
+      !child.childDependentValue || child.childDependentValue === answer,
+    )
+  }
+
+  return false
+}
