@@ -121,4 +121,4 @@ jobs:
 
       - name: Terraform Apply
         working-directory: .deployments/root
-        run: terraform destroy -auto-approve tfplan
+        run: terraform destroy -auto-approve
