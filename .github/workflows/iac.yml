@@ -121,4 +121,4 @@ jobs:
 
       - name: Terraform Apply
         working-directory: .deployments/root
-        run: terraform destroy -var-file="../config/${{ github.event.inputs.environment }}.tfvars" -auto-approve
+        run: terraform apply -auto-approve tfplan
