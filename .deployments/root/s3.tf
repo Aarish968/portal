@@ -42,7 +42,7 @@ module "s3_bucket" {
   bucket                   = var.provider_portal_bucket_name
   acl                      = "private"  
   control_object_ownership = true
-  object_ownership         = "BucketOwnerEnforced"
+  object_ownership         = "ObjectWriter"
   force_destroy            = var.force_destroy
   
   website = {
