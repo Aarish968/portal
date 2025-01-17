@@ -14,8 +14,8 @@ data "aws_iam_policy_document" "s3_policy" {
       "arn:aws:s3:::${var.provider_portal_bucket_name}/index.html"
     ]
     principals {
-      type        = "*"
-      identifiers = ["*"]
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.spa_oai.iam_arn]
     }
   }
 
@@ -23,8 +23,8 @@ data "aws_iam_policy_document" "s3_policy" {
     actions   = ["s3:ListBucket"]
     resources = ["arn:aws:s3:::${var.provider_portal_bucket_name}"]
     principals {
-      type        = "*"
-      identifiers = ["*"]
+      type        = "AWS"
+      identifiers = [aws_cloudfront_origin_access_identity.spa_oai.iam_arn]
     }
   }
 }
@@ -34,16 +34,16 @@ module "s3_bucket" {
   source  = "terraform-aws-modules/s3-bucket/aws"
   version = "4.2.2"
 
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 
   bucket                   = var.provider_portal_bucket_name
-  acl                      = null  
+  acl                      = "private"  
   control_object_ownership = true
-  object_ownership         = "ObjectWriter"
-  force_destroy           = var.force_destroy
+  object_ownership         = "BucketOwnerEnforced"
+  force_destroy            = var.force_destroy
   
   website = {
     index_document = "index.html"
