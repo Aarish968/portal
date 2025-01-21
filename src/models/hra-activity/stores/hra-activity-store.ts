@@ -64,16 +64,13 @@ export const useHraActivityStore = create<HraActivityStore>()(
           // username = 'Mark.Stocksdale@helloporter.com'
           // username = 'esther@helloporter2.com'
 
-          if (import.meta.env.VITE_DEV_TEST !== 'true') {
-            const authStore = useAuthStore.getState()
-            const currentUsername = authStore.currentUser?.username
+          const currentUsername = authStore.currentUser?.username
 
-            if (!currentUsername) {
-              throw new Error('No username available')
-            }
-
-            username = currentUsername
+          if (!currentUsername) {
+            throw new Error('No username available')
           }
+
+          username = currentUsername
 
           const response = await fetch(`${API_URL}/hra/get`, {
             method: 'POST',
