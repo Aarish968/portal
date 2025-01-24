@@ -13,6 +13,7 @@ import {
 interface HRAStore {
   hra: HRA | null
   isLoading: boolean
+  isSaving: boolean
   error: string | null
   questionPath: QuestionPath[]
   editQuestionIndex: number | null
@@ -39,6 +40,7 @@ const API_URL = import.meta.env.VITE_API_URL || ''
 interface HRAStoreState {
   hra: HRA | null
   isLoading: boolean
+  isSaving: boolean
   error: string | null
   questionPath: QuestionPath[]
   editQuestionIndex: number | null
@@ -49,6 +51,7 @@ interface HRAStoreState {
 export const useHRAStore = create<HRAStore>((set, get) => ({
   hra: null,
   isLoading: false,
+  isSaving: false,
   error: null,
   questionPath: [{ questionIndex: 0, parentId: null }],
   editQuestionIndex: null,
@@ -653,7 +656,7 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
       throw new Error('No HRA data to save')
     }
 
-    set({ isLoading: true, error: null })
+    set({ isSaving: true, error: null })
 
     try {
       const authStore = useAuthStore.getState()
@@ -679,12 +682,12 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
         throw new Error('Failed to save HRA data')
       }
 
-      set({ isLoading: false })
+      set({ isSaving: false })
     }
     catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to save HRA data',
-        isLoading: false,
+        isSaving: false,
       })
       throw error
     }

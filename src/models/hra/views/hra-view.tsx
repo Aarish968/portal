@@ -31,6 +31,7 @@ function HRAView() {
     hra,
     error,
     isLoading,
+    isSaving,
     canMoveNext,
     questionPath,
     nextQuestion,
@@ -70,7 +71,6 @@ function HRAView() {
     handleCancelNavigation,
     setIsNavigating,
     pendingLocationRef,
-    isSaving,
   } = useHRABlocker({ shouldBlock })
 
   const handleHRASubmit = async () => {
