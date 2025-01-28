@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { HraActivity, HraActivityItem } from '../schemas/hra-activity-schema'
 import { HraActivitySchema } from '../schemas/hra-activity-schema'
 import { useAuthStore } from '@/models/auth/stores/auth-store'
+import { HRA_SERVICE_API_URL } from '@/data/api-url'
 
 interface HraActivityStore {
   hraActivity: HraActivity
@@ -18,8 +19,6 @@ interface HraActivityStore {
 const defaultHraActivity: HraActivity = {
   assessments: [],
 }
-
-const API_URL = import.meta.env.VITE_API_URL || ''
 
 const CACHE_LIFETIME = 2 * 60 * 1000
 
@@ -72,7 +71,7 @@ export const useHraActivityStore = create<HraActivityStore>()(
 
           username = currentUsername
 
-          const response = await fetch(`${API_URL}/hra/get`, {
+          const response = await fetch(`${HRA_SERVICE_API_URL}/hra/get`, {
             method: 'POST',
             headers: await useAuthStore.getState().getAuthHeaders(),
             body: JSON.stringify({ username }),

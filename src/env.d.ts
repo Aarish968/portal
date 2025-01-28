@@ -2,7 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_DEV_TEST: string
-  readonly VITE_API_URL: string
+  readonly VITE_HRA_SERVICE_API_URL: string
 }
 
 interface ImportMeta {

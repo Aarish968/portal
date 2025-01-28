@@ -9,6 +9,7 @@ import {
   shouldShowChildQuestions,
   transformHRAData,
 } from '@/models/hra/utils/hra-store-utils'
+import { HRA_SERVICE_API_URL } from '@/data/api-url'
 
 interface HRAStore {
   hra: HRA | null
@@ -33,8 +34,6 @@ interface HRAStore {
   saveHRA: (isStarted?: boolean, isCompleted?: boolean) => Promise<void>
   isHraCompleted: () => boolean
 }
-
-const API_URL = import.meta.env.VITE_API_URL || ''
 
 interface HRAStoreState {
   hra: HRA | null
@@ -151,7 +150,7 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
         })
       }
 
-      const response = await fetch(`${API_URL}/hra/get`, {
+      const response = await fetch(`${HRA_SERVICE_API_URL}/hra/get`, {
         method: 'POST',
         headers: await useAuthStore.getState().getAuthHeaders(),
         body: JSON.stringify({ assessmentId }),
@@ -669,7 +668,7 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
 
       const transformedData = transformHRAData(state.hra, isStarted, isCompleted)
 
-      const response = await fetch(`${API_URL}/hra`, {
+      const response = await fetch(`${HRA_SERVICE_API_URL}/hra`, {
         method: 'POST',
         headers: await useAuthStore.getState().getAuthHeaders(),
         body: JSON.stringify(transformedData),
