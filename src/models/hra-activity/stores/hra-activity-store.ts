@@ -60,8 +60,6 @@ export const useHraActivityStore = create<HraActivityStore>()(
           }
 
           let username = ''
-          // username = 'Mark.Stocksdale@helloporter.com'
-          // username = 'esther@helloporter2.com'
 
           const currentUsername = authStore.currentUser?.username
 
@@ -70,6 +68,9 @@ export const useHraActivityStore = create<HraActivityStore>()(
           }
 
           username = currentUsername
+
+          username = 'Mark.Stocksdale@helloporter.com'
+          // username = 'esther@helloporter2.com'
 
           const response = await fetch(`${HRA_SERVICE_API_URL}/hra/get`, {
             method: 'POST',
