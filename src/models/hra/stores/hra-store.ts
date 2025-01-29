@@ -9,10 +9,12 @@ import {
   shouldShowChildQuestions,
   transformHRAData,
 } from '@/models/hra/utils/hra-store-utils'
+import { HRA_SERVICE_API_URL } from '@/data/api-url'
 
 interface HRAStore {
   hra: HRA | null
   isLoading: boolean
+  isSaving: boolean
   error: string | null
   questionPath: QuestionPath[]
   editQuestionIndex: number | null
@@ -34,11 +36,10 @@ interface HRAStore {
   isHraCompleted: () => boolean
 }
 
-const API_URL = import.meta.env.VITE_API_URL || ''
-
 interface HRAStoreState {
   hra: HRA | null
   isLoading: boolean
+  isSaving: boolean
   error: string | null
   questionPath: QuestionPath[]
   editQuestionIndex: number | null
@@ -49,6 +50,7 @@ interface HRAStoreState {
 export const useHRAStore = create<HRAStore>((set, get) => ({
   hra: null,
   isLoading: false,
+  isSaving: false,
   error: null,
   questionPath: [{ questionIndex: 0, parentId: null }],
   editQuestionIndex: null,
@@ -151,7 +153,7 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
         })
       }
 
-      const response = await fetch(`${API_URL}/hra/get`, {
+      const response = await fetch(`${HRA_SERVICE_API_URL}/hra/get`, {
         method: 'POST',
         headers: await useAuthStore.getState().getAuthHeaders(),
         body: JSON.stringify({ assessmentId }),
@@ -653,7 +655,7 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
       throw new Error('No HRA data to save')
     }
 
-    set({ isLoading: true, error: null })
+    set({ isSaving: true, error: null })
 
     try {
       const authStore = useAuthStore.getState()
@@ -669,7 +671,7 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
 
       const transformedData = transformHRAData(state.hra, isStarted, isCompleted)
 
-      const response = await fetch(`${API_URL}/hra`, {
+      const response = await fetch(`${HRA_SERVICE_API_URL}/hra`, {
         method: 'POST',
         headers: await useAuthStore.getState().getAuthHeaders(),
         body: JSON.stringify(transformedData),
@@ -679,12 +681,12 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
         throw new Error('Failed to save HRA data')
       }
 
-      set({ isLoading: false })
+      set({ isSaving: false })
     }
     catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to save HRA data',
-        isLoading: false,
+        isSaving: false,
       })
       throw error
     }
