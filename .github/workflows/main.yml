@@ -45,6 +45,7 @@ jobs:
       run: pnpm build
       env:
         VITE_APP_MSAL_REDIRECT_URI: ${{ vars.MSAL_REDIRECT_URI }}
+        VITE_DEV_TEST: ${{ github.event.inputs.environment == 'Sandbox' }}
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v3
