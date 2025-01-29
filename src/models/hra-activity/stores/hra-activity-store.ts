@@ -19,8 +19,6 @@ const defaultHraActivity: HraActivity = {
   assessments: [],
 }
 
-const API_URL = import.meta.env.VITE_API_URL || ''
-
 export const useHraActivityStore = create<HraActivityStore>()(set => ({
   hraActivity: defaultHraActivity,
   isLoading: false,
@@ -50,7 +48,7 @@ export const useHraActivityStore = create<HraActivityStore>()(set => ({
       username = currentUsername
       username = 'Mark.Stocksdale@helloporter.com'
 
-      const response = await fetch(`${API_URL}/hra/get`, {
+      const response = await fetch(`${HRA_SERVICE_API_URL}/hra/get`, {
         method: 'POST',
         headers: await useAuthStore.getState().getAuthHeaders(),
         body: JSON.stringify({ username }),
