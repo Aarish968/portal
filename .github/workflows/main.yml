@@ -23,6 +23,8 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       VITE_APP_MSAL_REDIRECT_URI: ${{ vars.MSAL_REDIRECT_URI }}
+      VITE_HRA_SERVICE_API_URL: ${{ vars.HRA_SERVICE_API_URL }}
+
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3

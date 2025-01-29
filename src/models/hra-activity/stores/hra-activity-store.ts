@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { HraActivity, HraActivityItem } from '../schemas/hra-activity-schema'
 import { HraActivitySchema } from '../schemas/hra-activity-schema'
 import { useAuthStore } from '@/models/auth/stores/auth-store'
+import { HRA_SERVICE_API_URL } from '@/data/api-url'
 
 interface HraActivityStore {
   hraActivity: HraActivity

@@ -10,8 +10,7 @@ import {
 import { Textarea } from '@/base_submod/components/ui/textarea'
 import { useAuthStore } from '@/models/auth/stores/auth-store'
 import { useMsal } from '@azure/msal-react'
-
-const API_URL = import.meta.env.VITE_API_URL || ''
+import { HRA_SERVICE_API_URL } from '@/data/api-url'
 
 interface ContactFormProps {
   onSubmit?: (formData: { type: string, message: string }) => void
@@ -34,7 +33,7 @@ export function ContactForm({ onSubmit }: ContactFormProps) {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch(`${API_URL}/support/email`, {
+      const response = await fetch(`${HRA_SERVICE_API_URL}/support/email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
