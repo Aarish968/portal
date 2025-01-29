@@ -37,6 +37,10 @@ export function shouldShowChildQuestions(question: HRAQuestion, answer: string |
     return false
   }
 
+  if (question.children.some((child: HRAQuestion) => !child.childDependentValue)) {
+    return true
+  }
+
   if (!answer) {
     return false
   }
@@ -49,14 +53,14 @@ export function shouldShowChildQuestions(question: HRAQuestion, answer: string |
 
   if (question.answerType === 'Select Single') {
     return question.children.some((child: HRAQuestion) =>
-      child.childDependentValue === answer,
+      !child.childDependentValue || child.childDependentValue === answer,
     )
   }
 
   if (typeof answer === 'boolean') {
     const answerStr = answer ? 'Yes' : 'No'
     return question.children.some((child: HRAQuestion) =>
-      child.childDependentValue === answerStr,
+      !child.childDependentValue || child.childDependentValue === answerStr,
     )
   }
 
