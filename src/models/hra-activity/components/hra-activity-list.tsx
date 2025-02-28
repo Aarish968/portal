@@ -47,13 +47,11 @@ export function HraActivityList({ hraActivity }: HraActivityListProps) {
     return `${address.street}, ${address.city}, ${address.state} ${address.zip}`
   }
 
-  function formatVisit(date: string | null, time: string | null) {
-    if (!date || !time)
+  function formatVisit(appointmentDatetime: string | null, providerTimezone: string | null) {
+    if (!appointmentDatetime)
       return 'Not Scheduled'
 
-    const visitDate = new Date(date)
-    const [hours, minutes] = time.split(':')
-    visitDate.setHours(Number.parseInt(hours), Number.parseInt(minutes))
+    const visitDate = new Date(appointmentDatetime)
 
     return visitDate.toLocaleString('en-US', {
       month: 'short',
@@ -62,6 +60,7 @@ export function HraActivityList({ hraActivity }: HraActivityListProps) {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
+      timeZone: providerTimezone || undefined,
     })
   }
 
@@ -99,8 +98,8 @@ export function HraActivityList({ hraActivity }: HraActivityListProps) {
         case 'assessment':
           return a.assessmentName.localeCompare(b.assessmentName) * direction
         case 'visit': {
-          const dateA = a.visitDate && a.visitTime ? new Date(`${a.visitDate}T${a.visitTime}`) : new Date(0)
-          const dateB = b.visitDate && b.visitTime ? new Date(`${b.visitDate}T${b.visitTime}`) : new Date(0)
+          const dateA = a.appointmentDatetime ? new Date(a.appointmentDatetime) : new Date(0)
+          const dateB = b.appointmentDatetime ? new Date(b.appointmentDatetime) : new Date(0)
           return (dateA.getTime() - dateB.getTime()) * direction
         }
         case 'address':
@@ -197,7 +196,7 @@ export function HraActivityList({ hraActivity }: HraActivityListProps) {
               >
                 <TableCell>{`${activity.memberFirstName} ${activity.memberLastName}`}</TableCell>
                 <TableCell>{activity.assessmentName}</TableCell>
-                <TableCell>{formatVisit(activity.visitDate, activity.visitTime)}</TableCell>
+                <TableCell>{formatVisit(activity.appointmentDatetime, activity.providerTimezone)}</TableCell>
                 <TableCell>{formatAddress(activity.memberAddress)}</TableCell>
                 <TableCell>{formatPhoneNumber(activity.MemberPhone)}</TableCell>
                 <TableCell>{activity.MemberPayer}</TableCell>
