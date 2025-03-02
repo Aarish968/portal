@@ -21,6 +21,8 @@ export const HraActivityItemSchema = z.object({
   message: z.string(),
   visitDate: z.string().nullable(),
   visitTime: z.string().nullable(),
+  appointmentDatetime: z.string().nullable(),
+  providerTimezone: z.string().nullable(),
 })
 
 export const HraActivitySchema = z.object({
