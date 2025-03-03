@@ -61,7 +61,7 @@ jobs:
         aws s3 sync ./dist s3://${{ env.BUCKET_NAME }} --delete
 
     - name: ZAP Scan on Development Environment
-        if: ${{ github.event.inputs.environment == 'Development' || github.event.inputs.environmentt == 'DevelopmentNew' }}
+        if: ${{ github.event.inputs.environment == 'Development' }}
         id: zap_scan_dev
         uses: zaproxy/action-full-scan@v0.8.0
         with:
