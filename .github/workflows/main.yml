@@ -60,26 +60,9 @@ jobs:
       run: |
         aws s3 sync ./dist s3://${{ env.BUCKET_NAME }} --delete
 
-    - name: ZAP Scan on Development Environment
-        if: ${{ github.event.inputs.environment == 'Development' }}
-        id: zap_scan_dev
-        uses: zaproxy/action-full-scan@v0.8.0
-        with:
-          target: 'https://provider-dev.helloporter.com/'
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: ZAP Scan on QA Environment
-        if: ${{ github.event.inputs.environmentt == 'QA' }}
-        id: zap_scan_qa
-        uses: zaproxy/action-full-scan@v0.8.0
-        with:
-          target: 'https://provider-qa.helloporter.com/'
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: ZAP Scan on Production Environment
-        if: ${{ github.event.inputs.environment == 'Production' }}
-        id: zap_scan_prod
-        uses: zaproxy/action-full-scan@v0.8.0
-        with:
-          target: 'https://provider.helloporter.com/'
-          token: ${{ secrets.GITHUB_TOKEN }}
+    - name: ZAP Scan
+      id: zap_scan
+      uses: zaproxy/action-full-scan@v0.8.0
+      with:
+        target: ${{ vars.MSAL_REDIRECT_URI }}
+        token: ${{ secrets.GITHUB_TOKEN }}
