@@ -72,4 +72,5 @@ jobs:
         uses: zaproxy/action-full-scan@v0.8.0
         with:
           target: ${{ vars.MSAL_REDIRECT_URI }}
+          fail_action: false
           token: ${{ secrets.GITHUB_TOKEN }}
