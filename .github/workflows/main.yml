@@ -61,6 +61,7 @@ jobs:
         aws s3 sync ./dist s3://${{ env.BUCKET_NAME }} --delete
 
   zap_scan:
+    environment: ${{ github.event.inputs.environment }}
     runs-on: ubuntu-latest
     name: Scan the web application
     steps:
