@@ -26,7 +26,6 @@ jobs:
 
     steps:
     - name: ZAP Scan
-      id: zap_scan
       uses: zaproxy/action-full-scan@v0.8.0
       with:
         target: ${{ github.event.inputs.target}}
