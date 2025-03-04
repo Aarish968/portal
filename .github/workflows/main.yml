@@ -60,8 +60,16 @@ jobs:
       run: |
         aws s3 sync ./dist s3://${{ env.BUCKET_NAME }} --delete
 
-    - name: ZAP Scan
-      uses: zaproxy/action-full-scan@v0.8.0
-      with:
-        target: ${{ vars.MSAL_REDIRECT_URI }}
-        token: ${{ secrets.GITHUB_TOKEN }}
+  zap_scan:
+    runs-on: ubuntu-latest
+    name: Scan the web application
+    steps:
+      # Checkout your repository
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: ZAP Scan
+        uses: zaproxy/action-full-scan@v0.8.0
+        with:
+          target: ${{ vars.MSAL_REDIRECT_URI }}
+          token: ${{ secrets.GITHUB_TOKEN }}
