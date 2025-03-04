@@ -61,7 +61,6 @@ jobs:
         aws s3 sync ./dist s3://${{ env.BUCKET_NAME }} --delete
 
     - name: ZAP Scan
-      id: zap_scan
       uses: zaproxy/action-full-scan@v0.8.0
       with:
         target: ${{ vars.MSAL_REDIRECT_URI }}
