@@ -64,12 +64,5 @@ jobs:
       id: zap_scan
       uses: zaproxy/action-full-scan@v0.8.0
       with:
-        target: 'https://provider.helloporter.com/'
+        target: ${{ vars.MSAL_REDIRECT_URI }}
         token: ${{ secrets.GITHUB_TOKEN }}
-
-    # - name: ZAP Scan
-    #   id: zap_scan
-    #   uses: zaproxy/action-full-scan@v0.8.0
-    #   with:
-    #     target: ${{ vars.MSAL_REDIRECT_URI }}
-    #     token: ${{ secrets.GITHUB_TOKEN }}
