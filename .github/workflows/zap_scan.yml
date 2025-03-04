@@ -1,0 +1,40 @@
+name: Deploy Provider Portal
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "target url"
+        required: true
+        default: "https://provider-dev.helloporter.com/"
+        type: choice
+        options:
+          - https://provider.helloporter.com/
+          - https://provider-qa.helloporter.com/
+          - https://provider-dev.helloporter.com/
+
+jobs:
+  deploy:
+    environment: ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    env:
+      BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      VITE_APP_MSAL_REDIRECT_URI: ${{ vars.MSAL_REDIRECT_URI }}
+      VITE_HRA_SERVICE_API_URL: ${{ vars.HRA_SERVICE_API_URL }}
+
+    steps:
+    - name: ZAP Scan
+      id: zap_scan
+      uses: zaproxy/action-full-scan@v0.8.0
+      with:
+        target: ${{ github.event.inputs.target}}
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    # - name: ZAP Scan
+    #   id: zap_scan
+    #   uses: zaproxy/action-full-scan@v0.8.0
+    #   with:
+    #     target: ${{ vars.MSAL_REDIRECT_URI }}
+    #     token: ${{ secrets.GITHUB_TOKEN }}
