@@ -72,7 +72,7 @@ jobs:
       - name: ZAP Scan
         uses: zaproxy/action-full-scan@v0.8.0
         with:
-          #target: ${{ vars.MSAL_REDIRECT_URI }}
-          target: 'https://provider.helloporter.com'
+          target: ${{ vars.MSAL_REDIRECT_URI }}
+          #target: 'https://provider.helloporter.com'
           fail_action: false
           token: ${{ secrets.GITHUB_TOKEN }}
