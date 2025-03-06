@@ -1,9 +1,31 @@
 import type { HRA, HRAQuestion } from '@/models/hra/schemas/hra-schema'
+import { formatDate, isValidDateString } from '@/utils/strings'
 
 export interface QuestionPath {
   questionIndex: number
   parentId: string | null
   childIndex?: number
+}
+
+export function extractAnswers(questions: HRAQuestion[]): Record<string, string | boolean | string[]> {
+  const answers: Record<string, string | boolean | string[]> = {}
+  questions.forEach((q) => {
+    if (q.answer !== null) {
+      if (q.answerType === 'Yes/No') {
+        answers[q.questionId] = q.answer === 'Yes'
+      }
+      else if (q.answerType === 'Select Multiple') {
+        answers[q.questionId] = q.answer.split(',').map((a: string) => a.trim())
+      }
+      else {
+        answers[q.questionId] = q.answer
+      }
+    }
+    if (q.children) {
+      Object.assign(answers, extractAnswers(q.children))
+    }
+  })
+  return answers
 }
 
 export function findQuestionByPath(questions: HRAQuestion[], path: QuestionPath[]): HRAQuestion | null {
@@ -30,6 +52,43 @@ export function findQuestionByPath(questions: HRAQuestion[], path: QuestionPath[
   }
 
   return currentQuestion
+}
+
+export function findFirstUnansweredPath(questions: HRAQuestion[], answers: Record<string, any>): QuestionPath[] {
+  const checkQuestion = (question: HRAQuestion, currentPath: QuestionPath[]): QuestionPath[] | null => {
+    if (question.answerType && answers[question.questionId] === undefined) {
+      return currentPath
+    }
+
+    if (question.children) {
+      for (let i = 0; i < question.children.length; i++) {
+        const child = question.children[i]
+        const shouldShow = !child.childDependentValue
+          || (answers[question.questionId] !== undefined
+          && String(answers[question.questionId]) === child.childDependentValue)
+
+        if (shouldShow) {
+          const childPath = checkQuestion(child, [
+            ...currentPath,
+            { questionIndex: i, parentId: question.questionId },
+          ])
+          if (childPath) {
+            return childPath
+          }
+        }
+      }
+    }
+    return null
+  }
+
+  for (let i = 0; i < questions.length; i++) {
+    const path = checkQuestion(questions[i], [{ questionIndex: i, parentId: null }])
+    if (path) {
+      return path
+    }
+  }
+
+  return [{ questionIndex: questions.length - 1, parentId: null }]
 }
 
 export function shouldShowChildQuestions(question: HRAQuestion, answer: string | boolean | string[] | undefined): boolean {
@@ -107,49 +166,6 @@ export interface TransformedHRA {
   isStarted: boolean
   completionDate?: string
   questions: TransformedQuestion[]
-}
-
-function isValidDateString(str: any): boolean {
-  if (typeof str !== 'string')
-    return false
-  const date = new Date(str)
-  return date instanceof Date && !Number.isNaN(date.getTime())
-}
-
-function formatDate(date: Date, format: string): string {
-  const fullYear = date.getFullYear()
-  const shortYear = String(fullYear).slice(-2)
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-
-  switch (format) {
-    case 'YYYY-MM-DD':
-      return `${fullYear}-${month}-${day}`
-    case 'MM/DD/YYYY':
-      return `${month}/${day}/${fullYear}`
-    case 'DD/MM/YYYY':
-      return `${day}/${month}/${fullYear}`
-    case 'MM-DD-YYYY':
-      return `${month}-${day}-${fullYear}`
-    case 'DD-MM-YYYY':
-      return `${day}-${month}-${fullYear}`
-    case 'YY/MM':
-      return `${shortYear}/${month}`
-    case 'YYYY-MM':
-      return `${fullYear}-${month}`
-    case 'MM-YYYY':
-      return `${month}-${fullYear}`
-    case 'YYYY/MM':
-      return `${fullYear}/${month}`
-    case 'MM/YYYY':
-      return `${month}/${fullYear}`
-    case 'YY-MM':
-      return `${shortYear}-${month}`
-    case 'MM/YY':
-      return `${month}/${shortYear}`
-    default:
-      return date.toLocaleDateString('en-US')
-  }
 }
 
 function processQuestion(hra: HRA, q: Question): TransformedQuestion {

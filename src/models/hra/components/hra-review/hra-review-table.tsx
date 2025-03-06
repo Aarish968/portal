@@ -86,7 +86,7 @@ export function HRAReviewTable({ hra, isEditing, editedAnswers, onAnswerChange, 
   }, [unansweredQuestions.length, onUnansweredQuestionsChange])
 
   return (
-    <div className=":uno: mb-12 space-y-4">
+    <div className=":uno: space-y-4">
       {isReview && !isCompleted && unansweredQuestions.length > 0 && (
         <div className=":uno: border-l-4 border-red-400 bg-red-50 p-4">
           <div className=":uno: text-red-700">
