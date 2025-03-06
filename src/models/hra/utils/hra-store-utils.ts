@@ -105,6 +105,7 @@ export interface TransformedHRA {
   templateId: string | null
   isCompleted: boolean
   isStarted: boolean
+  completionDate?: string
   questions: TransformedQuestion[]
 }
 
@@ -195,12 +196,15 @@ export function transformHRAData(
     .map(q => processQuestion(hra, q))
     .filter(q => q.answerValue !== '')
 
+  const finalIsCompleted = isCompleted ?? hra.screening.isCompleted
+
   return {
     name: hra.screening.name,
     id: hra.screening.screeningId,
     templateId: hra.screening.templateId,
-    isCompleted: isCompleted ?? hra.screening.isCompleted,
+    isCompleted: finalIsCompleted,
     isStarted: isStarted ?? hra.screening.isStarted,
+    completionDate: finalIsCompleted ? formatDate(new Date(), 'YYYY-MM-DD') : undefined,
     questions,
   }
 }
