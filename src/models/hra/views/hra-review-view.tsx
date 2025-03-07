@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom'
 import { useToast } from '@/base_submod/hooks/use-toast'
 import HRAConfirmBar from '../components/hra-confirm-bar'
 import type { HRA } from '@/models/hra/schemas/hra-schema'
-import { Button } from '@/base_submod/components/ui/button'
 import { HRAReviewTable } from '../components/hra-review/hra-review-table'
 import BasePractitionerView from '@/components/layout/views/base-practitioner-view'
 import { HRAReviewEditButton } from '../components/hra-review/hra-review-edit-button'
@@ -14,11 +13,10 @@ import { useMemberStore } from '@/models/member/stores/member-store'
 interface HRAReviewViewProps {
   hra: HRA
   onSubmit: () => void
-  onBack: () => void
   onSubmitNavigate?: () => void
 }
 
-function HRAReviewView({ hra, onSubmit, onBack, onSubmitNavigate }: HRAReviewViewProps) {
+function HRAReviewView({ hra, onSubmit, onSubmitNavigate }: HRAReviewViewProps) {
   const [isConfirmed, setIsConfirmed] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editedAnswers, setEditedAnswers] = useState<Record<string, any>>(hra.answers)
@@ -103,6 +101,7 @@ function HRAReviewView({ hra, onSubmit, onBack, onSubmitNavigate }: HRAReviewVie
                 {JSON.stringify(transformHRAData(hra), null, 2)}
               </pre>
             </div>
+
           </>
         )}
       </div>
@@ -118,15 +117,6 @@ function HRAReviewView({ hra, onSubmit, onBack, onSubmitNavigate }: HRAReviewVie
         onReturn={() => navigate('/hra-activity')}
       />
 
-      {!isCompleted && (
-        <Button
-          variant="outline"
-          onClick={onBack}
-          className=":uno: mt-6"
-        >
-          Back to Questions
-        </Button>
-      )}
     </BasePractitionerView>
   )
 }

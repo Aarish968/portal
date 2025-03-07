@@ -121,7 +121,6 @@ function HRAView() {
         <HRAReviewView
           hra={hra}
           onSubmit={handleHRASubmit}
-          onBack={() => setShowReviewView(false)}
           onSubmitNavigate={() => {
             navigate('/hra-activity', { replace: true })
           }}
