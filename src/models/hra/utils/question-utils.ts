@@ -2,6 +2,35 @@ import { format, isValid } from 'date-fns'
 import { MONTHS } from '@/models/hra/utils/date-utils'
 import type { HRA, HRAQuestion } from '@/models/hra/schemas/hra-schema'
 
+export function isValidDateInput(value: string, question: HRAQuestion): boolean {
+  if (!value)
+    return false
+  const parts = value.split('-')
+  if (parts.length !== 3)
+    return false
+
+  const [month, day, year] = parts
+  if (!month || !day || !year)
+    return false
+  if (year.length !== 4)
+    return false
+
+  const monthNum = Number.parseInt(month)
+  const dayNum = Number.parseInt(day)
+  const yearNum = Number.parseInt(year)
+  const currentYear = new Date().getFullYear()
+
+  if (monthNum < 1 || monthNum > 12)
+    return false
+  if (dayNum < 1 || dayNum > 31)
+    return false
+
+  if (question.questionText?.toLowerCase().includes('date of birth') && yearNum > currentYear)
+    return false
+
+  return true
+}
+
 export function formatChoice(choice: string): string {
   return choice === 'NA' ? 'N/A' : choice
 }
@@ -58,11 +87,21 @@ export function findUnansweredQuestions(hra: HRA, answers: Record<string, any>):
 
     const currentIndex = getQuestionIndex(level, index, parentIndex)
 
-    if (question.answerType && (answer === undefined || answer === '')) {
-      unanswered.push({
-        index: currentIndex,
-        text: question.questionText,
-      })
+    if (question.answerType) {
+      if (question.answerType === 'Date') {
+        if (!answer || !isValidDateInput(answer, question)) {
+          unanswered.push({
+            index: currentIndex,
+            text: question.questionText,
+          })
+        }
+      }
+      else if (answer === undefined || answer === '') {
+        unanswered.push({
+          index: currentIndex,
+          text: question.questionText,
+        })
+      }
     }
 
     if (question.children?.length) {

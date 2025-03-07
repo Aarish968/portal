@@ -14,6 +14,7 @@ export function HRADateAnswer({ question, answer, onAnswerChange }: HRADateAnswe
         value={answer || ''}
         onChange={value => onAnswerChange(question.questionId, value)}
         dateFormat={question.dateFormat || 'YYYY-MM-DD'}
+        questionText={question.questionText}
       />
     </div>
   )
