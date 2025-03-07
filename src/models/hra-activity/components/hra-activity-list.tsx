@@ -18,13 +18,13 @@ interface HraActivityListProps {
   hraActivity: HraActivity
 }
 
-type SortField = 'name' | 'assessment' | 'visit' | 'address' | 'phone' | 'payer' | 'status'
+type SortField = 'name' | 'visit' | 'address' | 'phone' | 'payer' | 'status'
 type SortDirection = 'asc' | 'desc'
 
 export function HraActivityList({ hraActivity }: HraActivityListProps) {
   const navigate = useNavigate()
   const setSelectedMember = useMemberStore(state => state.setSelectedMember)
-  const [sortField, setSortField] = useState<SortField>('name')
+  const [sortField, setSortField] = useState<SortField>('visit')
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
 
   function getBadgeVariant(isStarted: boolean, isCompleted: boolean) {
@@ -86,40 +86,40 @@ export function HraActivityList({ hraActivity }: HraActivityListProps) {
   }
 
   function getSortedActivities() {
-    return [...hraActivity.assessments].sort((a, b) => {
-      const direction = sortDirection === 'asc' ? 1 : -1
+    return [...hraActivity.assessments]
+      .filter(activity => activity.appointmentDatetime !== null)
+      .sort((a, b) => {
+        const direction = sortDirection === 'asc' ? 1 : -1
 
-      switch (sortField) {
-        case 'name': {
-          const nameA = `${a.memberFirstName} ${a.memberLastName}`
-          const nameB = `${b.memberFirstName} ${b.memberLastName}`
-          return nameA.localeCompare(nameB) * direction
+        switch (sortField) {
+          case 'name': {
+            const nameA = `${a.memberFirstName} ${a.memberLastName}`
+            const nameB = `${b.memberFirstName} ${b.memberLastName}`
+            return nameA.localeCompare(nameB) * direction
+          }
+          case 'visit': {
+            const dateA = a.appointmentDatetime ? new Date(a.appointmentDatetime) : new Date(0)
+            const dateB = b.appointmentDatetime ? new Date(b.appointmentDatetime) : new Date(0)
+            return (dateA.getTime() - dateB.getTime()) * direction
+          }
+          case 'address':
+            return formatAddress(a.memberAddress).localeCompare(formatAddress(b.memberAddress)) * direction
+          case 'phone': {
+            const phoneA = a.MemberPhone || ''
+            const phoneB = b.MemberPhone || ''
+            return phoneA.localeCompare(phoneB) * direction
+          }
+          case 'payer':
+            return a.MemberPayer.localeCompare(b.MemberPayer) * direction
+          case 'status': {
+            const statusA = getStatusText(a.IsStarted, a.IsCompletedFlag)
+            const statusB = getStatusText(b.IsStarted, b.IsCompletedFlag)
+            return statusA.localeCompare(statusB) * direction
+          }
+          default:
+            return 0
         }
-        case 'assessment':
-          return a.assessmentName.localeCompare(b.assessmentName) * direction
-        case 'visit': {
-          const dateA = a.appointmentDatetime ? new Date(a.appointmentDatetime) : new Date(0)
-          const dateB = b.appointmentDatetime ? new Date(b.appointmentDatetime) : new Date(0)
-          return (dateA.getTime() - dateB.getTime()) * direction
-        }
-        case 'address':
-          return formatAddress(a.memberAddress).localeCompare(formatAddress(b.memberAddress)) * direction
-        case 'phone': {
-          const phoneA = a.MemberPhone || ''
-          const phoneB = b.MemberPhone || ''
-          return phoneA.localeCompare(phoneB) * direction
-        }
-        case 'payer':
-          return a.MemberPayer.localeCompare(b.MemberPayer) * direction
-        case 'status': {
-          const statusA = getStatusText(a.IsStarted, a.IsCompletedFlag)
-          const statusB = getStatusText(b.IsStarted, b.IsCompletedFlag)
-          return statusA.localeCompare(statusB) * direction
-        }
-        default:
-          return 0
-      }
-    })
+      })
   }
 
   function handleRowClick(activity: HraActivityItem) {
@@ -129,7 +129,6 @@ export function HraActivityList({ hraActivity }: HraActivityListProps) {
       lastName: activity.memberLastName,
       address: formatAddress(activity.memberAddress),
       phone: activity.MemberPhone || '',
-      assessmentName: activity.assessmentName,
       assessmentId: activity.assessmentID,
       isStarted: activity.IsStarted,
       isCompleted: activity.IsCompletedFlag,
@@ -154,11 +153,6 @@ export function HraActivityList({ hraActivity }: HraActivityListProps) {
                 Name
                 {' '}
                 <SortIcon field="name" />
-              </TableHead>
-              <TableHead onClick={() => handleSort('assessment')} className=":uno: cursor-pointer">
-                Assessment
-                {' '}
-                <SortIcon field="assessment" />
               </TableHead>
               <TableHead onClick={() => handleSort('visit')} className=":uno: cursor-pointer">
                 Visit
@@ -195,7 +189,6 @@ export function HraActivityList({ hraActivity }: HraActivityListProps) {
                 className=":uno: cursor-pointer hover:bg-muted/50"
               >
                 <TableCell>{`${activity.memberFirstName} ${activity.memberLastName}`}</TableCell>
-                <TableCell>{activity.assessmentName}</TableCell>
                 <TableCell>{formatVisit(activity.appointmentDatetime, activity.providerTimezone)}</TableCell>
                 <TableCell>{formatAddress(activity.memberAddress)}</TableCell>
                 <TableCell>{formatPhoneNumber(activity.MemberPhone)}</TableCell>
