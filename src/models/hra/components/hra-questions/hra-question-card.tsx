@@ -88,6 +88,7 @@ function HRAQuestionCard({
                     onAnswer={answer => onAnswer(question.questionId, answer)}
                     onNext={onNext}
                     dateFormat={question.dateFormat || 'YYYY-MM-DD'}
+                    questionText={question.questionText}
                   />
                 )}
               </div>

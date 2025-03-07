@@ -2,6 +2,7 @@ import { format } from 'date-fns'
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { Button } from '@/base_submod/components/ui/button'
 import { Calendar } from '@/base_submod/components/ui/calendar'
+import { Input } from '@/base_submod/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/base_submod/components/ui/popover'
 import {
   Select,
@@ -16,6 +17,7 @@ interface HRADateSelectProps {
   value: string
   onChange: (value: string) => void
   dateFormat: string
+  questionText?: string
 }
 
 function getYearRange() {
@@ -27,9 +29,145 @@ function getYearRange() {
   return years
 }
 
-function HRADateSelect({ value, onChange, dateFormat }: HRADateSelectProps) {
+function HRADateSelect({ value, onChange, dateFormat, questionText }: HRADateSelectProps) {
   const isMonthYearFormat = dateFormat.includes('MM') && dateFormat.includes('YYYY') && !dateFormat.includes('DD')
   const isYearFormat = dateFormat === 'YYYY'
+  const isBirthDate = questionText?.toLowerCase().includes('date of birth')
+
+  if (isBirthDate) {
+    const handleNumericInput = (value: string) => {
+      const numericValue = value.replace(/\D/g, '')
+      return numericValue
+    }
+
+    return (
+      <div className=":uno: max-w-[300px] w-full">
+        <div className=":uno: flex items-center justify-center gap-1">
+          <Input
+            type="text"
+            inputMode="numeric"
+            pattern="\d*"
+            maxLength={2}
+            placeholder="MM"
+            className=":uno: w-8"
+            value={value ? value.split('-')[0] : ''}
+            onChange={(e) => {
+              const month = handleNumericInput(e.target.value)
+              if (!month) {
+                const existingParts = value ? value.split('-') : ['', '', '']
+                existingParts[0] = ''
+                onChange(existingParts.join('-'))
+                return
+              }
+              const monthNum = Number.parseInt(month)
+              if (monthNum > 12)
+                return
+
+              if (month.length === 2) {
+                const existingParts = value ? value.split('-') : ['', '', '']
+                existingParts[0] = month.padStart(2, '0')
+                onChange(existingParts.join('-'))
+                ;(e.target.nextElementSibling?.nextElementSibling as HTMLInputElement)?.focus()
+              }
+              else if (month.length <= 2) {
+                const existingParts = value ? value.split('-') : ['', '', '']
+                existingParts[0] = month
+                onChange(existingParts.join('-'))
+              }
+            }}
+          />
+          <span className=":uno: text-md">/</span>
+          <Input
+            type="text"
+            inputMode="numeric"
+            pattern="\d*"
+            maxLength={2}
+            placeholder="DD"
+            className=":uno: w-8"
+            value={value ? value.split('-')[1] : ''}
+            onChange={(e) => {
+              const day = handleNumericInput(e.target.value)
+              if (!day) {
+                const existingParts = value ? value.split('-') : ['', '', '']
+                existingParts[1] = ''
+                onChange(existingParts.join('-'))
+                return
+              }
+              const dayNum = Number.parseInt(day)
+              if (dayNum > 31)
+                return
+
+              if (day.length === 2) {
+                const existingParts = value ? value.split('-') : ['', '', '']
+                existingParts[1] = day.padStart(2, '0')
+                onChange(existingParts.join('-'))
+                ;(e.target.nextElementSibling?.nextElementSibling as HTMLInputElement)?.focus()
+              }
+              else if (day.length <= 2) {
+                const existingParts = value ? value.split('-') : ['', '', '']
+                existingParts[1] = day
+                onChange(existingParts.join('-'))
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Backspace' && !e.currentTarget.value) {
+                ;(e.currentTarget.previousElementSibling?.previousElementSibling as HTMLInputElement)?.focus()
+              }
+            }}
+          />
+          <span className=":uno: text-md">/</span>
+          <Input
+            type="text"
+            inputMode="numeric"
+            pattern="\d*"
+            maxLength={4}
+            placeholder="YYYY"
+            className=":uno: w-24"
+            value={value ? value.split('-')[2] : ''}
+            onChange={(e) => {
+              const year = handleNumericInput(e.target.value)
+              if (!year) {
+                const existingParts = value ? value.split('-') : ['', '', '']
+                existingParts[2] = ''
+                onChange(existingParts.join('-'))
+                return
+              }
+
+              if (year.length <= 4) {
+                const existingParts = value ? value.split('-') : ['', '', '']
+                existingParts[2] = year
+
+                if (year.length === 4) {
+                  const yearNum = Number.parseInt(year)
+                  const currentYear = new Date().getFullYear()
+                  if (isBirthDate && yearNum > currentYear) {
+                    return
+                  }
+                }
+
+                onChange(existingParts.join('-'))
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Backspace' && !e.currentTarget.value) {
+                const parts = value ? value.split('-') : ['', '', '']
+                if (parts[1]) {
+                  parts[1] = ''
+                  onChange(parts.join('-'))
+                  ;(e.currentTarget.previousElementSibling?.previousElementSibling as HTMLInputElement)?.focus()
+                }
+                else if (parts[0]) {
+                  parts[0] = ''
+                  onChange(parts.join('-'))
+                  ;(e.currentTarget.previousElementSibling?.previousElementSibling?.previousElementSibling?.previousElementSibling as HTMLInputElement)?.focus()
+                }
+              }
+            }}
+          />
+        </div>
+      </div>
+    )
+  }
 
   let selectedMonth: string | undefined
   let selectedYear: string | undefined
