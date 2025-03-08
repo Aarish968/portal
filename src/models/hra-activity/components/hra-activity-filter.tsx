@@ -15,7 +15,7 @@ interface HraActivityFilterProps {
 }
 
 export function HraActivityFilter({ onFilterChange }: HraActivityFilterProps) {
-  const [activeFilter, setActiveFilter] = useState<FilterOption>(FILTER_TYPES.All)
+  const [activeFilter, setActiveFilter] = useState<FilterOption>(FILTER_TYPES.Upcoming)
 
   const handleFilterClick = (filter: FilterOption) => {
     setActiveFilter(filter)

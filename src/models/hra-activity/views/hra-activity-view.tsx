@@ -18,7 +18,8 @@ function HraActivityView() {
   }, [fetchHraActivities])
 
   useEffect(() => {
-    setFilteredHraActivity({ assessments: hraActivity.assessments })
+    const upcomingAssessments = hraActivity.assessments.filter(activity => !activity.IsStarted && !activity.IsCompletedFlag)
+    setFilteredHraActivity({ assessments: upcomingAssessments })
   }, [hraActivity])
 
   const handleFilterChange = (filter: 'All' | 'Upcoming' | 'In Progress' | 'Completed') => {

@@ -27,6 +27,25 @@ data "aws_iam_policy_document" "s3_policy" {
       identifiers = [aws_cloudfront_origin_access_identity.spa_oai.iam_arn]
     }
   }
+
+  statement {
+    sid       = "EnforceSSLRequestsOnly"
+    effect    = "Deny"
+    actions   = ["s3:*"]
+    resources = [
+      "arn:aws:s3:::${var.provider_portal_bucket_name}",
+      "arn:aws:s3:::${var.provider_portal_bucket_name}/*"
+    ]
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
 }
 
 ########## Domain S3 bucket provisioning #####################
@@ -54,7 +73,17 @@ module "s3_bucket" {
   policy        = data.aws_iam_policy_document.s3_policy.json
 
   versioning = {
-    enabled = false
+    enabled = true
+  }
+
+  object_lock_enabled = true
+    object_lock_configuration = {
+      rule = {
+        default_retention = {
+          mode = "GOVERNANCE"
+          days = 1
+        }
+      }
   }
 
   cors_rule = [

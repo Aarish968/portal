@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-export function useDebounceClick(onClick: () => void, debounceTime = 1500, maxDebounceTime = 5000) {
+export function useDebounceClick(onClick: () => void, debounceTime = 400, maxDebounceTime = 5000) {
   const [isDebouncing, setIsDebouncing] = useState(false)
   const timeoutRef = useRef<number>()
 
