@@ -5,6 +5,39 @@ import type { HRA, HRAQuestion } from '@/models/hra/schemas/hra-schema'
 export function isValidDateInput(value: string, question: HRAQuestion): boolean {
   if (!value)
     return false
+
+  const { dateFormat } = question
+  const currentYear = new Date().getFullYear()
+
+  if (dateFormat === 'YYYY') {
+    const yearNum = Number.parseInt(value)
+    return !Number.isNaN(yearNum) && value.length === 4
+  }
+
+  if (dateFormat?.includes('MM') && dateFormat?.includes('YYYY') && !dateFormat?.includes('DD')) {
+    const parts = value.split('-')
+    if (parts.length !== 2)
+      return false
+
+    const [month, year] = parts
+    if (!month || !year)
+      return false
+
+    const monthNum = Number.parseInt(month)
+    const yearNum = Number.parseInt(year)
+
+    if (Number.isNaN(monthNum) || Number.isNaN(yearNum))
+      return false
+
+    if (monthNum < 1 || monthNum > 12)
+      return false
+
+    if (year.length !== 4)
+      return false
+
+    return true
+  }
+
   const parts = value.split('-')
   if (parts.length !== 3)
     return false
@@ -12,17 +45,19 @@ export function isValidDateInput(value: string, question: HRAQuestion): boolean 
   const [month, day, year] = parts
   if (!month || !day || !year)
     return false
-  if (year.length !== 4)
-    return false
 
   const monthNum = Number.parseInt(month)
   const dayNum = Number.parseInt(day)
   const yearNum = Number.parseInt(year)
-  const currentYear = new Date().getFullYear()
+
+  if (Number.isNaN(monthNum) || Number.isNaN(dayNum) || Number.isNaN(yearNum))
+    return false
 
   if (monthNum < 1 || monthNum > 12)
     return false
   if (dayNum < 1 || dayNum > 31)
+    return false
+  if (year.length !== 4)
     return false
 
   if (question.questionText?.toLowerCase().includes('date of birth') && yearNum > currentYear)

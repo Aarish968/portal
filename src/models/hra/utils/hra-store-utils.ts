@@ -183,13 +183,16 @@ function processQuestion(hra: HRA, q: Question): TransformedQuestion {
     processedAnswer = answer.join(', ')
   }
 
+  const answerValue = processedAnswer ? String(processedAnswer) : ''
+  const details = q.answerType === 'Text' ? answerValue : (q.answerDetails || '')
+
   return {
     id: q.questionId,
     question: q.questionText,
     answerType: q.answerType || '',
-    answerValue: processedAnswer ? String(processedAnswer) : '',
+    answerValue,
     hasTextDetail: q.hasTextDetail || false,
-    details: q.answerDetails || '',
+    details,
   }
 }
 
