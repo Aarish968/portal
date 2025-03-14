@@ -166,6 +166,7 @@ export interface TransformedHRA {
   isStarted: boolean
   completionDate?: string
   questions: TransformedQuestion[]
+  incremental?: boolean
 }
 
 function processQuestion(hra: HRA, q: Question): TransformedQuestion {
@@ -210,6 +211,7 @@ export function transformHRAData(
   hra: HRA,
   isStarted?: boolean,
   isCompleted?: boolean,
+  incremental?: boolean,
 ): TransformedHRA {
   const questions = flattenQuestions(hra.screening.questions)
     .map(q => processQuestion(hra, q))
@@ -223,7 +225,8 @@ export function transformHRAData(
     templateId: hra.screening.templateId,
     isCompleted: finalIsCompleted,
     isStarted: isStarted ?? hra.screening.isStarted,
-    completionDate: finalIsCompleted ? formatDate(new Date(), 'YYYY-MM-DD') : undefined,
+    completionDate: finalIsCompleted ? new Date().toISOString() : undefined,
     questions,
+    incremental,
   }
 }

@@ -157,6 +157,9 @@ function HRAView() {
       }
     }
     else if (hra?.answers[displayQuestion.questionId] !== undefined) {
+      useHRAStore.getState().saveHRA(true, false, true).catch((error) => {
+        console.error('Failed to save incremental progress:', error)
+      })
       nextQuestion()
     }
   }
