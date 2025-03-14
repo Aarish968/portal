@@ -91,5 +91,8 @@
     "vite-plugin-pages": "^0.32.3",
     "vitest": "^2.0.5",
     "zod": "^3.23.8"
+  },
+  "resolutions": {
+    "cross-spawn": "^7.0.5"
   }
 }
