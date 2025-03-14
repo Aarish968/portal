@@ -46,7 +46,7 @@ export const useHraActivityStore = create<HraActivityStore>()(set => ({
       }
 
       username = currentUsername
-      // username = 'Mark.Stocksdale@helloporter.com'
+      username = 'Mark.Stocksdale@helloporter.com'
 
       const response = await fetch(`${HRA_SERVICE_API_URL}/hra/get`, {
         method: 'POST',
