@@ -10,8 +10,13 @@ data "aws_iam_policy_document" "s3_policy" {
       "arn:aws:s3:::${var.provider_portal_bucket_name}/index.html"
     ]
     principals {
-      type        = "AWS"
-      identifiers = [aws_cloudfront_origin_access_identity.spa_oai.iam_arn]
+      type = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = [aws_cloudfront_distribution.provider_portal_cf.arn]
     }
   }
 
@@ -19,8 +24,13 @@ data "aws_iam_policy_document" "s3_policy" {
     actions   = ["s3:ListBucket"]
     resources = ["arn:aws:s3:::${var.provider_portal_bucket_name}"]
     principals {
-      type        = "AWS"
-      identifiers = [aws_cloudfront_origin_access_identity.spa_oai.iam_arn]
+      type = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = [aws_cloudfront_distribution.provider_portal_cf.arn]
     }
   }
 
@@ -69,6 +79,44 @@ data "aws_iam_policy_document" "s3_logs_bucket_policy" {
 resource "aws_kms_key" "s3_kms_key" {
   description         = "KMS key for S3 bucket encryption"
   enable_key_rotation = true
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "Enable IAM User Permissions"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action   = "kms:*"
+        Resource = "*"
+      },
+      {
+        Sid    = "Allow CloudFront to use the key"
+        Effect = "Allow"
+        Principal = {
+          Service = "cloudfront.amazonaws.com"
+        }
+        Action = [
+          "kms:Decrypt",
+          "kms:GenerateDataKey"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "Allow S3 to use the key"
+        Effect = "Allow"
+        Principal = {
+          Service = "s3.amazonaws.com"
+        }
+        Action = [
+          "kms:Decrypt",
+          "kms:GenerateDataKey"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
 }
 
 resource "aws_kms_alias" "s3_kms_key_alias" {
@@ -135,8 +183,7 @@ module "s3_bucket" {
     error_document = "index.html"
   }
 
-  attach_policy = true
-  policy        = data.aws_iam_policy_document.s3_policy.json
+  attach_policy = false
 
   versioning = {
     enabled = true
@@ -179,6 +226,16 @@ module "s3_bucket" {
   tags = {
     Name = var.provider_portal_bucket_name
   }
+}
+
+resource "aws_s3_bucket_policy" "bucket_policy" {
+  bucket = module.s3_bucket.s3_bucket_id
+  policy = data.aws_iam_policy_document.s3_policy.json
+
+  depends_on = [
+    aws_cloudfront_distribution.provider_portal_cf,
+    module.s3_bucket
+  ]
 }
 
 output "website_endpoint" {

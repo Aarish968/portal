@@ -1,4 +1,4 @@
-name: Deploy Provider Portal
+name: 2. Deploy Provider Portal
 
 on:
   workflow_dispatch:

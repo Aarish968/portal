@@ -81,6 +81,7 @@ function HRAView() {
         duration: 2000,
       })
       setIsNavigating(true)
+      await new Promise(resolve => setTimeout(resolve, 3500))
       pendingLocationRef.current = { pathname: '/hra-activity', search: '', hash: '' }
     }
     catch (error) {
