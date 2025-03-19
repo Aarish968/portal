@@ -81,6 +81,7 @@ function HRAView() {
         duration: 2000,
       })
       setIsNavigating(true)
+      await new Promise(resolve => setTimeout(resolve, 3500))
       pendingLocationRef.current = { pathname: '/hra-activity', search: '', hash: '' }
     }
     catch (error) {
@@ -157,6 +158,9 @@ function HRAView() {
       }
     }
     else if (hra?.answers[displayQuestion.questionId] !== undefined) {
+      useHRAStore.getState().saveHRA(true, false, true).catch((error) => {
+        console.error('Failed to save incremental progress:', error)
+      })
       nextQuestion()
     }
   }

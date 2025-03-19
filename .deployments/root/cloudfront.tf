@@ -1,11 +1,18 @@
-resource "aws_cloudfront_distribution" "provider_portal_cf" {
-  origin {
-    domain_name = "${module.s3_bucket.s3_bucket_bucket_domain_name}"
-    origin_id   = "S3-${module.s3_bucket.s3_bucket_id}"
+resource "aws_cloudfront_origin_access_control" "this" {
+  name                              = "${var.provider_portal_bucket_name}-oac"
+  description                       = "OAC for Provider Portal CloudFront distribution"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
 
-    s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.spa_oai.cloudfront_access_identity_path
-    }
+resource "aws_cloudfront_distribution" "provider_portal_cf" {
+  depends_on = [aws_cloudfront_origin_access_control.this]
+
+  origin {
+    domain_name              = module.s3_bucket.s3_bucket_bucket_regional_domain_name
+    origin_id                = "S3-${module.s3_bucket.s3_bucket_id}"
+    origin_access_control_id = aws_cloudfront_origin_access_control.this.id
   }
 
   aliases = ["${var.alternative_domain}"]
@@ -66,28 +73,6 @@ resource "aws_cloudfront_distribution" "provider_portal_cf" {
   tags = {
     Environment = "sandbox"
   }
-}
-
-resource "aws_cloudfront_origin_access_identity" "spa_oai" {
-  comment = "OAI for SPA CloudFront distribution"
-}
-
-resource "aws_s3_bucket_policy" "spa_bucket_policy" {
-  bucket = module.s3_bucket.s3_bucket_id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          AWS = aws_cloudfront_origin_access_identity.spa_oai.iam_arn
-        }
-        Action   = "s3:GetObject"
-        Resource = "${module.s3_bucket.s3_bucket_arn}/*"
-      }
-    ]
-  })
 }
 
 resource "aws_cloudfront_function" "rewrite_uri" {

@@ -35,7 +35,7 @@ interface HRAStore {
   getDisplayQuestion: () => HRAQuestion | null
   isLastQuestion: () => boolean
   canMoveNext: () => boolean
-  saveHRA: (isStarted?: boolean, isCompleted?: boolean) => Promise<void>
+  saveHRA: (isStarted?: boolean, isCompleted?: boolean, incremental?: boolean) => Promise<void>
   isHraCompleted: () => boolean
 }
 
@@ -597,13 +597,15 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
       : state.hra.answers[displayQuestion.questionId] !== undefined
   },
 
-  saveHRA: async (isStarted?: boolean, isCompleted?: boolean) => {
+  saveHRA: async (isStarted?: boolean, isCompleted?: boolean, incremental?: boolean) => {
     const state = get()
     if (!state.hra || !state.lastAssessmentId) {
       throw new Error('No HRA data to save')
     }
 
-    set({ isSaving: true, error: null })
+    if (!incremental) {
+      set({ isSaving: true, error: null })
+    }
 
     try {
       const authStore = useAuthStore.getState()
@@ -617,7 +619,7 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
         })
       }
 
-      const transformedData = transformHRAData(state.hra, isStarted, isCompleted)
+      const transformedData = transformHRAData(state.hra, isStarted, isCompleted, incremental)
 
       const response = await fetch(`${HRA_SERVICE_API_URL}/hra`, {
         method: 'POST',
@@ -629,13 +631,17 @@ export const useHRAStore = create<HRAStore>((set, get) => ({
         throw new Error('Failed to save HRA data')
       }
 
-      set({ isSaving: false })
+      if (!incremental) {
+        set({ isSaving: false })
+      }
     }
     catch (error) {
-      set({
-        error: error instanceof Error ? error.message : 'Failed to save HRA data',
-        isSaving: false,
-      })
+      if (!incremental) {
+        set({
+          error: error instanceof Error ? error.message : 'Failed to save HRA data',
+          isSaving: false,
+        })
+      }
       throw error
     }
   },

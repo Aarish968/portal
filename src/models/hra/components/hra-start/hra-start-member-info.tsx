@@ -31,11 +31,6 @@ export function HraStartMemberInfo({
             {`${member.firstName} ${member.lastName}`}
           </p>
           <p>
-            <strong>Assessment:</strong>
-            {' '}
-            {member.assessmentName}
-          </p>
-          <p>
             <strong>Address:</strong>
             {' '}
             {member.address}
