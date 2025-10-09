@@ -3,6 +3,7 @@ import type { SiteLink } from '@/base_submod/schemas/router'
 export interface AppRoutes {
   hra: SiteLink
   hraActivity: SiteLink
+  visits: SiteLink
   support: SiteLink
   settings: SiteLink
   test: SiteLink
@@ -22,6 +23,13 @@ export const APP_ROUTES: AppRoutes = {
     metaDescription: 'View HRA Activity',
     menuDescription: 'View HRA Activity',
     icon: 'ph:chart-bar',
+  },
+  visits: {
+    title: 'Visit Outcomes',
+    href: '/visits',
+    metaDescription: 'View patient visits',
+    menuDescription: 'View patient visits',
+    icon: 'ph:calendar-check',
   },
   support: {
     title: 'Support',

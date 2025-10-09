@@ -40,7 +40,7 @@
     "@sentry/tracing": "^7.114.0",
     "@unocss/reset": "^0.61.5",
     "axios": "^1.7.4",
-    "date-fns": "^4.1.0",
+    "date-fns": "^3.6.0",
     "dayjs": "^1.11.13",
     "framer-motion": "^11.3.8",
     "i18next": "^23.12.2",
