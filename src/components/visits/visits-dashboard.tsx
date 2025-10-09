@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Clock, MapPin, Building, ChevronDown, Check, Video } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/base_submod/components/ui/card'
 import { Button } from '@/base_submod/components/ui/button'
-import { Badge } from '@/base_submod/components/ui/badge'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/base_submod/components/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/base_submod/components/ui/tabs'
 import { cn } from '@/base_submod/lib/utils'
+import { useNavigate } from 'react-router-dom'
+import ROUTES from '@/data/routing/routes'
 
 interface VisitProcedure {
   name: string
@@ -259,12 +260,20 @@ function VisitTypeBadge({ visitType }: { visitType: Visit['visitType'] }) {
 }
 
 function VisitCard({ visit }: { visit: Visit }) {
+  const navigate = useNavigate()
+
+  const handleVisitClick = () => {
+    // Navigate to visit details with route param and pass full visit data in state
+    navigate(ROUTES.app.visitDetails.href.replace(':visitId', visit.id), { state: { visit } })
+  }
+
   const getActionButton = () => {
     if (visit.status === 'completed') {
       return (
         <Button 
           variant="outline" 
           className="bg-white border-[#5538A6] text-[#5538A6] hover:bg-gray-50 rounded-lg px-4 py-3 h-14 min-w-[154px]"
+          onClick={handleVisitClick}
         >
           View Summary
         </Button>
@@ -274,6 +283,7 @@ function VisitCard({ visit }: { visit: Visit }) {
     return (
       <Button 
         className="bg-[#5538A6] text-white hover:bg-[#5538A6]/90 rounded-lg px-4 py-3 h-14 min-w-[154px]"
+        onClick={handleVisitClick}
       >
         Log Outcomes
       </Button>
