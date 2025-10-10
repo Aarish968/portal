@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Clock, MapPin, Building, ChevronDown, Check, Video } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/base_submod/components/ui/card'
 import { Button } from '@/base_submod/components/ui/button'
@@ -395,9 +395,28 @@ function VisitCard({ visit }: { visit: Visit }) {
 export function VisitsDashboard() {
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
   const [activeTab, setActiveTab] = useState('today')
+  const [visitsToday, setVisitsToday] = useState<Visit[]>(mockVisitsToday)
+
+  // Load persisted state for all visits by id
+  useEffect(() => {
+    try {
+      setVisitsToday(prev => prev.map(v => {
+        const raw = sessionStorage.getItem(`visit-state-${v.id}`)
+        if (!raw) return v
+        const data = JSON.parse(raw)
+        const isCompleted = data?.status === 'completed'
+        return {
+          ...v,
+          status: isCompleted ? 'completed' : v.status,
+          procedures: v.procedures.map(p => ({ ...p, completed: isCompleted ? true : p.completed })),
+          healthRiskAssessment: isCompleted ? 'completed' : v.healthRiskAssessment
+        }
+      }))
+    } catch {}
+  }, [])
 
   // Get data based on active tab
-  const currentVisits = activeTab === 'today' ? mockVisitsToday : mockVisits14Days
+  const currentVisits = activeTab === 'today' ? visitsToday : mockVisits14Days
   const currentEquipment = activeTab === 'today' ? equipmentDataToday : equipmentData14Days
   const equipmentCount = currentEquipment.reduce((total, eq) => total + eq.visits, 0)
   const visitCount = currentVisits.length
