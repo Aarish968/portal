@@ -414,61 +414,96 @@ export function VisitsDashboard() {
     acc[key].push(v)
     return acc
   }, {})
+  
 
   return (
     <div className="flex flex-col w-full h-full bg-gray-50">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-0 bg-white border-b border-gray-200 shadow-sm">
-        <div className="px-15 py-4">
+       {/* Sticky Header */}
+      {/* <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm"> */}
+        <div className="px-15 py-6 pb-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
             <div className="mb-4 sm:mb-0">
-              <h1 className="text-2xl sm:text-3xl font-medium" style={{ color: '#1b1b1b' }}>
+              <h1 className="font-medium" style={{ color: '#1b1b1b', fontSize: '18px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
                 Visit Outcomes
               </h1>
-              <p className="text-sm mt-1" style={{ color: '#939090' }}>
+              <p className="mt-1" style={{ color: '#939090', fontSize: '14px' }}>
                 Friday, October 10, 2025
               </p>
             </div>
-            <div className="flex flex-col items-end">
-              <span className="text-xs text-gray-400">Current Time</span>
-              <div className="flex items-center gap-2">
-                <Bell size={16} className="text-gray-400" />
-                <span className="text-sm font-semibold text-black">{time}</span>
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col items-end">
+                <span className="text-gray-400" style={{ fontSize: '12px' }}>Current Time</span>
+                <span className="font-semibold text-black" style={{ fontSize: '14px' }}>{time}</span>
               </div>
+              <button 
+                className="p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 active:bg-blue-100"
+                style={{ backgroundColor: '#F5F5F5' }}
+                aria-label="Notifications"
+              >
+                <Bell size={16} className="text-gray-600" />
+              </button>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8">
-              <button
-                onClick={() => setActiveTab('today')}
-                className={cn(
-                  'py-3 px-1 border-b-2 font-medium text-sm transition-colors',
-                  activeTab === 'today'
-                    ? 'text-[#239BCF]'
-                    : 'border-transparent text-gray-500 hover:text-[#239BCF]'
-                )}
-                style={activeTab === 'today' ? { borderColor: '#239BCF' } : {}}
-              >
-                Today
-              </button>
-              <button
-                onClick={() => setActiveTab('14days')}
-                className={cn(
-                  'py-3 px-1 border-b-2 font-medium text-sm transition-colors',
-                  activeTab === '14days'
-                    ? 'text-[#239BCF]'
-                    : 'border-transparent text-gray-500 hover:text-[#239BCF]'
-                )}
-                style={activeTab === '14days' ? { borderColor: '#239BCF' } : {}}
-              >
-                Next 14 Days
-              </button>
-            </nav>
+          <div className="relative flex gap-8">
+            <button
+              onClick={() => setActiveTab('today')}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
+              onMouseLeave={(e) => e.currentTarget.style.color = activeTab === 'today' ? '#239BCF' : '#939090'}
+              className="relative pb-3 font-medium transition-all duration-300"
+              style={{ 
+                color: activeTab === 'today' ? '#239BCF' : '#1b1b1b',
+                fontSize: '16px'
+              }}
+            >
+              {activeTab === 'today' && (
+                <span 
+                  className="absolute inset-0 -z-10 rounded"
+                  style={{
+                    backgroundColor: 'rgba(35, 155, 207, 0.1)',
+                    boxShadow: '0 0 15px rgba(35, 155, 207, 0.3)'
+                  }}
+                />
+              )}
+              Today
+            </button>
+            <button
+              onClick={() => setActiveTab('next14')}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
+              onMouseLeave={(e) => e.currentTarget.style.color = activeTab === 'next14' ? '#239BCF' : '#939090'}
+              className="relative pb-3 font-medium transition-all duration-300 pl-4 hover:text-gray-500"
+              style={{ 
+                color: activeTab === 'next14' ? '#239BCF' : '#1b1b1b',
+                fontSize: '16px',
+                // padding: '2px',
+              }}
+            >
+              {activeTab === 'next14' && (
+                <span 
+                  className="absolute inset-0 -z-10 rounded"
+                  style={{
+                    backgroundColor: 'rgba(35, 155, 207, 0.1)',
+                    boxShadow: '0 0 15px rgba(35, 155, 207, 0.3)'
+                  }}
+                />
+              )}
+              Next 14 Days
+            </button>
+            
+            {/* Animated underline */}
+            <div 
+              className="absolute bottom-0 h-0.5 transition-all duration-500 ease-in-out"
+              style={{
+                backgroundColor: '#239BCF',
+                width: activeTab === 'today' ? '48px' : '105px',
+                transform: activeTab === 'today' ? 'translateX(0)' : 'translateX(calc(48px + 2rem + 4px))',
+                boxShadow: '0 0 10px rgba(35, 155, 207, 0.5)'
+              }}
+            />
           </div>
         </div>
-      </div>
+      {/* </div> */}
 
       {/* Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto">
