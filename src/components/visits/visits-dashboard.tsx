@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Clock, MapPin, Building, Check, Video, ChevronDown, Bell } from 'lucide-react'
+import { Clock, MapPin, Building, Check, ChevronDown, Bell } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
 
 // Simple Card components (replacing shadcn/ui for demo)
-type SimpleProps = { children: React.ReactNode, className?: string }
-const Card = ({ children, className = '' }: SimpleProps) => (
-  <div className={`bg-white rounded-lg ${className}`}>{children}</div>
+type SimpleProps = { children: React.ReactNode, className?: string, onClick?: () => void, style?: React.CSSProperties }
+const Card = ({ children, className = '', onClick, style }: SimpleProps) => (
+  <div className={`bg-white rounded-lg ${className}`} onClick={onClick} style={style}>{children}</div>
 )
 
 const CardContent = ({ children, className = '' }: SimpleProps) => (
@@ -15,7 +15,7 @@ const CardContent = ({ children, className = '' }: SimpleProps) => (
 
 type ButtonProps = { children: React.ReactNode, className?: string, style?: React.CSSProperties, onClick?: () => void, variant?: 'default' | 'outline' }
 const Button = ({ children, className = '', style, onClick, variant = 'default' }: ButtonProps) => {
-  const baseClass = 'rounded-md px-4 py-2 text-sm font-medium transition-colors'
+  const baseClass = 'rounded-full px-6 py-2 text-sm font-medium transition-colors'
   const variantClass =
     variant === 'outline'
       ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -32,6 +32,17 @@ const Button = ({ children, className = '', style, onClick, variant = 'default' 
 }
 
 const cn = (...classes: (string | false | null | undefined)[]) => classes.filter(Boolean).join(' ')
+
+// Video Camera Icon Component (Icons.Outlined.Videocam style)
+const VideocamIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+  >
+    <path d="M15 8v8H5V8h10m1-2H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4V7c0-.55-.45-1-1-1z" />
+  </svg>
+)
 
 interface VisitProcedure {
   name: string
@@ -217,15 +228,15 @@ const mockVisits14Days: Visit[] = [
 function StatusBadge({ status }: { status: Visit['status'] }) {
   const variants = {
     'not-started': {
-      className: 'bg-red-500 text-white hover:bg-red-600',
+      className: 'bg-white border border-gray-300 hover:bg-gray-50',
       text: 'Not Started',
     },
     'in-progress': {
-      className: 'bg-orange-500 text-white hover:bg-orange-600',
+      className: 'bg-white border border-gray-300 hover:bg-gray-50',
       text: 'In Progress',
     },
     completed: {
-      className: 'bg-green-500 text-white hover:bg-green-600 flex items-center gap-1',
+      className: 'bg-white border border-gray-300 hover:bg-gray-50 flex items-center gap-1',
       text: 'Completed',
     },
   }
@@ -233,9 +244,10 @@ function StatusBadge({ status }: { status: Visit['status'] }) {
   return (
     <div
       className={cn(
-        'px-3 py-1 rounded text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer',
+        'px-4 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer',
         variant.className
       )}
+      style={{ color: '#1B1B1B' }}
     >
       {status === 'completed' && <Check className="w-3 h-3" />}
       {variant.text}
@@ -246,14 +258,14 @@ function StatusBadge({ status }: { status: Visit['status'] }) {
 function ProcedureBadge({ procedure }: { procedure: VisitProcedure }) {
   if (procedure.completed) {
     return (
-      <div className="border border-gray-300 bg-white text-gray-700 px-2 py-1 rounded text-xs font-medium inline-flex items-center gap-1 ">
+      <div className="border border-gray-300 bg-white text-gray-700 px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1">
         <Check className="w-3 h-3" />
         {procedure.name}
       </div>
     )
   }
   return (
-    <div className="border border-gray-300 bg-white text-gray-700 px-2 py-1 rounded text-xs font-medium">
+    <div className="border border-gray-300 rounded-full bg-white text-gray-700 px-3 py-1 text-xs font-medium">
       {procedure.name}
     </div>
   )
@@ -261,19 +273,11 @@ function ProcedureBadge({ procedure }: { procedure: VisitProcedure }) {
 
 function VisitTypeBadge({ visitType }: { visitType: Visit['visitType'] }) {
   if (visitType === 'telehealth') {
-    return (
-      <div
-        className="bg-white px-3 py-1 rounded-lg text-xs font-medium inline-flex items-center gap-1 border"
-        style={{ color: '#239BCF', borderColor: '#239BCF' }}
-      >
-        <Video className="w-3 h-3" />
-        Telehealth
-      </div>
-    )
+    return null // Don't show separate visit type badge for telehealth since it's shown after time
   }
   return (
     <div
-      className="bg-white px-3 py-1 rounded-lg text-xs font-medium inline-flex items-center gap-1 border"
+      className="bg-white px-4 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 border"
       style={{ color: '#5538A6', borderColor: '#5538A6' }}
     >
       In-Home Visit
@@ -291,7 +295,7 @@ function VisitCard({ visit }: { visit: Visit }) {
   const getActionButton = () => (
     visit.status === 'completed' ? (
       <Button
-        className="rounded-md px-4 py-2 text-sm font-medium min-w-[120px] transition-colors bg-white border border-[#5538A6] text-[#5538A6] hover:bg-gray-50"
+        className="rounded-full px-3 sm:px-6 py-2 text-xs sm:text-sm font-medium w-full sm:w-auto sm:min-w-[120px] transition-colors bg-white border border-[#5538A6] text-[#5538A6] hover:bg-gray-50"
         variant="outline"
         onClick={handleVisitClick}
       >
@@ -299,7 +303,7 @@ function VisitCard({ visit }: { visit: Visit }) {
       </Button>
     ) : (
       <Button
-        className="text-white rounded-md px-4 py-2 text-sm font-medium min-w-[120px] transition-colors hover:bg-[#4A2F95]"
+        className="text-white rounded-full px-3 sm:px-6 py-2 text-xs sm:text-sm font-medium w-full sm:w-auto sm:min-w-[120px] transition-colors hover:bg-[#4A2F95]"
         style={{ backgroundColor: '#5538A6' }}
         onClick={handleVisitClick}
       >
@@ -307,19 +311,19 @@ function VisitCard({ visit }: { visit: Visit }) {
       </Button>
     )
   )
+
   const getHRABadge = () => {
     const variants = {
       'not-started': {
-        className:
-          'bg-red-500 text-white animate-pulse hover:bg-red-300 transition-colors duration-1000',
+        className: 'bg-red-500 text-white',
         text: 'Not Started',
       },
       'in-progress': {
-        className: 'border border-gray-300 bg-white text-gray-700',
+        className: 'bg-orange-500 text-white',
         text: 'In Progress',
       },
       completed: {
-        className: 'border border-gray-300 bg-white text-gray-700 flex items-center gap-1',
+        className: 'bg-green-500 text-white flex items-center gap-1',
         text: 'Completed',
       },
     }
@@ -327,7 +331,7 @@ function VisitCard({ visit }: { visit: Visit }) {
     return (
       <div
         className={cn(
-          'px-3 py-1 rounded text-xs font-medium inline-flex items-center gap-1',
+          'px-4 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1',
           variant.className
         )}
       >
@@ -344,14 +348,16 @@ function VisitCard({ visit }: { visit: Visit }) {
       <CardContent className="p-6">
         <div className="space-y-5">
           {/* Header Row */}
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <h3 className="text-lg font-medium" style={{ color: '#1b1b1b' }}>
-                {visit.patientName}
-              </h3>
-              <StatusBadge status={visit.status} />
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <h3 className="text-lg font-medium" style={{ color: '#1b1b1b' }}>
+                  {visit.patientName}
+                </h3>
+                <StatusBadge status={visit.status} />
+              </div>
+              <div className="w-full sm:w-auto sm:flex-shrink-0">{getActionButton()}</div>
             </div>
-            <div className="flex-shrink-0">{getActionButton()}</div>
           </div>
 
           {/* Visit Details */}
@@ -359,8 +365,21 @@ function VisitCard({ visit }: { visit: Visit }) {
             <div className="flex items-center gap-2" style={{ color: '#939090' }}>
               <Clock className="w-4 h-4 flex-shrink-0" />
               <span>{visit.time}</span>
+              {visit.visitType === 'telehealth' && (
+                <div
+                  className="ml-2 px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 border"
+                  style={{
+                    color: '#239BCF',
+                    borderColor: '#239BCF',
+                    backgroundColor: '#f0f9ff'
+                  }}
+                >
+                  <VideocamIcon className="w-3 h-3" />
+                  Telehealth
+                </div>
+              )}
             </div>
-            {visit.address && (
+            {visit.address && visit.visitType !== 'telehealth' && (
               <div className="flex items-center gap-2" style={{ color: '#939090' }}>
                 <MapPin className="w-4 h-4 flex-shrink-0" />
                 <span className="truncate">{visit.address}</span>
@@ -372,8 +391,28 @@ function VisitCard({ visit }: { visit: Visit }) {
             </div>
           </div>
 
+          {/* Second Telehealth Button (below time for telehealth visits) */}
+          {visit.visitType === 'telehealth' && (
+            <div className="flex justify-start">
+              <div
+                className="px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 border"
+                style={{
+                  color: '#239BCF',
+                  borderColor: '#239BCF',
+                  backgroundColor: '#f0f9ff'
+                }}
+              >
+                <VideocamIcon className="w-3 h-3" />
+                Telehealth
+              </div>
+            </div>
+          )}
+
           {/* Visit Type */}
           <VisitTypeBadge visitType={visit.visitType} />
+
+          {/* First Separator Line */}
+          <div className="border-t border-gray-200"></div>
 
           {/* Procedures */}
           <div>
@@ -386,6 +425,9 @@ function VisitCard({ visit }: { visit: Visit }) {
               ))}
             </div>
           </div>
+
+          {/* Second Separator Line */}
+          <div className="border-t border-gray-200"></div>
 
           {/* Health Risk Assessment */}
           <div>
@@ -421,7 +463,7 @@ export function VisitsDashboard() {
           healthRiskAssessment: isCompleted ? 'completed' : v.healthRiskAssessment
         }
       }))
-    } catch {}
+    } catch { }
   }, [])
 
   useEffect(() => {
@@ -446,12 +488,12 @@ export function VisitsDashboard() {
     acc[key].push(v)
     return acc
   }, {})
-  
+
 
   return (
     <div className="flex flex-col w-full h-full bg-gray-50">
-       {/* Sticky Header */}
-      {/* <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm"> */}
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-300 shadow-sm">
         <div className="px-15 py-6 pb-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
             <div className="mb-4 sm:mb-0">
@@ -467,7 +509,7 @@ export function VisitsDashboard() {
                 <span className="text-gray-400" style={{ fontSize: '12px' }}>Current Time</span>
                 <span className="font-semibold text-black" style={{ fontSize: '14px' }}>{time}</span>
               </div>
-              <button 
+              <button
                 className="p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 active:bg-blue-100"
                 style={{ backgroundColor: '#F5F5F5' }}
                 aria-label="Notifications"
@@ -478,19 +520,19 @@ export function VisitsDashboard() {
           </div>
 
           {/* Tabs */}
-          <div className="relative flex gap-8">
+          <div className="relative flex gap-8 pb-3">
             <button
               onClick={() => setActiveTab('today')}
               onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
-              onMouseLeave={(e) => e.currentTarget.style.color = activeTab === 'today' ? '#239BCF' : '#939090'}
-              className="relative pb-3 font-medium transition-all duration-300"
-              style={{ 
+              onMouseLeave={(e) => e.currentTarget.style.color = activeTab === 'today' ? '#239BCF' : '#1b1b1b'}
+              className="relative font-medium transition-all duration-300"
+              style={{
                 color: activeTab === 'today' ? '#239BCF' : '#1b1b1b',
                 fontSize: '16px'
               }}
             >
               {activeTab === 'today' && (
-                <span 
+                <span
                   className="absolute inset-0 -z-10 rounded"
                   style={{
                     backgroundColor: 'rgba(35, 155, 207, 0.1)',
@@ -503,16 +545,15 @@ export function VisitsDashboard() {
             <button
               onClick={() => setActiveTab('next14')}
               onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
-              onMouseLeave={(e) => e.currentTarget.style.color = activeTab === 'next14' ? '#239BCF' : '#939090'}
-              className="relative pb-3 font-medium transition-all duration-300 pl-4 hover:text-gray-500"
-              style={{ 
+              onMouseLeave={(e) => e.currentTarget.style.color = activeTab === 'next14' ? '#239BCF' : '#1b1b1b'}
+              className="relative font-medium transition-all duration-300"
+              style={{
                 color: activeTab === 'next14' ? '#239BCF' : '#1b1b1b',
                 fontSize: '16px',
-                // padding: '2px',
               }}
             >
               {activeTab === 'next14' && (
-                <span 
+                <span
                   className="absolute inset-0 -z-10 rounded"
                   style={{
                     backgroundColor: 'rgba(35, 155, 207, 0.1)',
@@ -522,44 +563,67 @@ export function VisitsDashboard() {
               )}
               Next 14 Days
             </button>
-            
-            {/* Animated underline */}
-            <div 
-              className="absolute bottom-0 h-0.5 transition-all duration-500 ease-in-out"
+
+            {/* Animated underline - positioned above the grey border */}
+            <div
+              className="absolute bottom-0 h-0.5 transition-all duration-500 ease-in-out z-10"
               style={{
                 backgroundColor: '#239BCF',
                 width: activeTab === 'today' ? '48px' : '105px',
-                transform: activeTab === 'today' ? 'translateX(0)' : 'translateX(calc(48px + 2rem + 4px))',
+                transform: activeTab === 'today' ? 'translateX(0)' : 'translateX(calc(48px + 2rem))',
                 boxShadow: '0 0 10px rgba(35, 155, 207, 0.5)'
               }}
             />
           </div>
-        </div>
-      {/* </div> */}
 
-        {/* Scrollable Content Area */}
+          {/* Full-width grey underline */}
+          <div className="h-px bg-gray-300 w-full"></div>
+        </div>
+      </div>
+
+      {/* Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="px-15 pt-6 pb-6">
           {/* Equipment Section */}
-          <Card className="mb-8 bg-white border rounded-lg shadow-sm">
-            <CardContent className="p-6">
+          <Card
+            onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
+            className="mb-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer transition-all select-none outline-none"
+            style={{ minHeight: '56px' }}
+          >
+            <CardContent className="p-4 bg-transparent">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div className="mb-4 sm:mb-0">
-                  <h2 className="text-lg font-medium" style={{ color: '#1b1b1b' }}>
-                    {activeTab === 'today' ? 'Equipment Needed Today' : 'Equipment Needed - Next 14 Days'}
+                  <h2
+                    className="font-medium"
+                    style={{
+                      color: '#1b1b1b',
+                      fontSize: '14px',
+                      fontFamily:
+                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                    }}
+                  >
+                    {activeTab === 'today'
+                      ? 'Equipment Needed Today'
+                      : 'Equipment Needed - Next 14 Days'}
                   </h2>
                 </div>
+
                 <div className="flex items-center gap-4">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-xs text-gray-500">
                     {visitCount} visits scheduled • {equipmentCount} items
                   </p>
+
+                  {/* Chevron Button */}
                   <button
-                    onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
+                    onClick={(e) => {
+                      e.stopPropagation() // ⛔ Stop bubbling
+                      setIsEquipmentExpanded(!isEquipmentExpanded)
+                    }}
                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                   >
                     <ChevronDown
                       className={cn(
-                        'w-5 h-5 text-gray-400 transition-transform',
+                        'w-5 h-5 text-gray-400 transition-transform duration-300',
                         isEquipmentExpanded ? 'rotate-180' : ''
                       )}
                     />
@@ -567,30 +631,30 @@ export function VisitsDashboard() {
                 </div>
               </div>
 
-                  {/* Expandable Content */}
-                  <div
-                    className={cn(
-                      'overflow-hidden transition-all duration-500 ease-in-out',
-                      isEquipmentExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
-                    )}
-                  >
-                    <div className="mt-1 pt-2">
-                      <div className="flex flex-wrap gap-3">
-                        {currentEquipment.map((eq, i) => (
-                          <div
-                            key={i}
-                            className="bg-white px-3 py-1 rounded-full text-xs border inline-flex items-center gap-1"
-                            style={{ color: '#239BCF', borderColor: '#239BCF' }}
-                          >
-                            <span>{eq.name}</span>
-                            <span className="font-normal">({eq.visits})</span>
-                          </div>
-                        ))}
+              {/* Expandable Content */}
+              <div
+                className={cn(
+                  'overflow-hidden transition-all duration-500 ease-in-out',
+                  isEquipmentExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+                )}
+              >
+                <div className="mt-1 pt-2">
+                  <div className="flex flex-wrap gap-3">
+                    {currentEquipment.map((eq, i) => (
+                      <div
+                        key={i}
+                        className="bg-white px-3 py-1 rounded-full text-xs border inline-flex items-center gap-1"
+                        style={{ color: '#239BCF', borderColor: '#239BCF' }}
+                      >
+                        <span>{eq.name}</span>
+                        <span className="font-normal">({eq.visits})</span>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Today's Visits Section */}
           <div className="mb-6">
@@ -600,18 +664,20 @@ export function VisitsDashboard() {
           </div>
 
           {/* Visit Cards Layout */}
-          <div className={activeTab === '14days' ? 'space-y-6' : 'space-y-6'}>
-            {activeTab === '14days' ? (
+          <div className="space-y-6">
+            {activeTab === 'next14' ? (
               <>
                 {Object.entries(groupedVisits).map(([date, visits]) => (
                   <div key={date} className="space-y-4">
+                    {/* Date Header */}
                     <div className="bg-gray-100 border border-gray-200 rounded-lg px-4 py-3">
                       <h4 className="text-sm font-medium text-gray-700">{date}</h4>
                     </div>
-                    {/* Single row layout for 14 days view */}
-                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin px-1">
+
+                    {/* Responsive Cards Layout */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                       {visits.map(v => (
-                        <div key={v.id} className="flex-shrink-0 w-80 min-w-80">
+                        <div key={v.id} className="w-full">
                           <VisitCard visit={v} />
                         </div>
                       ))}
@@ -623,8 +689,7 @@ export function VisitsDashboard() {
               /* Single column layout for today's visits */
               <div className="space-y-4">
                 {currentVisits.map((visit) => (
-                  <VisitCard key={visit.id} visit={visit}
-                   />
+                  <VisitCard key={visit.id} visit={visit} />
                 ))}
               </div>
             )}
