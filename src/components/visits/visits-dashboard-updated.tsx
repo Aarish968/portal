@@ -205,7 +205,7 @@ function StatusBadge({ status }: { status: Visit['status'] }) {
   }
 
   const variant = variants[status]
-  
+
   return (
     <div className={cn('min-w-4 px-1.5 py-1 rounded-full text-xs font-medium text-center font-[Roboto] tracking-[0.5px] inline-flex items-center justify-center gap-1', variant.className)}>
       {status === 'completed' && (
@@ -229,7 +229,7 @@ function ProcedureBadge({ procedure }: { procedure: VisitProcedure }) {
       </div>
     )
   }
-  
+
   return (
     <div className="border border-[#939090] bg-white text-[#1B1B1B] min-w-4 px-1.5 py-1 rounded-full text-xs font-medium text-center font-[Roboto] tracking-[0.5px]">
       {procedure.name}
@@ -246,7 +246,7 @@ function VisitTypeBadge({ visitType }: { visitType: Visit['visitType'] }) {
       </div>
     )
   }
-  
+
   return (
     <div className="border border-[#5538A6] bg-white text-[#5538A6] min-w-4 px-0.5 py-0.5 rounded-full text-xs font-medium text-center font-[Roboto] tracking-[0.5px]">
       In-Home Visit
@@ -263,9 +263,9 @@ function VisitCard({ visit }: { visit: Visit }) {
         </Button>
       )
     }
-    
+
     const buttonText = visit.procedures.some(p => !p.completed) ? 'Start Visit' : 'Log Outcomes'
-    
+
     return (
       <Button className="w-[154px] h-14 justify-center items-center rounded-3xl border border-[#5538A6] bg-[#5538A6] shadow-[0px_1px_2px_0px_rgba(0,0,0,0.30),0px_1px_3px_1px_rgba(0,0,0,0.15)] text-white font-[Roboto] text-base font-medium leading-6 tracking-[0.15px]">
         {buttonText}
@@ -290,7 +290,7 @@ function VisitCard({ visit }: { visit: Visit }) {
     }
 
     const variant = variants[visit.healthRiskAssessment]
-    
+
     return (
       <div className={cn('min-w-4 px-1.5 py-1 rounded-full text-xs font-medium text-center font-[Roboto] tracking-[0.5px] inline-flex items-center justify-center gap-1', variant.className)}>
         {visit.healthRiskAssessment === 'completed' && (
@@ -318,7 +318,7 @@ function VisitCard({ visit }: { visit: Visit }) {
                   <StatusBadge status={visit.status} />
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-6">
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4 text-[#939090] aspect-square" />
@@ -333,12 +333,12 @@ function VisitCard({ visit }: { visit: Visit }) {
                   </span>
                 </div>
               </div>
-              
+
               <div className="flex flex-col items-start gap-2.5">
                 <VisitTypeBadge visitType={visit.visitType} />
               </div>
             </div>
-            
+
             {getActionButton()}
           </div>
 
@@ -436,8 +436,8 @@ export function VisitsDashboardUpdated() {
           <div className="flex flex-col items-start gap-2.5">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-[360px] h-12 flex flex-col items-start rounded-t-2xl rounded-b-none bg-[#F9F9F9]">
               <TabsList className="flex items-start flex-1 self-stretch p-0 bg-transparent">
-                <TabsTrigger 
-                  value="today" 
+                <TabsTrigger
+                  value="today"
                   className={cn(
                     "flex flex-col justify-end items-center flex-1 self-stretch bg-white data-[state=active]:bg-[#F7FCFF] rounded-none",
                     "data-[state=active]:text-[#015F88] data-[state=inactive]:text-[#939090]"
@@ -451,8 +451,8 @@ export function VisitsDashboardUpdated() {
                     </div>
                   </div>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="14days" 
+                <TabsTrigger
+                  value="14days"
                   className={cn(
                     "flex flex-col justify-end items-center flex-1 self-stretch bg-white data-[state=active]:bg-[#F7FCFF] rounded-none relative",
                     "data-[state=active]:text-[#015F88] data-[state=inactive]:text-[#939090]"
@@ -473,7 +473,7 @@ export function VisitsDashboardUpdated() {
                 </TabsTrigger>
               </TabsList>
             </Tabs>
-            
+
             {/* Divider */}
             <div className="flex flex-col justify-center items-start self-stretch">
               <div className="w-[360px] h-px bg-[#C6C6C6]"></div>
@@ -498,7 +498,7 @@ export function VisitsDashboardUpdated() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col justify-center items-center gap-6 flex-1">
                   <div className="flex p-1 justify-center items-center gap-4 self-stretch">
                     <div className="flex justify-end items-center gap-2 flex-1">
@@ -508,16 +508,16 @@ export function VisitsDashboardUpdated() {
                     </div>
                   </div>
                 </div>
-                
-                <button 
+
+                <button
                   onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
                   className="w-12 h-12 p-3 hover:bg-gray-50 rounded-full transition-colors"
                 >
-                  <ChevronDown 
+                  <ChevronDown
                     className={cn(
                       "w-6 h-6 text-[#939090] transition-transform",
                       isEquipmentExpanded ? "rotate-0" : "rotate-90"
-                    )} 
+                    )}
                   />
                 </button>
               </div>
@@ -530,7 +530,7 @@ export function VisitsDashboardUpdated() {
               <div key={index} className="flex flex-col items-start gap-5 self-stretch">
                 {/* Day Header */}
                 <DayHeader date={daySection.date} visitsCount={daySection.visitsCount} />
-                
+
                 {/* Visit Cards Container */}
                 <div className="flex items-start content-start gap-5 self-stretch flex-wrap">
                   {daySection.visits.map((visit) => (

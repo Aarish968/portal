@@ -1,11 +1,33 @@
-import { useState } from 'react'
-import { Clock, MapPin, Building, ChevronDown, Check, Video } from 'lucide-react'
-import { Card, CardContent, CardHeader } from '@/base_submod/components/ui/card'
-import { Button } from '@/base_submod/components/ui/button'
-import { Tabs, TabsList, TabsTrigger } from '@/base_submod/components/ui/tabs'
-import { cn } from '@/base_submod/lib/utils'
-import { useNavigate } from 'react-router-dom'
-import ROUTES from '@/data/routing/routes'
+import { useEffect, useState } from 'react'
+import { Clock, MapPin, Building, Check, Video, ChevronDown, Bell } from 'lucide-react'
+
+// Simple Card components (replacing shadcn/ui for demo)
+const Card = ({ children, className = '' }) => (
+  <div className={`bg-white rounded-lg ${className}`}>{children}</div>
+)
+
+const CardContent = ({ children, className = '' }) => (
+  <div className={className}>{children}</div>
+)
+
+const Button = ({ children, className = '', style, onClick, variant = 'default' }) => {
+  const baseClass = 'rounded-md px-4 py-2 text-sm font-medium transition-colors'
+  const variantClass =
+    variant === 'outline'
+      ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+      : ''
+  return (
+    <button
+      className={`${baseClass} ${variantClass} ${className}`}
+      style={style}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  )
+}
+
+const cn = (...classes) => classes.filter(Boolean).join(' ')
 
 interface VisitProcedure {
   name: string
@@ -22,11 +44,9 @@ interface Visit {
   visitType: 'in-home' | 'telehealth'
   procedures: VisitProcedure[]
   healthRiskAssessment: 'not-started' | 'in-progress' | 'completed'
-  // Only used for 14 days view grouping
   date?: string
 }
 
-// Equipment data for Today
 const equipmentDataToday = [
   { name: 'HbA1c Kit', visits: 3 },
   { name: 'Lipid Panel Kit', visits: 2 },
@@ -39,7 +59,6 @@ const equipmentDataToday = [
   { name: 'STI Kit', visits: 1 },
 ]
 
-// Equipment data for Next 14 Days
 const equipmentData14Days = [
   { name: 'HbA1c Kit', visits: 11 },
   { name: 'Lipid Panel Kit', visits: 12 },
@@ -57,7 +76,6 @@ const equipmentData14Days = [
   { name: 'HIV Kit', visits: 12 },
 ]
 
-// Visits data for Today
 const mockVisitsToday: Visit[] = [
   {
     id: '1',
@@ -70,9 +88,9 @@ const mockVisitsToday: Visit[] = [
     procedures: [
       { name: 'A1C' },
       { name: 'Blood Pressure' },
-      { name: 'Urine Sample' }
+      { name: 'Urine Sample' },
     ],
-    healthRiskAssessment: 'not-started'
+    healthRiskAssessment: 'not-started',
   },
   {
     id: '2',
@@ -85,13 +103,42 @@ const mockVisitsToday: Visit[] = [
     procedures: [
       { name: 'A1C', completed: true },
       { name: 'Blood Pressure', completed: true },
-      { name: 'Urine Sample' }
+      { name: 'Urine Sample' },
     ],
-    healthRiskAssessment: 'in-progress'
-  }
+    healthRiskAssessment: 'in-progress',
+  },
+  {
+    id: '3',
+    patientName: 'John Doe',
+    time: '11:00AM',
+    address: '5678 Oak Avenue, Dayton, OH',
+    insurance: 'Aetna',
+    status: 'in-progress',
+    visitType: 'telehealth',
+    procedures: [
+      { name: 'A1C', completed: true },
+      { name: 'Blood Pressure', completed: true },
+      { name: 'Urine Sample' },
+    ],
+    healthRiskAssessment: 'in-progress',
+  },
+  {
+    id: '4',
+    patientName: 'John Doe',
+    time: '11:00AM',
+    address: '5678 Oak Avenue, Dayton, OH',
+    insurance: 'Aetna',
+    status: 'in-progress',
+    visitType: 'telehealth',
+    procedures: [
+      { name: 'A1C', completed: true },
+      { name: 'Blood Pressure', completed: true },
+      { name: 'Urine Sample' },
+    ],
+    healthRiskAssessment: 'in-progress',
+  },
 ]
 
-// Visits data for Next 14 Days
 const mockVisits14Days: Visit[] = [
   {
     id: '1',
@@ -106,9 +153,9 @@ const mockVisits14Days: Visit[] = [
       { name: 'Ultrasound' },
       { name: 'FIT/FOBT Test' },
       { name: 'Microalbumin Test' },
-      { name: 'Spirometry Test' }
+      { name: 'Spirometry Test' },
     ],
-    healthRiskAssessment: 'not-started'
+    healthRiskAssessment: 'not-started',
   },
   {
     id: '2',
@@ -123,101 +170,70 @@ const mockVisits14Days: Visit[] = [
       { name: 'EKG' },
       { name: 'Hepatitis C Test' },
       { name: 'HIV Test' },
-      { name: 'FIT/FOBT Test' }
+      { name: 'FIT/FOBT Test' },
     ],
-    healthRiskAssessment: 'not-started'
+    healthRiskAssessment: 'not-started',
   },
   {
     id: '3',
-    patientName: 'Jane Smith',
-    time: '2:30PM',
-    address: '369 Poplar Street, Trotwoo...',
-    insurance: 'UHC',
+    patientName: 'Brandon Young',
+    time: '1:00PM',
+    address: '147 Willow Court, Englewo...',
+    insurance: 'BCBS',
     status: 'not-started',
     visitType: 'in-home',
-    date: 'Thursday, August 6, 2025',
+    date: 'Thursday, August 8, 2025',
     procedures: [
-      { name: 'FIT/FOBT Test' },
       { name: 'EKG' },
-      { name: 'HIV Test' }
+      { name: 'Hepatitis C Test' },
+      { name: 'HIV Test' },
+      { name: 'FIT/FOBT Test' },
     ],
-    healthRiskAssessment: 'not-started'
+    healthRiskAssessment: 'not-started',
   },
   {
     id: '4',
-    patientName: 'Sarah Davis',
-    time: '9:30AM',
-    address: '1927 Maple Lane',
-    insurance: 'Medicare',
-    status: 'not-started',
-    visitType: 'in-home',
-    date: 'Thursday, August 7, 2025',
-    procedures: [
-      { name: 'A1C' },
-      { name: 'Blood Pressure' },
-      { name: 'Urine Sample' }
-    ],
-    healthRiskAssessment: 'not-started'
-  },
-  {
-    id: '5',
-    patientName: 'David Wilson',
-    time: '10:30AM',
-    address: '210 Pine Street',
-    insurance: 'UHC',
-    status: 'not-started',
-    visitType: 'telehealth',
-    date: 'Thursday, August 7, 2025',
-    procedures: [
-      { name: 'A1C' },
-      { name: 'Microalbumin Test' },
-      { name: 'Urine Sample' }
-    ],
-    healthRiskAssessment: 'not-started'
-  },
-  {
-    id: '6',
-    patientName: 'Laura Green',
-    time: '12:00PM',
-    address: '90 Pearl Ave',
+    patientName: 'Brandon Young',
+    time: '1:00PM',
+    address: '147 Willow Court, Englewo...',
     insurance: 'BCBS',
     status: 'not-started',
     visitType: 'in-home',
     date: 'Thursday, August 7, 2025',
     procedures: [
-      { name: 'A1C' },
-      { name: 'Blood Pressure' },
-      { name: 'Urine Sample' }
+      { name: 'EKG' },
+      { name: 'Hepatitis C Test' },
+      { name: 'HIV Test' },
+      { name: 'FIT/FOBT Test' },
     ],
-    healthRiskAssessment: 'not-started'
-  }
+    healthRiskAssessment: 'not-started',
+  },
 ]
 
 function StatusBadge({ status }: { status: Visit['status'] }) {
   const variants = {
     'not-started': {
-      className: 'border border-gray-400 bg-white text-main-black',
-      text: 'Not Started'
+      className: 'bg-red-500 text-white hover:bg-red-600',
+      text: 'Not Started',
     },
     'in-progress': {
-      className: 'bg-[#CF7C23] text-white',
-      text: 'In Progress'
+      className: 'bg-orange-500 text-white hover:bg-orange-600',
+      text: 'In Progress',
     },
-    'completed': {
-      className: 'bg-[#15827B] text-white flex items-center gap-1',
-      text: 'Completed'
-    }
+    completed: {
+      className: 'bg-green-500 text-white hover:bg-green-600 flex items-center gap-1',
+      text: 'Completed',
+    },
   }
-
   const variant = variants[status]
-  
   return (
-    <div className={cn('px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1', variant.className)}>
-      {status === 'completed' && (
-        <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center">
-          <Check className="w-3 h-3 text-[#15827B]" />
-        </div>
+    <div
+      className={cn(
+        'px-3 py-1 rounded text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer',
+        variant.className
       )}
+    >
+      {status === 'completed' && <Check className="w-3 h-3" />}
       {variant.text}
     </div>
   )
@@ -226,17 +242,14 @@ function StatusBadge({ status }: { status: Visit['status'] }) {
 function ProcedureBadge({ procedure }: { procedure: VisitProcedure }) {
   if (procedure.completed) {
     return (
-      <div className="bg-[#15827B] text-white px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1">
-        <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center">
-          <Check className="w-3 h-3 text-[#15827B]" />
-        </div>
+      <div className="border border-gray-300 bg-white text-gray-700 px-2 py-1 rounded text-xs font-medium inline-flex items-center gap-1">
+        <Check className="w-3 h-3" />
         {procedure.name}
       </div>
     )
   }
-  
   return (
-    <div className="border border-gray-400 bg-white text-main-black px-2 py-1 rounded-full text-xs font-medium">
+    <div className="border border-gray-300 bg-white text-gray-700 px-2 py-1 rounded text-xs font-medium">
       {procedure.name}
     </div>
   )
@@ -245,75 +258,62 @@ function ProcedureBadge({ procedure }: { procedure: VisitProcedure }) {
 function VisitTypeBadge({ visitType }: { visitType: Visit['visitType'] }) {
   if (visitType === 'telehealth') {
     return (
-      <div className="border border-[#239BCF] bg-white text-[#239BCF] px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1">
-        <Video className="w-4 h-4" />
+      <div
+        className="bg-white px-3 py-1 rounded-lg text-xs font-medium inline-flex items-center gap-1 border"
+        style={{ color: '#239BCF', borderColor: '#239BCF' }}
+      >
+        <Video className="w-3 h-3" />
         Telehealth
       </div>
     )
   }
-  
   return (
-    <div className="border border-[#5538A6] bg-white text-[#5538A6] px-2 py-1 rounded-full text-xs font-medium">
+    <div
+      className="bg-white px-3 py-1 rounded-lg text-xs font-medium inline-flex items-center gap-1 border"
+      style={{ color: '#5538A6', borderColor: '#5538A6' }}
+    >
       In-Home Visit
     </div>
   )
 }
 
 function VisitCard({ visit }: { visit: Visit }) {
-  const navigate = useNavigate()
-
-  const handleVisitClick = () => {
-    // Navigate to visit details with route param and pass full visit data in state
-    navigate(ROUTES.app.visitDetails.href.replace(':visitId', visit.id), { state: { visit } })
-  }
-
-  const getActionButton = () => {
-    if (visit.status === 'completed') {
-      return (
-        <Button 
-          variant="outline" 
-          className="bg-white border-[#5538A6] text-[#5538A6] hover:bg-gray-50 rounded-lg px-4 py-3 h-14 min-w-[154px]"
-          onClick={handleVisitClick}
-        >
-          View Summary
-        </Button>
-      )
-    }
-    
-    return (
-      <Button 
-        className="bg-[#5538A6] text-white hover:bg-[#5538A6]/90 rounded-lg px-4 py-3 h-14 min-w-[154px]"
-        onClick={handleVisitClick}
-      >
-        Log Outcomes
-      </Button>
-    )
-  }
-
+  const handleVisitClick = () => console.log('Visit clicked:', visit.id)
+  const getActionButton = () => (
+    <Button
+      className="text-white hover:bg-gray-600 rounded-md px-4 py-2 text-sm font-medium min-w-[120px] transition-colors"
+      style={{ backgroundColor: '#5538A6' }}
+      onClick={handleVisitClick}
+    >
+      Log Outcomes
+    </Button>
+  )
   const getHRABadge = () => {
     const variants = {
       'not-started': {
-        className: 'bg-[#CF2323] text-white',
-        text: 'Not Started'
+        className:
+          'bg-red-500 text-white animate-pulse hover:bg-red-300 transition-colors duration-1000',
+        text: 'Not Started',
       },
       'in-progress': {
-        className: 'bg-[#CF7C23] text-white',
-        text: 'In Progress'
+        className: 'border border-gray-300 bg-white text-gray-700',
+        text: 'In Progress',
       },
-      'completed': {
-        className: 'bg-[#15827B] text-white flex items-center gap-1',
-        text: 'Completed'
-      }
+      completed: {
+        className: 'border border-gray-300 bg-white text-gray-700 flex items-center gap-1',
+        text: 'Completed',
+      },
     }
-
     const variant = variants[visit.healthRiskAssessment]
-    
     return (
-      <div className={cn('px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1', variant.className)}>
+      <div
+        className={cn(
+          'px-3 py-1 rounded text-xs font-medium inline-flex items-center gap-1',
+          variant.className
+        )}
+      >
         {visit.healthRiskAssessment === 'completed' && (
-          <div className="w-4 h-4 bg-white rounded-full flex items-center justify-center">
-            <Check className="w-3 h-3 text-[#15827B]" />
-          </div>
+          <Check className="w-3 h-3" />
         )}
         {variant.text}
       </div>
@@ -321,70 +321,59 @@ function VisitCard({ visit }: { visit: Visit }) {
   }
 
   return (
-    <Card className="w-full rounded-2xl shadow-md">
+    <Card className="w-full bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer">
       <CardContent className="p-6">
-        <div className="flex flex-col gap-4">
-          {/* Header */}
-          <div className="flex justify-between items-start">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-start gap-3">
-                <h3 className="text-base font-medium text-[#1B1B1B]">{visit.patientName}</h3>
-                <StatusBadge status={visit.status} />
-              </div>
-              
-              <div className="flex items-start gap-6">
-                <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-400">{visit.time}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-400">{visit.address}</span>
-                </div>
-                <div className="flex items-start gap-1">
-                  <Building className="w-4 h-4 text-gray-400 mt-0.5" />
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-400">{visit.insurance}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <VisitTypeBadge visitType={visit.visitType} />
-              </div>
+        <div className="space-y-5">
+          {/* Header Row */}
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <h3 className="text-lg font-medium" style={{ color: '#1b1b1b' }}>
+                {visit.patientName}
+              </h3>
+              <StatusBadge status={visit.status} />
             </div>
-            
-            {getActionButton()}
+            <div className="flex-shrink-0">{getActionButton()}</div>
           </div>
 
-          {/* Visit Procedures Section */}
-          <div className="border-t border-[#EFEFEF] pt-4">
-            <div className="flex flex-col gap-4">
-              <div className="pt-4 pb-2">
-                <h4 className="text-xs font-medium text-[#1B1B1B] tracking-[0.5px]">Visit Procedures</h4>
+          {/* Visit Details */}
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4 text-sm">
+            <div className="flex items-center gap-2" style={{ color: '#939090' }}>
+              <Clock className="w-4 h-4 flex-shrink-0" />
+              <span>{visit.time}</span>
+            </div>
+            {visit.address && (
+              <div className="flex items-center gap-2" style={{ color: '#939090' }}>
+                <MapPin className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate">{visit.address}</span>
               </div>
-              <div className="flex items-start gap-2">
-                {visit.procedures.map((procedure, index) => (
-                  <div key={index} className="px-1">
-                    <ProcedureBadge procedure={procedure} />
-                  </div>
-                ))}
-              </div>
+            )}
+            <div className="flex items-center gap-2" style={{ color: '#939090' }}>
+              <Building className="w-4 h-4 flex-shrink-0" />
+              <span>{visit.insurance}</span>
             </div>
           </div>
 
-          {/* Health Risk Assessment Section */}
-          <div className="border-t border-[#EFEFEF] pt-4">
-            <div className="flex flex-col gap-4">
-              <div className="pt-4 pb-2">
-                <h4 className="text-xs font-medium text-[#1B1B1B] tracking-[0.5px]">Health Risk Assessment</h4>
-              </div>
-              <div className="flex items-start">
-                <div className="px-1">
-                  {getHRABadge()}
-                </div>
-              </div>
+          {/* Visit Type */}
+          <VisitTypeBadge visitType={visit.visitType} />
+
+          {/* Procedures */}
+          <div>
+            <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
+              Applied Procedures
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {visit.procedures.map((p, i) => (
+                <ProcedureBadge key={i} procedure={p} />
+              ))}
             </div>
+          </div>
+
+          {/* Health Risk Assessment */}
+          <div>
+            <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
+              Health Risk Assessment
+            </h4>
+            {getHRABadge()}
           </div>
         </div>
       </CardContent>
@@ -393,16 +382,32 @@ function VisitCard({ visit }: { visit: Visit }) {
 }
 
 export function VisitsDashboard() {
-  const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
   const [activeTab, setActiveTab] = useState('today')
+  const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
+  const [time, setTime] = useState('')
 
-  // Get data based on active tab
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date()
+      const options = {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'America/New_York',
+      }
+      setTime(now.toLocaleTimeString('en-US', options))
+    }
+    updateTime()
+    const timer = setInterval(updateTime, 60000)
+    return () => clearInterval(timer)
+  }, [])
+
   const currentVisits = activeTab === 'today' ? mockVisitsToday : mockVisits14Days
-  const currentEquipment = activeTab === 'today' ? equipmentDataToday : equipmentData14Days
-  const equipmentCount = currentEquipment.reduce((total, eq) => total + eq.visits, 0)
+  const currentEquipment =
+    activeTab === 'today' ? equipmentDataToday : equipmentData14Days
+  const equipmentCount = currentEquipment.reduce((t, e) => t + e.visits, 0)
   const visitCount = currentVisits.length
 
-  // Group visits by date for 14 days view
   const groupedVisits = currentVisits.reduce((acc: Record<string, Visit[]>, v) => {
     const key = v.date || 'Today'
     if (!acc[key]) acc[key] = []
@@ -411,106 +416,104 @@ export function VisitsDashboard() {
   }, {})
 
   return (
-    <div className="flex flex-col items-center gap-5 w-full max-w-[1101px] mx-auto p-5">
-      {/* Header Card */}
-      <Card className="w-full rounded-t-lg rounded-b-none shadow-md bg-white">
-        <CardHeader className="px-5 py-6 pb-0">
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-2.5">
-              <div className="flex flex-col">
-                <div className="flex justify-center items-center gap-2">
-                  <div className="flex justify-center items-center gap-2.5">
-                    <h1 className="text-[28px] font-normal leading-9 text-[#1B1B1B] font-[Roboto]">
-                      Visits
-                    </h1>
-                  </div>
-                </div>
-                <div className="flex items-start gap-2.5">
-                  <p className="text-base font-medium leading-6 text-gray-400 tracking-[0.15px] font-[Roboto]">
-                    Tuesday, August 5, 2025
-                  </p>
-                </div>
-              </div>
+    <div className="flex flex-col w-full h-full bg-gray-50">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-0 bg-white border-b border-gray-200 shadow-sm">
+        <div className="px-15 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+            <div className="mb-4 sm:mb-0">
+              <h1 className="text-2xl sm:text-3xl font-medium" style={{ color: '#1b1b1b' }}>
+                Visit Outcomes
+              </h1>
+              <p className="text-sm mt-1" style={{ color: '#939090' }}>
+                Friday, October 10, 2025
+              </p>
             </div>
-
-            {/* Tabs */}
-            <div className="flex flex-col items-start gap-2.5">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-[360px]">
-                <TabsList className="h-12 flex-col items-start rounded-t-lg bg-[#F9F9F9] p-0">
-                  <div className="flex items-start flex-1 self-stretch">
-                    <TabsTrigger 
-                      value="today" 
-                      className="flex-1 self-stretch bg-[#F7FCFF] data-[state=active]:bg-[#F7FCFF] data-[state=active]:text-[#015F88] data-[state=inactive]:bg-white data-[state=inactive]:text-gray-400 rounded-none relative data-[state=active]:after:absolute data-[state=active]:after:bottom-0 data-[state=active]:after:left-1/2 data-[state=active]:after:-translate-x-1/2 data-[state=active]:after:w-[35px] data-[state=active]:after:h-[3px] data-[state=active]:after:bg-[#015F88] data-[state=active]:after:rounded-t-full"
-                    >
-                      Today
-                    </TabsTrigger>
-                    <TabsTrigger 
-                      value="14days" 
-                      className="flex-1 self-stretch bg-white data-[state=active]:bg-[#F7FCFF] data-[state=active]:text-[#015F88] data-[state=inactive]:bg-white data-[state=inactive]:text-gray-400 rounded-none"
-                    >
-                      14 Days
-                    </TabsTrigger>
-                  </div>
-                </TabsList>
-                
-                {/* Divider */}
-                <div className="w-full h-px bg-[#C6C6C6]"></div>
-              </Tabs>
+            <div className="flex flex-col items-end">
+              <span className="text-xs text-gray-400">Current Time</span>
+              <div className="flex items-center gap-2">
+                <Bell size={16} className="text-gray-400" />
+                <span className="text-sm font-semibold text-black">{time}</span>
+              </div>
             </div>
           </div>
-        </CardHeader>
-      </Card>
 
-      {/* Main Container */}
-      <div className="flex flex-col items-center gap-6 self-stretch">
-        <div className="flex flex-col items-start gap-5 self-stretch rounded-lg bg-[#F8F8F8] p-5 pb-2.5">
+          {/* Tabs */}
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab('today')}
+                className={cn(
+                  'py-3 px-1 border-b-2 font-medium text-sm transition-colors',
+                  activeTab === 'today'
+                    ? 'text-[#239BCF]'
+                    : 'border-transparent text-gray-500 hover:text-[#239BCF]'
+                )}
+                style={activeTab === 'today' ? { borderColor: '#239BCF' } : {}}
+              >
+                Today
+              </button>
+              <button
+                onClick={() => setActiveTab('14days')}
+                className={cn(
+                  'py-3 px-1 border-b-2 font-medium text-sm transition-colors',
+                  activeTab === '14days'
+                    ? 'text-[#239BCF]'
+                    : 'border-transparent text-gray-500 hover:text-[#239BCF]'
+                )}
+                style={activeTab === '14days' ? { borderColor: '#239BCF' } : {}}
+              >
+                Next 14 Days
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
+
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-15 pt-6 pb-6">
           {/* Equipment Section */}
-          <Card className="w-full rounded-2xl shadow-md bg-white">
-            <CardContent className="p-6 pb-4">
-              <div className="flex justify-center items-center gap-4 self-stretch">
-                <div className="flex flex-col justify-center items-center gap-6 flex-1">
-                  <div className="flex justify-center items-center gap-4 self-stretch p-1">
-                    <div className="flex items-center gap-2 flex-1">
-                      <h2 className="text-base font-medium leading-6 text-[#1B1B1B] tracking-[0.15px] font-[Roboto]">
-                        {activeTab === 'today' ? 'Equipment Needed Today' : 'Upcoming Equipment Needed'}
-                      </h2>
-                    </div>
-                  </div>
+          <Card className="mb-8 bg-white border rounded-lg shadow-sm" style={{ borderColor: '#239BCF' }}>
+            <CardContent className="p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div className="mb-4 sm:mb-0">
+                  <h2 className="text-lg font-medium" style={{ color: '#1b1b1b' }}>
+                    {activeTab === 'today' ? 'Equipment Needed Today' : 'Equipment Needed - Next 14 Days'}
+                  </h2>
                 </div>
-                
-                <div className="flex flex-col justify-center items-center gap-6 flex-1">
-                  <div className="flex justify-center items-center gap-4 self-stretch p-1">
-                    <div className="flex justify-end items-center gap-2 flex-1">
-                      <p className="text-sm font-normal leading-5 text-gray-400 tracking-[0.25px] font-[Roboto]">
-                        {visitCount} visits scheduled • {equipmentCount} items
-                      </p>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-4">
+                  <p className="text-sm text-gray-500">
+                    {visitCount} visits scheduled • {equipmentCount} items
+                  </p>
+                  <button
+                    onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <ChevronDown
+                      className={cn(
+                        'w-5 h-5 text-gray-400 transition-transform',
+                        isEquipmentExpanded ? 'rotate-180' : ''
+                      )}
+                    />
+                  </button>
                 </div>
-                
-                <button 
-                  onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
-                  className="p-3 hover:bg-gray-50 rounded-full transition-colors"
-                >
-                  <ChevronDown 
-                    className={cn(
-                      "w-6 h-6 text-gray-400 transition-transform",
-                      isEquipmentExpanded ? "rotate-180" : "rotate-90"
-                    )} 
-                  />
-                </button>
               </div>
-              
-              {/* Expandable Equipment List */}
+
               {isEquipmentExpanded && (
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <div className="flex flex-wrap gap-2">
-                    {currentEquipment.map((equipment, index) => (
+                <div className="mt-6 pt-6 border-t border-gray-100">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {currentEquipment.map((eq, i) => (
                       <div
-                        key={index}
-                        className="inline-flex items-center px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium rounded-full"
+                        key={i}
+                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                       >
-                        {equipment.name} ({equipment.visits} visits)
+                        <span className="text-sm font-medium text-gray-900">
+                          {eq.name}
+                        </span>
+                        <span className="text-sm text-gray-500 font-medium">
+                          {eq.visits}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -519,27 +522,40 @@ export function VisitsDashboard() {
             </CardContent>
           </Card>
 
-          {/* Visit Cards */}
-          <div className="flex flex-col items-start gap-5 self-stretch">
+          {/* Today's Visits Section */}
+          <div className="mb-6">
+            <h3 className="text-xl font-medium mb-0" style={{ color: '#1b1b1b' }}>
+              {activeTab === 'today' ? "Today's Visits" : "Upcoming Visits"}
+            </h3>
+          </div>
+
+          {/* Visit Cards Layout */}
+          <div className={activeTab === '14days' ? 'space-y-6' : 'space-y-6'}>
             {activeTab === '14days' ? (
               <>
                 {Object.entries(groupedVisits).map(([date, visits]) => (
-                  <div key={date} className="w-full">
-                    <div className="w-full rounded-md bg-[#F0F6FB] px-4 py-2 text-sm text-[#015F88] font-medium">
-                      {date}
+                  <div key={date} className="space-y-4">
+                    <div className="bg-gray-100 border border-gray-200 rounded-lg px-4 py-3">
+                      <h4 className="text-sm font-medium text-gray-700">{date}</h4>
                     </div>
-                    <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Single row layout for 14 days view */}
+                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin px-1">
                       {visits.map(v => (
-                        <VisitCard key={v.id} visit={v} />
+                        <div key={v.id} className="flex-shrink-0 w-80 min-w-80">
+                          <VisitCard visit={v} />
+                        </div>
                       ))}
                     </div>
                   </div>
                 ))}
               </>
             ) : (
-              currentVisits.map((visit) => (
-                <VisitCard key={visit.id} visit={visit} />
-              ))
+              /* Single column layout for today's visits */
+              <div className="space-y-4">
+                {currentVisits.map((visit) => (
+                  <VisitCard key={visit.id} visit={visit} />
+                ))}
+              </div>
             )}
           </div>
         </div>

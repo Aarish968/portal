@@ -1,4 +1,4 @@
-[submodule "src/base_submod"]
-	path = src/base_submod
-	url = https://github.com/hello-porter/PorterBase.git
+# [submodule "src/base_submod"]
+# 	path = src/base_submod
+# 	url = https://github.com/hello-porter/PorterBase.git
 
