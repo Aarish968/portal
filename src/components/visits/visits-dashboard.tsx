@@ -1,25 +1,20 @@
 import { useEffect, useState } from 'react'
-<<<<<<< HEAD
-import { Clock, MapPin, Building, ChevronDown, Check, Video } from 'lucide-react'
-import { Card, CardContent, CardHeader } from '@/base_submod/components/ui/card'
-import { Button } from '@/base_submod/components/ui/button'
-import { Tabs, TabsList, TabsTrigger } from '@/base_submod/components/ui/tabs'
-import { cn } from '@/base_submod/lib/utils'
+import { Clock, MapPin, Building, Check, Video, ChevronDown, Bell } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
-=======
-import { Clock, MapPin, Building, Check, Video, ChevronDown, Bell } from 'lucide-react'
 
 // Simple Card components (replacing shadcn/ui for demo)
-const Card = ({ children, className = '' }) => (
+type SimpleProps = { children: React.ReactNode, className?: string }
+const Card = ({ children, className = '' }: SimpleProps) => (
   <div className={`bg-white rounded-lg ${className}`}>{children}</div>
 )
 
-const CardContent = ({ children, className = '' }) => (
+const CardContent = ({ children, className = '' }: SimpleProps) => (
   <div className={className}>{children}</div>
 )
 
-const Button = ({ children, className = '', style, onClick, variant = 'default' }) => {
+type ButtonProps = { children: React.ReactNode, className?: string, style?: React.CSSProperties, onClick?: () => void, variant?: 'default' | 'outline' }
+const Button = ({ children, className = '', style, onClick, variant = 'default' }: ButtonProps) => {
   const baseClass = 'rounded-md px-4 py-2 text-sm font-medium transition-colors'
   const variantClass =
     variant === 'outline'
@@ -36,8 +31,7 @@ const Button = ({ children, className = '', style, onClick, variant = 'default' 
   )
 }
 
-const cn = (...classes) => classes.filter(Boolean).join(' ')
->>>>>>> 4a33f5a00df53a4976826ca6b084985152a59dd4
+const cn = (...classes: (string | false | null | undefined)[]) => classes.filter(Boolean).join(' ')
 
 interface VisitProcedure {
   name: string
@@ -288,15 +282,30 @@ function VisitTypeBadge({ visitType }: { visitType: Visit['visitType'] }) {
 }
 
 function VisitCard({ visit }: { visit: Visit }) {
-  const handleVisitClick = () => console.log('Visit clicked:', visit.id)
+  const navigate = useNavigate()
+
+  const handleVisitClick = () => {
+    navigate(ROUTES.app.visitDetails.href.replace(':visitId', visit.id), { state: { visit } })
+  }
+
   const getActionButton = () => (
-    <Button
-      className="text-white hover:bg-gray-600 rounded-md px-4 py-2 text-sm font-medium min-w-[120px] transition-colors"
-      style={{ backgroundColor: '#5538A6' }}
-      onClick={handleVisitClick}
-    >
-      Log Outcomes
-    </Button>
+    visit.status === 'completed' ? (
+      <Button
+        className="rounded-md px-4 py-2 text-sm font-medium min-w-[120px] transition-colors bg-white border border-[#5538A6] text-[#5538A6] hover:bg-gray-50"
+        variant="outline"
+        onClick={handleVisitClick}
+      >
+        View Summary
+      </Button>
+    ) : (
+      <Button
+        className="text-white rounded-md px-4 py-2 text-sm font-medium min-w-[120px] transition-colors hover:bg-[#4A2F95]"
+        style={{ backgroundColor: '#5538A6' }}
+        onClick={handleVisitClick}
+      >
+        Log Outcomes
+      </Button>
+    )
   )
   const getHRABadge = () => {
     const variants = {
@@ -393,8 +402,9 @@ function VisitCard({ visit }: { visit: Visit }) {
 
 export function VisitsDashboard() {
   const [activeTab, setActiveTab] = useState('today')
-<<<<<<< HEAD
   const [visitsToday, setVisitsToday] = useState<Visit[]>(mockVisitsToday)
+  const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
+  const [time, setTime] = useState('')
 
   // Load persisted state for all visits by id
   useEffect(() => {
@@ -414,23 +424,10 @@ export function VisitsDashboard() {
     } catch {}
   }, [])
 
-  // Get data based on active tab
-  const currentVisits = activeTab === 'today' ? visitsToday : mockVisits14Days
-  const currentEquipment = activeTab === 'today' ? equipmentDataToday : equipmentData14Days
-  const equipmentCount = currentEquipment.reduce((total, eq) => total + eq.visits, 0)
-=======
-  const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
-  const [time, setTime] = useState('')
-
   useEffect(() => {
     const updateTime = () => {
       const now = new Date()
-      const options = {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: 'America/New_York',
-      }
+      const options: any = { hour: '2-digit', minute: '2-digit', hour12: true }
       setTime(now.toLocaleTimeString('en-US', options))
     }
     updateTime()
@@ -438,11 +435,9 @@ export function VisitsDashboard() {
     return () => clearInterval(timer)
   }, [])
 
-  const currentVisits = activeTab === 'today' ? mockVisitsToday : mockVisits14Days
-  const currentEquipment =
-    activeTab === 'today' ? equipmentDataToday : equipmentData14Days
+  const currentVisits = activeTab === 'today' ? visitsToday : mockVisits14Days
+  const currentEquipment = activeTab === 'today' ? equipmentDataToday : equipmentData14Days
   const equipmentCount = currentEquipment.reduce((t, e) => t + e.visits, 0)
->>>>>>> 4a33f5a00df53a4976826ca6b084985152a59dd4
   const visitCount = currentVisits.length
 
   const groupedVisits = currentVisits.reduce((acc: Record<string, Visit[]>, v) => {
@@ -511,7 +506,7 @@ export function VisitsDashboard() {
       <div className="flex-1 overflow-y-auto">
         <div className="px-15 pt-6 pb-6">
           {/* Equipment Section */}
-          <Card className="mb-8 bg-white border rounded-lg shadow-sm" style={{ borderColor: '#239BCF' }}>
+          <Card className="mb-8 bg-white border rounded-lg shadow-sm">
             <CardContent className="p-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div className="mb-4 sm:mb-0">
