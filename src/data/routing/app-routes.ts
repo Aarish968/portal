@@ -5,6 +5,7 @@ export interface AppRoutes {
   hraActivity: SiteLink
   visits: SiteLink
   visitDetails: SiteLink
+  visitOutcomes: SiteLink
   support: SiteLink
   settings: SiteLink
   test: SiteLink
@@ -38,6 +39,13 @@ export const APP_ROUTES: AppRoutes = {
     metaDescription: 'View visit details',
     menuDescription: 'View visit details',
     icon: 'ph:info',
+  },
+  visitOutcomes: {
+    title: 'Visit Outcomes',
+    href: '/visits/outcomes',
+    metaDescription: 'View visit outcomes',
+    menuDescription: 'View visit outcomes',
+    icon: 'ph:chart-line',
   },
   support: {
     title: 'Support',

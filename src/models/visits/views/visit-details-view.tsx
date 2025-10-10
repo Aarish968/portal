@@ -1,6 +1,7 @@
 import React from 'react'
-import { ArrowLeft, MapPin, Clock, Play, CheckCircle } from 'lucide-react'
+import { ArrowLeft, MapPin, Clock, Play, CheckCircle, Check, X, Pencil, FileText } from 'lucide-react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { ProcedureIncompleteDialog } from '../components/ProcedureIncompleteDialog'
 
 const procedures = [
   { id: 'hba1c', title: 'HbA1c Test' },
@@ -8,13 +9,30 @@ const procedures = [
   { id: 'bone', title: 'Bone Density Scan' },
 ]
 
+const reasonLabels: Record<string, string> = {
+  'connectivity': 'Connectivity',
+  'technical-issues': 'Technical Issues',
+  'supplies-unavailable': 'Supplies/equipment unavailable',
+  'patient-refused': 'Patient Refused',
+  'kit-left-behind': 'Kit Left Behind',
+  'not-medically-indicated': 'Not Medically Indicated',
+  'test-deferred': 'Test Deferred',
+  'incomplete-consent': 'Incomplete Consent',
+  'safety-concerns': 'Safety Concerns'
+}
+
 type OutcomeValue = 'completed' | 'not-completed'
+type VisitStatus = 'in-progress' | 'ready-to-save' | 'completed'
 
 export default function VisitDetailsView() {
   const navigate = useNavigate()
   const location = useLocation()
   const params = useParams()
   const [outcomes, setOutcomes] = React.useState<Record<string, OutcomeValue>>({})
+  const [procedureReasons, setProcedureReasons] = React.useState<Record<string, string>>({})
+  const [dialogOpen, setDialogOpen] = React.useState(false)
+  const [selectedProcedure, setSelectedProcedure] = React.useState<{id: string, title: string} | null>(null)
+  const [visitStatus, setVisitStatus] = React.useState<VisitStatus>('in-progress')
 
   // Extract visit either from navigation state or fallback to param id
   const visitFromState = (location.state as any)?.visit
@@ -25,16 +43,77 @@ export default function VisitDetailsView() {
   const statusLabel = visitFromState?.status === 'in-progress' ? 'In Progress' : visitFromState?.status === 'completed' ? 'Completed' : 'Not Started'
 
   const handleOutcomeClick = (procedureId: string, outcome: OutcomeValue) => {
-    setOutcomes(prev => ({
-      ...prev,
-      [procedureId]: outcome
-    }))
+    if (outcome === 'not-completed') {
+      const procedure = procedures.find(p => p.id === procedureId)
+      if (procedure) {
+        setSelectedProcedure(procedure)
+        setDialogOpen(true)
+      }
+    } else {
+      setOutcomes(prev => ({
+        ...prev,
+        [procedureId]: outcome
+      }))
+    }
+  }
+
+  const handleDialogSave = (reason: string, description?: string) => {
+    if (selectedProcedure) {
+      console.log(`Procedure ${selectedProcedure.title} not completed:`, { reason, description })
+      setOutcomes(prev => ({
+        ...prev,
+        [selectedProcedure.id]: 'not-completed'
+      }))
+      setProcedureReasons(prev => ({
+        ...prev,
+        [selectedProcedure.id]: reason
+      }))
+    }
+  }
+
+  const handleEditClick = (procedureId: string) => {
+    const procedure = procedures.find(p => p.id === procedureId)
+    if (procedure) {
+      setSelectedProcedure(procedure)
+      setDialogOpen(true)
+    }
+  }
+
+  const handleDialogClose = () => {
+    setDialogOpen(false)
+    setSelectedProcedure(null)
   }
 
   const completedCount = Object.values(outcomes).filter(o => o === 'completed').length
   // Total outcomes include procedures plus HRA start action
   const totalOutcomes = procedures.length + 1
   const progressPercent = Math.min(100, Math.round((completedCount / totalOutcomes) * 100))
+
+  // Check if all procedures and HRA are completed
+  const allProceduresCompleted = procedures.every(proc => outcomes[proc.id] === 'completed')
+  const hraCompleted = outcomes['hra'] === 'completed'
+  const allOutcomesCompleted = allProceduresCompleted && hraCompleted
+
+  // Update visit status based on completion
+  React.useEffect(() => {
+    if (allOutcomesCompleted && visitStatus === 'in-progress') {
+      setVisitStatus('ready-to-save')
+    }
+  }, [allOutcomesCompleted, visitStatus])
+
+  const handleSaveVisit = () => {
+    console.log('Saving visit...', { outcomes, procedureReasons })
+    setVisitStatus('completed')
+  }
+
+  const handleEditVisit = () => {
+    setVisitStatus('in-progress')
+  }
+
+  const handleViewSummary = () => {
+    navigate('/visits/outcomes')
+  }
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -50,8 +129,57 @@ export default function VisitDetailsView() {
               <p className="text-sm text-gray-500">{patientName} - {address}</p>
             </div>
           </div>
-          <div className="px-4 py-2 bg-gray-100 rounded-lg">
-            <span className="text-sm font-medium text-gray-700">{statusLabel}</span>
+          
+          {/* Dynamic Header Buttons */}
+          <div className="flex items-center gap-3">
+            {visitStatus === 'ready-to-save' && (
+              <>
+                <button
+                  onClick={handleViewSummary}
+                  className="px-4 py-2 border border-[#5538A6] text-[#5538A6] bg-white rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                >
+                  <FileText className="w-4 h-4 inline mr-2" />
+                  Visit Summary
+                </button>
+                <div className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg">
+                  <span className="text-sm font-medium">Ready to Save</span>
+                </div>
+                <button
+                  onClick={handleSaveVisit}
+                  className="px-6 py-2 bg-[#5538A6] hover:bg-[#4A2F95] text-white rounded-lg font-medium transition-colors"
+                >
+                  Save
+                </button>
+              </>
+            )}
+            
+            {visitStatus === 'completed' && (
+              <>
+                <button
+                  onClick={handleViewSummary}
+                  className="px-4 py-2 border border-[#5538A6] text-[#5538A6] bg-white rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                >
+                  <FileText className="w-4 h-4 inline mr-2" />
+                  Visit Summary
+                </button>
+                <div className="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg">
+                  <span className="text-sm font-medium">Completed</span>
+                </div>
+                <button
+                  onClick={handleEditVisit}
+                  className="px-4 py-2 border border-[#5538A6] text-[#5538A6] bg-white rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                >
+                  <Pencil className="w-4 h-4 inline mr-2" />
+                  Edit
+                </button>
+              </>
+            )}
+            
+            {visitStatus === 'in-progress' && (
+              <div className="px-4 py-2 bg-gray-100 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">{statusLabel}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -111,7 +239,7 @@ export default function VisitDetailsView() {
               <h3 className="text-base font-semibold text-gray-900 mb-1">HRA Assessment</h3>
               <p className="text-sm text-gray-500 mb-4">Health Risk Assessment questionnaire</p>
               {outcomes['hra'] === 'completed' ? (
-                <div className="flex items-center gap-2 text-teal-600 font-medium">
+                <div className="flex items-center gap-2 text-green-600 font-medium">
                   <CheckCircle className="w-5 h-5" />
                   <span>Assessment Complete</span>
                 </div>
@@ -133,39 +261,90 @@ export default function VisitDetailsView() {
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Visit Procedures</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {procedures.map((procedure) => (
-              <div key={procedure.id} className="bg-white rounded-2xl shadow-sm p-6">
-                <h3 className="text-base font-semibold text-gray-900 mb-6">{procedure.title}</h3>
-                <div>
-                  <p className="text-sm text-gray-600 mb-3">Outcome:</p>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => handleOutcomeClick(procedure.id, 'completed')}
-                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-                        outcomes[procedure.id] === 'completed'
-                          ? 'bg-gray-900 text-white'
-                          : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      Completed
-                    </button>
-                    <button
-                      onClick={() => handleOutcomeClick(procedure.id, 'not-completed')}
-                      className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-                        outcomes[procedure.id] === 'not-completed'
-                          ? 'bg-gray-900 text-white'
-                          : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      Not Completed
-                    </button>
+            {procedures.map((procedure) => {
+              const outcome = outcomes[procedure.id]
+              const reason = procedureReasons[procedure.id]
+              
+              return (
+                <div key={procedure.id} className="bg-white rounded-2xl shadow-sm p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-base font-semibold text-gray-900">{procedure.title}</h3>
+                    {outcome && (
+                      <div className="flex items-center gap-2">
+                        {/* Status Badge */}
+                        <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium ${
+                          outcome === 'completed' 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-red-100 text-red-700'
+                        }`}>
+                          {outcome === 'completed' ? (
+                            <>
+                              <Check className="w-4 h-4" />
+                              <span>Completed</span>
+                            </>
+                          ) : (
+                            <>
+                              <X className="w-4 h-4" />
+                              <span>Not Completed</span>
+                            </>
+                          )}
+                        </div>
+                        {/* Edit Button */}
+                        <button
+                          onClick={() => handleEditClick(procedure.id)}
+                          className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Edit status"
+                        >
+                          <Pencil className="w-4 h-4 text-gray-500" />
+                        </button>
+                      </div>
+                    )}
                   </div>
+                  
+                  {/* Show reason for not completed procedures */}
+                  {outcome === 'not-completed' && reason && (
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-500 mb-1">Reason:</p>
+                      <p className="text-sm text-gray-700">{reasonLabels[reason] || reason}</p>
+                    </div>
+                  )}
+                  
+                  {/* Action buttons - only show if no outcome set */}
+                  {!outcome && (
+                    <div>
+                      <p className="text-sm text-gray-600 mb-3">Outcome:</p>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => handleOutcomeClick(procedure.id, 'completed')}
+                          className="flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                        >
+                          Completed
+                        </button>
+                        <button
+                          onClick={() => handleOutcomeClick(procedure.id, 'not-completed')}
+                          className="flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                        >
+                          Not Completed
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </div>
+
+      {/* Procedure Incomplete Dialog */}
+      {selectedProcedure && (
+        <ProcedureIncompleteDialog
+          isOpen={dialogOpen}
+          onClose={handleDialogClose}
+          procedureName={selectedProcedure.title}
+          onSave={handleDialogSave}
+        />
+      )}
     </div>
   )
 }
