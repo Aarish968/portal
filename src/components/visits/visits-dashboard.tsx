@@ -491,10 +491,10 @@ export function VisitsDashboard() {
 
 
   return (
-    <div className="flex flex-col w-full h-full bg-gray-50">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-300 shadow-sm">
-        <div className="px-15 py-6 pb-0">
+    <div className="h-screen bg-gray-50">
+      {/* Fixed Header - positioned to work with sidebar */}
+      <div className="fixed top-0 left-49 right-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+        <div className="px-6 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
             <div className="mb-4 sm:mb-0">
               <h1 className="font-medium" style={{ color: '#1b1b1b', fontSize: '18px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
@@ -543,16 +543,16 @@ export function VisitsDashboard() {
               Today
             </button>
             <button
-              onClick={() => setActiveTab('next14')}
+              onClick={() => setActiveTab('14days')}
               onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
-              onMouseLeave={(e) => e.currentTarget.style.color = activeTab === 'next14' ? '#239BCF' : '#1b1b1b'}
+              onMouseLeave={(e) => e.currentTarget.style.color = activeTab === '14days' ? '#239BCF' : '#1b1b1b'}
               className="relative font-medium transition-all duration-300"
               style={{
-                color: activeTab === 'next14' ? '#239BCF' : '#1b1b1b',
+                color: activeTab === '14days' ? '#239BCF' : '#1b1b1b',
                 fontSize: '16px',
               }}
             >
-              {activeTab === 'next14' && (
+              {activeTab === '14days' && (
                 <span
                   className="absolute inset-0 -z-10 rounded"
                   style={{
@@ -581,9 +581,8 @@ export function VisitsDashboard() {
         </div>
       </div>
 
-      {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="px-15 pt-6 pb-6">
+      {/* Main Content Area - positioned after sidebar with proper spacing */}
+      <div className="ml-40 pt-32 px-6 pb-6 flex-1 overflow-y-auto">
           {/* Equipment Section */}
           <Card
             onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
@@ -665,7 +664,7 @@ export function VisitsDashboard() {
 
           {/* Visit Cards Layout */}
           <div className="space-y-6">
-            {activeTab === 'next14' ? (
+            {activeTab === '14days' ? (
               <>
                 {Object.entries(groupedVisits).map(([date, visits]) => (
                   <div key={date} className="space-y-4">
@@ -674,10 +673,10 @@ export function VisitsDashboard() {
                       <h4 className="text-sm font-medium text-gray-700">{date}</h4>
                     </div>
 
-                    {/* Responsive Cards Layout */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+                    {/* Responsive layout for 14 days view - optimized for large screens */}
+                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin px-1 xl:gap-6">
                       {visits.map(v => (
-                        <div key={v.id} className="w-full">
+                        <div key={v.id} className="flex-shrink-0 w-80 min-w-80 xl:w-96 xl:min-w-96 2xl:w-[420px] 2xl:min-w-[420px]">
                           <VisitCard visit={v} />
                         </div>
                       ))}
@@ -694,7 +693,6 @@ export function VisitsDashboard() {
               </div>
             )}
           </div>
-        </div>
       </div>
     </div>
   )
