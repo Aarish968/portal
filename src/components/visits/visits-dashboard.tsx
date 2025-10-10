@@ -242,7 +242,7 @@ function StatusBadge({ status }: { status: Visit['status'] }) {
 function ProcedureBadge({ procedure }: { procedure: VisitProcedure }) {
   if (procedure.completed) {
     return (
-      <div className="border border-gray-300 bg-white text-gray-700 px-2 py-1 rounded text-xs font-medium inline-flex items-center gap-1">
+      <div className="border border-gray-300 bg-white text-gray-700 px-2 py-1 rounded text-xs font-medium inline-flex items-center gap-1 ">
         <Check className="w-3 h-3" />
         {procedure.name}
       </div>
@@ -505,57 +505,81 @@ export function VisitsDashboard() {
         </div>
       {/* </div> */}
 
-      {/* Scrollable Content Area */}
+        {/* Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto">
-        <div className="px-15 pt-6 pb-6">
-          {/* Equipment Section */}
-          <Card className="mb-8 bg-white border rounded-lg shadow-sm" style={{ borderColor: '#239BCF' }}>
-            <CardContent className="p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <div className="mb-4 sm:mb-0">
-                  <h2 className="text-lg font-medium" style={{ color: '#1b1b1b' }}>
-                    {activeTab === 'today' ? 'Equipment Needed Today' : 'Equipment Needed - Next 14 Days'}
-                  </h2>
-                </div>
-                <div className="flex items-center gap-4">
-                  <p className="text-sm text-gray-500">
-                    {visitCount} visits scheduled • {equipmentCount} items
-                  </p>
-                  <button
-                    onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  >
-                    <ChevronDown
-                      className={cn(
-                        'w-5 h-5 text-gray-400 transition-transform',
-                        isEquipmentExpanded ? 'rotate-180' : ''
-                      )}
-                    />
-                  </button>
-                </div>
-              </div>
+        <div className="px-6 sm:px-15 pt-6 pb-6">
 
-              {isEquipmentExpanded && (
-                <div className="mt-6 pt-6 border-t border-gray-100">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                    {currentEquipment.map((eq, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+              {/* Equipment Section */}
+              <Card
+                className="mb-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer transition-all select-none outline-none"
+                style={{ minHeight: '56px' }}
+                onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}   // ✅ Card Click
+              >
+                <CardContent className="p-4 bg-transparent">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                    <div className="mb-4 sm:mb-0">
+                      <h2
+                        className="font-medium"
+                        style={{
+                          color: '#1b1b1b',
+                          fontSize: '14px',
+                          fontFamily:
+                            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                        }}
                       >
-                        <span className="text-sm font-medium text-gray-900">
-                          {eq.name}
-                        </span>
-                        <span className="text-sm text-gray-500 font-medium">
-                          {eq.visits}
-                        </span>
-                      </div>
-                    ))}
+                        {activeTab === 'today'
+                          ? 'Equipment Needed Today'
+                          : 'Equipment Needed - Next 14 Days'}
+                      </h2>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <p className="text-xs text-gray-500">
+                        {visitCount} visits scheduled • {equipmentCount} items
+                      </p>
+
+                      {/* Chevron Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation(); // 🛑 Prevent double toggle
+                          setIsEquipmentExpanded(!isEquipmentExpanded);
+                        }}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      >
+                        <ChevronDown
+                          className={cn(
+                            'w-5 h-5 text-gray-400 transition-transform duration-300',
+                            isEquipmentExpanded ? 'rotate-180' : ''
+                          )}
+                        />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+
+                  {/* Expandable Content */}
+                  <div
+                    className={cn(
+                      'overflow-hidden transition-all duration-500 ease-in-out',
+                      isEquipmentExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+                    )}
+                  >
+                    <div className="mt-1 pt-2">
+                      <div className="flex flex-wrap gap-3">
+                        {currentEquipment.map((eq, i) => (
+                          <div
+                            key={i}
+                            className="bg-white px-3 py-1 rounded-full text-xs border inline-flex items-center gap-1"
+                            style={{ color: '#239BCF', borderColor: '#239BCF' }}
+                          >
+                            <span>{eq.name}</span>
+                            <span className="font-normal">({eq.visits})</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
           {/* Today's Visits Section */}
           <div className="mb-6">
@@ -588,7 +612,8 @@ export function VisitsDashboard() {
               /* Single column layout for today's visits */
               <div className="space-y-4">
                 {currentVisits.map((visit) => (
-                  <VisitCard key={visit.id} visit={visit} />
+                  <VisitCard key={visit.id} visit={visit}
+                   />
                 ))}
               </div>
             )}
