@@ -1,12 +1,12 @@
 import React from 'react'
-import { ArrowLeft, MapPin, Clock, Play, CheckCircle, Check, X, Pencil, FileText } from 'lucide-react'
+import { ArrowLeft, MapPin, Clock, Play, CheckCircle, Check, X, Pencil, FileText, Building } from 'lucide-react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ProcedureIncompleteDialog } from '../components/ProcedureIncompleteDialog'
 
 const procedures = [
-  { id: 'hba1c', title: 'HbA1c Test' },
-  { id: 'retinal', title: 'Retinal Screening' },
-  { id: 'bone', title: 'Bone Density Scan' },
+  { id: 'a1c', title: 'A1C' },
+  { id: 'blood-pressure', title: 'Blood Pressure' },
+  { id: 'urine-sample', title: 'Urine Sample' },
 ]
 
 const reasonLabels: Record<string, string> = {
@@ -36,10 +36,11 @@ export default function VisitDetailsView() {
 
   // Extract visit either from navigation state or fallback to param id
   const visitFromState = (location.state as any)?.visit
-  const visitId = visitFromState?.id || params.visitId
-  const patientName = visitFromState?.patientName || 'Maria Rodriguez'
-  const address = visitFromState?.address || '567 Oak Avenue, Dayton, OH'
-  const time = visitFromState?.time || '8:00 AM'
+  const visitId = visitFromState?.id || params.visitId || '1'
+  const patientName = visitFromState?.patientName || 'Jane Smith'
+  const address = visitFromState?.address || '1234 Main Street, Dayton, OH'
+  const time = visitFromState?.time || '10:30AM'
+  const insurance = visitFromState?.insurance || 'UHC'
   const statusLabel = visitFromState?.status === 'in-progress' ? 'In Progress' : visitFromState?.status === 'completed' ? 'Completed' : 'Not Started'
 
   const handleOutcomeClick = (procedureId: string, outcome: OutcomeValue) => {
@@ -104,6 +105,24 @@ export default function VisitDetailsView() {
   const handleSaveVisit = () => {
     console.log('Saving visit...', { outcomes, procedureReasons })
     setVisitStatus('completed')
+    // After saving, navigate back to outcomes with updated state
+    const visitData = {
+      id: visitId,
+      patientName,
+      address,
+      time,
+      insurance,
+      status: 'completed' as const,
+      outcomes,
+      procedureReasons
+    }
+    // Persist for other pages (e.g., Visits dashboard)
+    try {
+      sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+    } catch {}
+    // If we came from outcomes, return there; otherwise go back to visits dashboard
+    const fromOutcomes = (location.state as any)?.fromOutcomes
+    navigate(fromOutcomes ? '/visit-outcomes' : '/visits', { state: fromOutcomes ? { visitData } : undefined, replace: true })
   }
 
   const handleEditVisit = () => {
@@ -111,7 +130,23 @@ export default function VisitDetailsView() {
   }
 
   const handleViewSummary = () => {
-    navigate('/visits/outcomes')
+    // Pass visit data to outcomes page
+    const visitData = {
+      id: visitId,
+      patientName,
+      address,
+      time,
+      insurance,
+      status: visitStatus,
+      outcomes,
+      procedureReasons
+    }
+    navigate('/visit-outcomes', { state: { visitData }, replace: true })
+  }
+
+  const handleLogOutcomes = () => {
+    console.log('Logging outcomes for visit:', visitId)
+    // This will show the procedure outcome selection interface
   }
 
 
@@ -121,7 +156,15 @@ export default function VisitDetailsView() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/visits')} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <button onClick={() => {
+              // Check if we came from visit outcomes, if so go back there
+              const fromOutcomes = location.state?.fromOutcomes
+              if (fromOutcomes) {
+                navigate('/visit-outcomes', { state: { visitData: { id: visitId, patientName, address, time, insurance, status: visitStatus, outcomes, procedureReasons } }, replace: true })
+              } else {
+                navigate('/visits', { replace: true })
+              }
+            }} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
               <ArrowLeft className="w-5 h-5 text-gray-700" />
             </button>
             <div>
@@ -176,9 +219,17 @@ export default function VisitDetailsView() {
             )}
             
             {visitStatus === 'in-progress' && (
-              <div className="px-4 py-2 bg-gray-100 rounded-lg">
-                <span className="text-sm font-medium text-gray-700">{statusLabel}</span>
-              </div>
+              <>
+                <div className="px-4 py-2 bg-gray-100 rounded-lg">
+                  <span className="text-sm font-medium text-gray-700">{statusLabel}</span>
+                </div>
+                <button
+                  onClick={handleLogOutcomes}
+                  className="px-6 py-2 bg-[#5538A6] hover:bg-[#4A2F95] text-white rounded-lg font-medium transition-colors uppercase tracking-wide"
+                >
+                  LOG OUTCOMES
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -192,12 +243,21 @@ export default function VisitDetailsView() {
               <div className="space-y-2 text-sm text-gray-600">
                 <p className="font-medium text-gray-500">ID: {visitId}</p>
                 <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  <span>{time}</span>
+                </div>
+                <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
                   <span>{address}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  <span>{time}</span>
+                  <Building className="w-4 h-4" />
+                  <span>{insurance}</span>
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="px-3 py-1.5 border border-purple-600 text-purple-600 bg-white rounded-full text-sm font-medium w-fit">
+                  In-Home Visit
                 </div>
               </div>
             </div>
@@ -222,13 +282,13 @@ export default function VisitDetailsView() {
                 <h4 className="text-base font-semibold text-gray-900 mb-3">Equipment Needed</h4>
                 <div className="flex flex-wrap gap-2">
                   <span className="px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs text-gray-700">
-                    HbA1c Kit
+                    A1C Kit
                   </span>
                   <span className="px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs text-gray-700">
-                    Retinal Camera
+                    Blood Pressure Monitor
                   </span>
                   <span className="px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs text-gray-700">
-                    Bone Density Kit
+                    Urine Collection Kit
                   </span>
                 </div>
               </div>

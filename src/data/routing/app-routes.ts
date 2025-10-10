@@ -35,14 +35,14 @@ export const APP_ROUTES: AppRoutes = {
   },
   visitDetails: {
     title: 'Visit Details',
-    href: '/visits/:visitId',
+    href: '/visit-details/:visitId',
     metaDescription: 'View visit details',
     menuDescription: 'View visit details',
     icon: 'ph:info',
   },
   visitOutcomes: {
     title: 'Visit Outcomes',
-    href: '/visits/outcomes',
+    href: '/visit-outcomes',
     metaDescription: 'View visit outcomes',
     menuDescription: 'View visit outcomes',
     icon: 'ph:chart-line',

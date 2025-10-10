@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react'
 import { Clock, MapPin, Building, Check, Video, ChevronDown, Bell } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import ROUTES from '@/data/routing/routes'
 
 // Simple Card components (replacing shadcn/ui for demo)
-const Card = ({ children, className = '' }) => (
+type SimpleProps = { children: React.ReactNode, className?: string }
+const Card = ({ children, className = '' }: SimpleProps) => (
   <div className={`bg-white rounded-lg ${className}`}>{children}</div>
 )
 
-const CardContent = ({ children, className = '' }) => (
+const CardContent = ({ children, className = '' }: SimpleProps) => (
   <div className={className}>{children}</div>
 )
 
-const Button = ({ children, className = '', style, onClick, variant = 'default' }) => {
+type ButtonProps = { children: React.ReactNode, className?: string, style?: React.CSSProperties, onClick?: () => void, variant?: 'default' | 'outline' }
+const Button = ({ children, className = '', style, onClick, variant = 'default' }: ButtonProps) => {
   const baseClass = 'rounded-md px-4 py-2 text-sm font-medium transition-colors'
   const variantClass =
     variant === 'outline'
@@ -27,7 +31,7 @@ const Button = ({ children, className = '', style, onClick, variant = 'default' 
   )
 }
 
-const cn = (...classes) => classes.filter(Boolean).join(' ')
+const cn = (...classes: (string | false | null | undefined)[]) => classes.filter(Boolean).join(' ')
 
 interface VisitProcedure {
   name: string
@@ -278,15 +282,30 @@ function VisitTypeBadge({ visitType }: { visitType: Visit['visitType'] }) {
 }
 
 function VisitCard({ visit }: { visit: Visit }) {
-  const handleVisitClick = () => console.log('Visit clicked:', visit.id)
+  const navigate = useNavigate()
+
+  const handleVisitClick = () => {
+    navigate(ROUTES.app.visitDetails.href.replace(':visitId', visit.id), { state: { visit } })
+  }
+
   const getActionButton = () => (
-    <Button
-      className="text-white hover:bg-gray-600 rounded-md px-4 py-2 text-sm font-medium min-w-[120px] transition-colors"
-      style={{ backgroundColor: '#5538A6' }}
-      onClick={handleVisitClick}
-    >
-      Log Outcomes
-    </Button>
+    visit.status === 'completed' ? (
+      <Button
+        className="rounded-md px-4 py-2 text-sm font-medium min-w-[120px] transition-colors bg-white border border-[#5538A6] text-[#5538A6] hover:bg-gray-50"
+        variant="outline"
+        onClick={handleVisitClick}
+      >
+        View Summary
+      </Button>
+    ) : (
+      <Button
+        className="text-white rounded-md px-4 py-2 text-sm font-medium min-w-[120px] transition-colors hover:bg-[#4A2F95]"
+        style={{ backgroundColor: '#5538A6' }}
+        onClick={handleVisitClick}
+      >
+        Log Outcomes
+      </Button>
+    )
   )
   const getHRABadge = () => {
     const variants = {
@@ -383,18 +402,32 @@ function VisitCard({ visit }: { visit: Visit }) {
 
 export function VisitsDashboard() {
   const [activeTab, setActiveTab] = useState('today')
+  const [visitsToday, setVisitsToday] = useState<Visit[]>(mockVisitsToday)
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
   const [time, setTime] = useState('')
+
+  // Load persisted state for all visits by id
+  useEffect(() => {
+    try {
+      setVisitsToday(prev => prev.map(v => {
+        const raw = sessionStorage.getItem(`visit-state-${v.id}`)
+        if (!raw) return v
+        const data = JSON.parse(raw)
+        const isCompleted = data?.status === 'completed'
+        return {
+          ...v,
+          status: isCompleted ? 'completed' : v.status,
+          procedures: v.procedures.map(p => ({ ...p, completed: isCompleted ? true : p.completed })),
+          healthRiskAssessment: isCompleted ? 'completed' : v.healthRiskAssessment
+        }
+      }))
+    } catch {}
+  }, [])
 
   useEffect(() => {
     const updateTime = () => {
       const now = new Date()
-      const options = {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: 'America/New_York',
-      }
+      const options: any = { hour: '2-digit', minute: '2-digit', hour12: true }
       setTime(now.toLocaleTimeString('en-US', options))
     }
     updateTime()
@@ -402,9 +435,8 @@ export function VisitsDashboard() {
     return () => clearInterval(timer)
   }, [])
 
-  const currentVisits = activeTab === 'today' ? mockVisitsToday : mockVisits14Days
-  const currentEquipment =
-    activeTab === 'today' ? equipmentDataToday : equipmentData14Days
+  const currentVisits = activeTab === 'today' ? visitsToday : mockVisits14Days
+  const currentEquipment = activeTab === 'today' ? equipmentDataToday : equipmentData14Days
   const equipmentCount = currentEquipment.reduce((t, e) => t + e.visits, 0)
   const visitCount = currentVisits.length
 
@@ -507,54 +539,33 @@ export function VisitsDashboard() {
 
         {/* Scrollable Content Area */}
       <div className="flex-1 overflow-y-auto">
-        <div className="px-6 sm:px-15 pt-6 pb-6">
-
-              {/* Equipment Section */}
-              <Card
-                className="mb-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer transition-all select-none outline-none"
-                style={{ minHeight: '56px' }}
-                onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}   // ✅ Card Click
-              >
-                <CardContent className="p-4 bg-transparent">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <div className="mb-4 sm:mb-0">
-                      <h2
-                        className="font-medium"
-                        style={{
-                          color: '#1b1b1b',
-                          fontSize: '14px',
-                          fontFamily:
-                            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                        }}
-                      >
-                        {activeTab === 'today'
-                          ? 'Equipment Needed Today'
-                          : 'Equipment Needed - Next 14 Days'}
-                      </h2>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <p className="text-xs text-gray-500">
-                        {visitCount} visits scheduled • {equipmentCount} items
-                      </p>
-
-                      {/* Chevron Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation(); // 🛑 Prevent double toggle
-                          setIsEquipmentExpanded(!isEquipmentExpanded);
-                        }}
-                        className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                      >
-                        <ChevronDown
-                          className={cn(
-                            'w-5 h-5 text-gray-400 transition-transform duration-300',
-                            isEquipmentExpanded ? 'rotate-180' : ''
-                          )}
-                        />
-                      </button>
-                    </div>
-                  </div>
+        <div className="px-15 pt-6 pb-6">
+          {/* Equipment Section */}
+          <Card className="mb-8 bg-white border rounded-lg shadow-sm">
+            <CardContent className="p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div className="mb-4 sm:mb-0">
+                  <h2 className="text-lg font-medium" style={{ color: '#1b1b1b' }}>
+                    {activeTab === 'today' ? 'Equipment Needed Today' : 'Equipment Needed - Next 14 Days'}
+                  </h2>
+                </div>
+                <div className="flex items-center gap-4">
+                  <p className="text-sm text-gray-500">
+                    {visitCount} visits scheduled • {equipmentCount} items
+                  </p>
+                  <button
+                    onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <ChevronDown
+                      className={cn(
+                        'w-5 h-5 text-gray-400 transition-transform',
+                        isEquipmentExpanded ? 'rotate-180' : ''
+                      )}
+                    />
+                  </button>
+                </div>
+              </div>
 
                   {/* Expandable Content */}
                   <div

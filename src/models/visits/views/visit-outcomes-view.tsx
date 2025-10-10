@@ -1,20 +1,21 @@
 import React from 'react'
 import { ArrowLeft, Clock, MapPin, Building, CheckCircle, FileText, Bell } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 
+// Seed data for today's visits (starts as not-started and updates via navigation state)
 const completedVisits = [
   {
     id: 'visit-1',
-    patientName: 'Maria Rodriguez',
-    visitTime: '8:00 AM',
-    address: '567 Oak Avenue, Dayton, OH',
-    insurance: 'Aetna',
+    patientName: 'Jane Smith',
+    visitTime: '10:30AM',
+    address: '1234 Main Street, Dayton, OH',
+    insurance: 'UHC',
     visitType: 'In-Home Visit',
-    status: 'completed',
+    status: 'not-started',
     completedProcedures: [
-      { name: 'HbA1c Test', status: 'completed' },
-      { name: 'Retinal Screening', status: 'completed' },
-      { name: 'Bone Density Scan', status: 'completed' }
+      { name: 'A1C', status: 'not-completed' },
+      { name: 'Blood Pressure', status: 'not-completed' },
+      { name: 'Urine Sample', status: 'not-completed' }
     ],
     hraStatus: 'in-progress'
   }
@@ -22,6 +23,16 @@ const completedVisits = [
 
 export default function VisitOutcomesView() {
   const navigate = useNavigate()
+  const location = useLocation()
+  
+  // Get visit data from navigation state
+  const visitDataFromState = (location.state as any)?.visitData
+  
+  // Force re-render when location state changes
+  React.useEffect(() => {
+    // This will trigger re-render when coming back from visit details
+  }, [location.state])
+  
   const currentTime = new Date().toLocaleTimeString('en-US', { 
     hour: 'numeric', 
     minute: '2-digit',
@@ -34,9 +45,69 @@ export default function VisitOutcomesView() {
     day: 'numeric' 
   })
 
+  // Merge persisted session state for the same visit id if present
+  const persisted = (() => {
+    try {
+      const id = visitDataFromState?.id || '1'
+      return JSON.parse(sessionStorage.getItem(`visit-state-${id}`) || 'null')
+    } catch { return null }
+  })()
+
+  // Use visit data from state or persisted, otherwise use defaults
+  const source = visitDataFromState || persisted
+  const visits = source ? [{
+    id: source.id,
+    patientName: source.patientName,
+    visitTime: source.time,
+    address: source.address,
+    insurance: source.insurance,
+    visitType: 'In-Home Visit',
+    status: source.status,
+    completedProcedures: [
+      { name: 'A1C', status: source.outcomes?.['a1c'] === 'completed' ? 'completed' : 'not-completed' },
+      { name: 'Blood Pressure', status: source.outcomes?.['blood-pressure'] === 'completed' ? 'completed' : 'not-completed' },
+      { name: 'Urine Sample', status: source.outcomes?.['urine-sample'] === 'completed' ? 'completed' : 'not-completed' }
+    ],
+    hraStatus: source.outcomes?.hra === 'completed' ? 'completed' : 'in-progress'
+  }] : completedVisits
+
   const handleViewSummary = (visitId: string) => {
-    console.log('Viewing summary for visit:', visitId)
-    // Navigate to detailed visit summary
+    const visit = visits.find(v => v.id === visitId)
+    if (visit) {
+      // Navigate to visit details with proper state
+      navigate(`/visit-details/${visitId}`, { 
+        state: { 
+          visit: {
+            id: visit.id,
+            patientName: visit.patientName,
+            time: visit.visitTime,
+            address: visit.address,
+            insurance: visit.insurance,
+            status: visit.status
+          },
+          fromOutcomes: true // Flag to indicate we came from outcomes page
+        }
+      })
+    }
+  }
+
+  const handleLogOutcomes = (visitId: string) => {
+    const visit = visits.find(v => v.id === visitId)
+    if (visit) {
+      navigate(`/visit-details/${visitId}`, {
+        state: {
+          visit: {
+            id: visit.id,
+            patientName: visit.patientName,
+            time: visit.visitTime,
+            address: visit.address,
+            insurance: visit.insurance,
+            status: 'in-progress'
+          },
+          fromOutcomes: true
+        }
+      })
+    }
   }
 
   return (
@@ -45,7 +116,7 @@ export default function VisitOutcomesView() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/visits')} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <button onClick={() => navigate('/visits', { replace: true })} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
               <ArrowLeft className="w-5 h-5 text-gray-700" />
             </button>
             <div>
@@ -75,17 +146,27 @@ export default function VisitOutcomesView() {
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-6">Today's Visits</h2>
           <div className="space-y-6">
-            {completedVisits.map((visit) => (
+            {visits.map((visit) => (
               <div key={visit.id} className="bg-white rounded-2xl shadow-sm p-6">
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex-1">
                     {/* Patient Name and Status */}
                     <div className="flex items-center gap-3 mb-4">
                       <h3 className="text-lg font-semibold text-gray-900">{visit.patientName}</h3>
-                      <div className="flex items-center gap-1 px-3 py-1.5 bg-teal-100 text-teal-700 rounded-full text-sm font-medium">
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Completed</span>
-                      </div>
+                      {visit.status === 'completed' ? (
+                        <div className="flex items-center gap-1 px-3 py-1.5 bg-teal-100 text-teal-700 rounded-full text-sm font-medium">
+                          <CheckCircle className="w-4 h-4" />
+                          <span>Completed</span>
+                        </div>
+                      ) : visit.status === 'in-progress' ? (
+                        <div className="flex items-center gap-1 px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
+                          <span>In Progress</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm font-medium">
+                          <span>Not Started</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Visit Details */}
@@ -113,10 +194,14 @@ export default function VisitOutcomesView() {
 
                     {/* Completed Procedures */}
                     <div className="mb-4">
-                      <h4 className="text-sm text-gray-500 mb-3">Completed Procedures:</h4>
+                      <h4 className="text-sm text-gray-500 mb-3">Visit Procedures:</h4>
                       <div className="flex flex-wrap gap-2">
                         {visit.completedProcedures.map((procedure, index) => (
-                          <div key={index} className="flex items-center gap-1 px-3 py-1.5 bg-teal-100 text-teal-700 rounded-full text-sm font-medium">
+                          <div key={index} className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium ${
+                            procedure.status === 'completed' 
+                              ? 'bg-teal-100 text-teal-700' 
+                              : 'bg-red-100 text-red-700'
+                          }`}>
                             <CheckCircle className="w-4 h-4" />
                             <span>{procedure.name}</span>
                           </div>
@@ -127,22 +212,38 @@ export default function VisitOutcomesView() {
                     {/* Health Risk Assessment */}
                     <div>
                       <h4 className="text-sm text-gray-500 mb-2">Health Risk Assessment:</h4>
-                      <div className="flex items-center gap-1 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm font-medium w-fit">
-                        <FileText className="w-4 h-4" />
-                        <span>In Progress</span>
-                      </div>
+                      {visit.hraStatus === 'completed' ? (
+                        <div className="flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-medium w-fit">
+                          <CheckCircle className="w-4 h-4" />
+                          <span>Completed</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm font-medium w-fit">
+                          <FileText className="w-4 h-4" />
+                          <span>In Progress</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* View Summary Button */}
+                  {/* Action Button */}
                   <div className="ml-6">
-                    <button
-                      onClick={() => handleViewSummary(visit.id)}
-                      className="px-4 py-2 border border-[#5538A6] text-[#5538A6] bg-white rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                    >
-                      <FileText className="w-4 h-4 inline mr-2" />
-                      View Summary
-                    </button>
+                    {visit.status === 'completed' ? (
+                      <button
+                        onClick={() => handleViewSummary(visit.id)}
+                        className="px-4 py-2 border border-[#5538A6] text-[#5538A6] bg-white rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                      >
+                        <FileText className="w-4 h-4 inline mr-2" />
+                        View Summary
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleLogOutcomes(visit.id)}
+                        className="px-4 py-2 bg-[#5538A6] hover:bg-[#4A2F95] text-white rounded-lg font-medium transition-colors"
+                      >
+                        Log Outcomes
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
