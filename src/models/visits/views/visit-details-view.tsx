@@ -105,7 +105,7 @@ export default function VisitDetailsView() {
   const handleSaveVisit = () => {
     console.log('Saving visit...', { outcomes, procedureReasons })
     setVisitStatus('completed')
-    // After saving, navigate back to outcomes with updated state
+    // Persist for other pages (e.g., Visits dashboard)
     const visitData = {
       id: visitId,
       patientName,
@@ -116,13 +116,10 @@ export default function VisitDetailsView() {
       outcomes,
       procedureReasons
     }
-    // Persist for other pages (e.g., Visits dashboard)
     try {
       sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
     } catch {}
-    // If we came from outcomes, return there; otherwise go back to visits dashboard
-    const fromOutcomes = (location.state as any)?.fromOutcomes
-    navigate(fromOutcomes ? '/visit-outcomes' : '/visits', { state: fromOutcomes ? { visitData } : undefined, replace: true })
+    // Stay on the same page to show completed interface
   }
 
   const handleEditVisit = () => {
@@ -198,14 +195,7 @@ export default function VisitDetailsView() {
             
             {visitStatus === 'completed' && (
               <>
-                <button
-                  onClick={handleViewSummary}
-                  className="px-4 py-2 border border-[#5538A6] text-[#5538A6] bg-white rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                >
-                  <FileText className="w-4 h-4 inline mr-2" />
-                  Visit Summary
-                </button>
-                <div className="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg">
+                <div className="px-4 py-2 bg-green-100 text-green-700 rounded-lg">
                   <span className="text-sm font-medium">Completed</span>
                 </div>
                 <button
@@ -369,8 +359,8 @@ export default function VisitDetailsView() {
                     </div>
                   )}
                   
-                  {/* Action buttons - only show if no outcome set */}
-                  {!outcome && (
+                  {/* Action buttons - show when no outcome set OR when in edit mode */}
+                  {(!outcome || visitStatus === 'in-progress') && (
                     <div>
                       <p className="text-sm text-gray-600 mb-3">Outcome:</p>
                       <div className="flex gap-3">

@@ -294,15 +294,15 @@ function VisitCard({ visit }: { visit: Visit }) {
 
   const getActionButton = () => (
     visit.status === 'completed' ? (
-      <Button
+        <Button 
         className="rounded-full px-3 sm:px-6 py-2 text-xs sm:text-sm font-medium w-full sm:w-auto sm:min-w-[120px] transition-colors bg-white border border-[#5538A6] text-[#5538A6] hover:bg-gray-50"
-        variant="outline"
-        onClick={handleVisitClick}
-      >
-        View Summary
-      </Button>
+          variant="outline" 
+          onClick={handleVisitClick}
+        >
+          View Summary
+        </Button>
     ) : (
-      <Button
+      <Button 
         className="text-white rounded-full px-3 sm:px-6 py-2 text-xs sm:text-sm font-medium w-full sm:w-auto sm:min-w-[120px] transition-colors hover:bg-[#4A2F95]"
         style={{ backgroundColor: '#5538A6' }}
         onClick={handleVisitClick}
@@ -348,7 +348,7 @@ function VisitCard({ visit }: { visit: Visit }) {
       <CardContent className="p-6">
         <div className="space-y-5">
           {/* Header Row */}
-          <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <h3 className="text-lg font-medium" style={{ color: '#1b1b1b' }}>
@@ -357,8 +357,8 @@ function VisitCard({ visit }: { visit: Visit }) {
                 <StatusBadge status={visit.status} />
               </div>
               <div className="w-full sm:w-auto sm:flex-shrink-0">{getActionButton()}</div>
-            </div>
-          </div>
+                </div>
+                </div>
 
           {/* Visit Details */}
           <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4 text-sm">
@@ -378,7 +378,7 @@ function VisitCard({ visit }: { visit: Visit }) {
                   Telehealth
                 </div>
               )}
-            </div>
+              </div>
             {visit.address && visit.visitType !== 'telehealth' && (
               <div className="flex items-center gap-2" style={{ color: '#939090' }}>
                 <MapPin className="w-4 h-4 flex-shrink-0" />
@@ -405,7 +405,7 @@ function VisitCard({ visit }: { visit: Visit }) {
                 <VideocamIcon className="w-3 h-3" />
                 Telehealth
               </div>
-            </div>
+                  </div>
           )}
 
           {/* Visit Type */}
@@ -434,7 +434,7 @@ function VisitCard({ visit }: { visit: Visit }) {
             <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
               Health Risk Assessment
             </h4>
-            {getHRABadge()}
+                  {getHRABadge()}
           </div>
         </div>
       </CardContent>
@@ -493,17 +493,17 @@ export function VisitsDashboard() {
   return (
     <div className="h-screen bg-gray-50">
       {/* Fixed Header - positioned to work with sidebar */}
-      <div className="fixed top-0 left-49 right-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+      <div className="fixed top-0 left-65 right-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="px-6 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
             <div className="mb-4 sm:mb-0">
               <h1 className="font-medium" style={{ color: '#1b1b1b', fontSize: '18px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
                 Visit Outcomes
-              </h1>
+                    </h1>
               <p className="mt-1" style={{ color: '#939090', fontSize: '14px' }}>
                 Friday, October 10, 2025
-              </p>
-            </div>
+                  </p>
+                </div>
             <div className="flex items-center gap-3">
               <div className="flex flex-col items-end">
                 <span className="text-gray-400" style={{ fontSize: '12px' }}>Current Time</span>
@@ -516,10 +516,10 @@ export function VisitsDashboard() {
               >
                 <Bell size={16} className="text-gray-600" />
               </button>
+              </div>
             </div>
-          </div>
 
-          {/* Tabs */}
+            {/* Tabs */}
           <div className="relative flex gap-8 pb-3">
             <button
               onClick={() => setActiveTab('today')}
@@ -540,7 +540,7 @@ export function VisitsDashboard() {
                   }}
                 />
               )}
-              Today
+                      Today
             </button>
             <button
               onClick={() => setActiveTab('14days')}
@@ -574,15 +574,15 @@ export function VisitsDashboard() {
                 boxShadow: '0 0 10px rgba(35, 155, 207, 0.5)'
               }}
             />
-          </div>
-
+                  </div>
+                
           {/* Full-width grey underline */}
           <div className="h-px bg-gray-300 w-full"></div>
-        </div>
-      </div>
+            </div>
+          </div>
 
       {/* Main Content Area - positioned after sidebar with proper spacing */}
-      <div className="ml-40 pt-32 px-6 pb-6 flex-1 overflow-y-auto">
+      <div className="pt-32 px-6 pb-6 flex-1 overflow-y-auto">
           {/* Equipment Section */}
           <Card
             onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
@@ -604,32 +604,32 @@ export function VisitsDashboard() {
                     {activeTab === 'today'
                       ? 'Equipment Needed Today'
                       : 'Equipment Needed - Next 14 Days'}
-                  </h2>
+                      </h2>
                 </div>
-
+                
                 <div className="flex items-center gap-4">
                   <p className="text-xs text-gray-500">
-                    {visitCount} visits scheduled • {equipmentCount} items
-                  </p>
-
+                        {visitCount} visits scheduled • {equipmentCount} items
+                      </p>
+                
                   {/* Chevron Button */}
-                  <button
+                <button 
                     onClick={(e) => {
                       e.stopPropagation() // ⛔ Stop bubbling
                       setIsEquipmentExpanded(!isEquipmentExpanded)
                     }}
                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  >
-                    <ChevronDown
-                      className={cn(
+                >
+                  <ChevronDown 
+                    className={cn(
                         'w-5 h-5 text-gray-400 transition-transform duration-300',
                         isEquipmentExpanded ? 'rotate-180' : ''
-                      )}
-                    />
-                  </button>
+                    )} 
+                  />
+                </button>
                 </div>
               </div>
-
+              
               {/* Expandable Content */}
               <div
                 className={cn(
@@ -688,11 +688,11 @@ export function VisitsDashboard() {
               /* Single column layout for today's visits */
               <div className="space-y-4">
                 {currentVisits.map((visit) => (
-                  <VisitCard key={visit.id} visit={visit} />
+                <VisitCard key={visit.id} visit={visit} />
                 ))}
               </div>
             )}
-          </div>
+        </div>
       </div>
     </div>
   )

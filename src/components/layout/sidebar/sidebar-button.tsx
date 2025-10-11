@@ -23,13 +23,13 @@ function SidebarButton({ link, isActive }: SidebarButtonProps) {
             to={link.href}
             className=":uno: no-underline font-semibold"
           >
-            <div className={`:uno: w-full flex items-center gap-2 rounded-md px-2 py-1 ${isActive
+            <div className={`:uno: w-full flex items-center gap-2 rounded-md px-3 py-2 whitespace-nowrap ${isActive
               ? 'text-main-bright-purple bg-light-purple-50'
               : 'text-bp-300 hover:text-main-bright-purple hover:bg-light-purple-50'
               }`}
             >
               <Icon icon={link.icon ?? ''} className=":uno: h-5 w-5 flex-shrink-0" />
-              <div className=":uno: font-sans no-underline">{link.title}</div>
+              <div className=":uno: font-sans no-underline text-sm font-medium">{link.title}</div>
             </div>
           </Link>
         </TooltipTrigger>

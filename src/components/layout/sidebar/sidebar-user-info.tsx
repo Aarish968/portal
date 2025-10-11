@@ -14,9 +14,9 @@ function SidebarUserInfo({ name, role = 'Nurse Practitioner' }: SidebarUserInfoP
         <div className=":uno: rounded-full bg-light-purple-50 p-2">
           <Icon icon="mdi:user" className=":uno: h-5 w-5 text-light-purple-300" />
         </div>
-        <div className=":uno: flex flex-col gap-.5 text-bp-400">
-          <span className=":uno: text-12px font-sans font-bold">{name}</span>
-          <span className=":uno: text-12px">{role}</span>
+        <div className=":uno: flex flex-col gap-.5 text-bp-400 min-w-0 flex-1">
+          <span className=":uno: text-12px font-sans font-bold whitespace-nowrap truncate">{name}</span>
+          <span className=":uno: text-12px whitespace-nowrap truncate">{role}</span>
         </div>
       </div>
     </div>

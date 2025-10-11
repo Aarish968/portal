@@ -15,15 +15,16 @@ function Sidebar({ user }: SidebarProps) {
 
   return (
     <div
-      className=":uno: fixed col-span-1 min-h-screen min-w-160px flex flex-col bg-white transition-all duration-300 !z-10"
+      className=":uno: fixed left-0 top-0 w-64 h-screen flex flex-col bg-white transition-all duration-300 !z-10"
     >
-      <div className=":uno: z-10 w-full flex-grow px-3 py-4 transition-all duration-400">
-        <div className=":uno: w-full overflow-hidden">
+      {/* Scrollable content area */}
+      <div className=":uno: flex-1 overflow-y-auto">
+        <div className=":uno: px-3 py-4">
           <div className=":uno: mx-auto mb-4 w-full flex justify-center">
             <PorterLogo variant="dark" />
           </div>
           <TooltipProvider>
-            <div className=":uno: space-y-1">
+            <div className=":uno: space-y-2">
               {SidebarLinks.map(link => (
                 link && (
                   <SidebarButton
@@ -37,7 +38,10 @@ function Sidebar({ user }: SidebarProps) {
           </TooltipProvider>
         </div>
       </div>
-      <SidebarUserInfo name={user?.name ?? 'Guest User'} />
+      {/* Fixed user info at bottom */}
+      <div className=":uno: flex-shrink-0">
+        <SidebarUserInfo name={user?.name ?? 'Guest User'} />
+      </div>
     </div>
   )
 }
