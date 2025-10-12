@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Clock, MapPin, Building, Check, ChevronDown, Bell } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
@@ -244,13 +244,13 @@ function StatusBadge({ status }: { status: Visit['status'] }) {
   return (
     <div
       className={cn(
-        'px-4 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer',
+        'px-3 sm:px-4 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer',
         variant.className
       )}
       style={{ color: '#1B1B1B' }}
     >
       {status === 'completed' && <Check className="w-3 h-3" />}
-      {variant.text}
+      <span className="text-xs">{variant.text}</span>
     </div>
   )
 }
@@ -258,14 +258,14 @@ function StatusBadge({ status }: { status: Visit['status'] }) {
 function ProcedureBadge({ procedure }: { procedure: VisitProcedure }) {
   if (procedure.completed) {
     return (
-      <div className="border border-gray-300 bg-white text-gray-700 px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1">
+      <div className="border border-gray-300 bg-white text-gray-700 px-2 sm:px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1">
         <Check className="w-3 h-3" />
-        {procedure.name}
+        <span className="text-xs">{procedure.name}</span>
       </div>
     )
   }
   return (
-    <div className="border border-gray-300 rounded-full bg-white text-gray-700 px-3 py-1 text-xs font-medium">
+    <div className="border border-gray-300 rounded-full bg-white text-gray-700 px-2 sm:px-3 py-1 text-xs font-medium">
       {procedure.name}
     </div>
   )
@@ -331,27 +331,31 @@ function VisitCard({ visit }: { visit: Visit }) {
     return (
       <div
         className={cn(
-          'px-4 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1',
+          'px-3 sm:px-4 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1',
           variant.className
         )}
       >
         {visit.healthRiskAssessment === 'completed' && (
           <Check className="w-3 h-3" />
         )}
-        {variant.text}
+        <span className="text-xs">{variant.text}</span>
       </div>
     )
   }
 
   return (
-    <Card className="w-full bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer">
-      <CardContent className="p-6">
-        <div className="space-y-5">
+    <Card className="w-full bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer" style={{ width: '100%', maxWidth: '100%' }}>
+      <CardContent className="p-3 sm:p-4 md:p-5 lg:p-6">
+        <div className="space-y-4 sm:space-y-5">
           {/* Header Row */}
+<<<<<<< HEAD
         <div className="flex flex-col gap-4">
+=======
+          <div className="flex flex-col gap-3 sm:gap-4">
+>>>>>>> origin/aarish
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                <h3 className="text-lg font-medium" style={{ color: '#1b1b1b' }}>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                <h3 className="text-base sm:text-lg font-medium" style={{ color: '#1b1b1b' }}>
                   {visit.patientName}
                 </h3>
                 <StatusBadge status={visit.status} />
@@ -361,45 +365,45 @@ function VisitCard({ visit }: { visit: Visit }) {
                 </div>
 
           {/* Visit Details */}
-          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4 text-sm">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 text-sm">
             <div className="flex items-center gap-2" style={{ color: '#939090' }}>
               <Clock className="w-4 h-4 flex-shrink-0" />
-              <span>{visit.time}</span>
+              <span className="text-sm">{visit.time}</span>
               {visit.visitType === 'telehealth' && (
                 <div
-                  className="ml-2 px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 border"
+                  className="ml-1 sm:ml-2 px-2 sm:px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 border"
                   style={{
                     color: '#239BCF',
                     borderColor: '#239BCF',
-                    backgroundColor: '#f0f9ff'
+                    // backgroundColor: '#f0f9ff'
                   }}
                 >
                   <VideocamIcon className="w-3 h-3" />
-                  Telehealth
+                  <span className="hidden sm:inline">Telehealth</span>
                 </div>
               )}
               </div>
             {visit.address && visit.visitType !== 'telehealth' && (
               <div className="flex items-center gap-2" style={{ color: '#939090' }}>
                 <MapPin className="w-4 h-4 flex-shrink-0" />
-                <span className="truncate">{visit.address}</span>
+                <span className="truncate text-sm">{visit.address}</span>
               </div>
             )}
             <div className="flex items-center gap-2" style={{ color: '#939090' }}>
               <Building className="w-4 h-4 flex-shrink-0" />
-              <span>{visit.insurance}</span>
+              <span className="text-sm">{visit.insurance}</span>
             </div>
           </div>
 
-          {/* Second Telehealth Button (below time for telehealth visits) */}
+          {/* Second Telehealth Button (below time for telehealth visits) - only on mobile */}
           {visit.visitType === 'telehealth' && (
-            <div className="flex justify-start">
+            <div className="flex justify-start sm:hidden">
               <div
-                className="px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 border"
+                className="px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 border"
                 style={{
                   color: '#239BCF',
                   borderColor: '#239BCF',
-                  backgroundColor: '#f0f9ff'
+                  // backgroundColor: '#f0f9ff'
                 }}
               >
                 <VideocamIcon className="w-3 h-3" />
@@ -416,10 +420,10 @@ function VisitCard({ visit }: { visit: Visit }) {
 
           {/* Procedures */}
           <div>
-            <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
+            <h4 className="text-xs font-medium text-gray-700 mb-2 sm:mb-3 uppercase tracking-wide">
               Applied Procedures
             </h4>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {visit.procedures.map((p, i) => (
                 <ProcedureBadge key={i} procedure={p} />
               ))}
@@ -431,7 +435,7 @@ function VisitCard({ visit }: { visit: Visit }) {
 
           {/* Health Risk Assessment */}
           <div>
-            <h4 className="text-xs font-medium text-gray-700 mb-3 uppercase tracking-wide">
+            <h4 className="text-xs font-medium text-gray-700 mb-2 sm:mb-3 uppercase tracking-wide">
               Health Risk Assessment
             </h4>
                   {getHRABadge()}
@@ -447,6 +451,20 @@ export function VisitsDashboard() {
   const [visitsToday, setVisitsToday] = useState<Visit[]>(mockVisitsToday)
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
   const [time, setTime] = useState('')
+  const [stickyDate, setStickyDate] = useState('')
+  const dateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+
+  const currentVisits = activeTab === 'today' ? visitsToday : mockVisits14Days
+  const currentEquipment = activeTab === 'today' ? equipmentDataToday : equipmentData14Days
+  const equipmentCount = currentEquipment.reduce((t, e) => t + e.visits, 0)
+  const visitCount = currentVisits.length
+
+  const groupedVisits = currentVisits.reduce((acc: Record<string, Visit[]>, v) => {
+    const key = v.date || 'Today'
+    if (!acc[key]) acc[key] = []
+    acc[key].push(v)
+    return acc
+  }, {})
 
   // Load persisted state for all visits by id
   useEffect(() => {
@@ -477,58 +495,215 @@ export function VisitsDashboard() {
     return () => clearInterval(timer)
   }, [])
 
-  const currentVisits = activeTab === 'today' ? visitsToday : mockVisits14Days
-  const currentEquipment = activeTab === 'today' ? equipmentDataToday : equipmentData14Days
-  const equipmentCount = currentEquipment.reduce((t, e) => t + e.visits, 0)
-  const visitCount = currentVisits.length
+  // Sticky date header functionality
+  useEffect(() => {
+    if (activeTab !== '14days') return
 
-  const groupedVisits = currentVisits.reduce((acc: Record<string, Visit[]>, v) => {
-    const key = v.date || 'Today'
-    if (!acc[key]) acc[key] = []
-    acc[key].push(v)
-    return acc
-  }, {})
+    const handleScroll = () => {
+      const headerHeight = 200 // Approximate height of fixed header
+      
+      // Find which date section is currently in view
+      const dates = Object.keys(groupedVisits)
+      let currentDate = ''
+      
+      for (const date of dates) {
+        const element = dateRefs.current[date]
+        if (element) {
+          const rect = element.getBoundingClientRect()
+          if (rect.top <= headerHeight + 50) {
+            currentDate = date
+          }
+        }
+      }
+      
+      setStickyDate(currentDate)
+    }
 
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [activeTab, groupedVisits])
 
   return (
+<<<<<<< HEAD
     <div className="h-screen bg-gray-50">
       {/* Fixed Header - positioned to work with sidebar */}
       <div className="fixed top-0 left-65 right-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="px-6 py-4">
+=======
+    <div className="min-h-screen bg-gray-50 w-[1101px]">
+      {/* Custom styles for responsive zoom behavior and mobile fixes */}
+      <style>{`
+        /* Force mobile header positioning */
+        @media (max-width: 639px) {
+          .mobile-header {
+            left: 191px !important;
+            right: 0 !important;
+            z-index: 50 !important;
+            position: fixed !important;
+          }
+          
+          .mobile-content {
+            padding-top: 10rem !important;
+            padding-left: 2.5rem !important;
+            padding-right: 1rem !important;
+            margin-left: 0 !important;
+          }
+          
+          .visit-card-mobile {
+            width: 100% !important;
+            margin-bottom: 1rem !important;
+            display: block !important;
+          }
+          
+          /* Force single column on mobile */
+          .single-column-layout {
+            display: block !important;
+            width: 100% !important;
+          }
+        }
+        
+        /* Desktop responsive behavior - ensure cards stay in position */
+        @media (min-width: 640px) {
+          .visit-card-container {
+            width: 100%;
+            max-width: none;
+          }
+          
+          /* Cards stay in position but grow in width on zoom out */
+          .single-column-layout {
+            max-width: 100% !important;
+            width: 100% !important;
+            display: block !important;
+          }
+          
+          /* Responsive grid for 14 days view */
+          .responsive-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+            gap: 1rem;
+            width: 100%;
+          }
+        }
+        
+        @media (min-width: 768px) {
+          .responsive-grid {
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+            gap: 1.25rem;
+          }
+        }
+        
+        @media (min-width: 1024px) {
+          .responsive-grid {
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
+            gap: 1.5rem;
+          }
+        }
+        
+        @media (min-width: 1280px) {
+          .responsive-grid {
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)) !important;
+            gap: 1.75rem;
+          }
+        }
+        
+        /* Force single column layout for Today's visits */
+        .today-visits-container {
+          display: block !important;
+          width: 100% !important;
+        }
+        
+        .today-visits-container > div {
+          width: 100% !important;
+          margin-bottom: 1rem !important;
+        }
+        
+        /* Next 14 Days styling */
+        .date-card {
+          background-color: rgba(35, 155, 207, 0.1) !important;
+          border: 1px solid rgba(35, 155, 207, 0.2) !important;
+          color: #239BCF !important;
+        }
+        
+        .date-visits-container {
+          background-color: white !important;
+          border-radius: 8px !important;
+          padding: 1rem !important;
+          margin-bottom: 1.5rem !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .visits-grid {
+          display: grid !important;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+          gap: 1rem !important;
+          width: 100% !important;
+        }
+        
+        @media (min-width: 768px) {
+          .visits-grid {
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+            gap: 1.25rem !important;
+          }
+        }
+        
+        @media (min-width: 1024px) {
+          .visits-grid {
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
+            gap: 1.5rem !important;
+          }
+        }
+      `}</style>
+      {/* Fixed Header - fully responsive */}
+      <div className="fixed top-0 left-0 right-0 z-10 bg-white border-b border-gray-200 shadow-sm lg:left-49 mobile-header">
+        <div className="px-4 sm:px-6 py-4 pb-0">
+>>>>>>> origin/aarish
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
             <div className="mb-4 sm:mb-0">
-              <h1 className="font-medium" style={{ color: '#1b1b1b', fontSize: '18px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
+              <h1 className="font-medium text-base sm:text-lg" style={{ color: '#1b1b1b', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
                 Visit Outcomes
+<<<<<<< HEAD
                     </h1>
               <p className="mt-1" style={{ color: '#939090', fontSize: '14px' }}>
                 Friday, October 10, 2025
                   </p>
                 </div>
             <div className="flex items-center gap-3">
+=======
+              </h1>
+              <p className="mt-1 text-sm" style={{ color: '#939090' }}>
+                Friday, October 10, 2025
+              </p>
+            </div>
+            <div className="flex items-center gap-2 sm:gap-3">
+>>>>>>> origin/aarish
               <div className="flex flex-col items-end">
-                <span className="text-gray-400" style={{ fontSize: '12px' }}>Current Time</span>
-                <span className="font-semibold text-black" style={{ fontSize: '14px' }}>{time}</span>
+                <span className="text-gray-400 text-xs">Current Time</span>
+                <span className="font-semibold text-black text-sm">{time}</span>
               </div>
               <button
-                className="p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 active:bg-blue-100"
+                className="p-1.5 sm:p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 active:bg-blue-100"
                 style={{ backgroundColor: '#F5F5F5' }}
                 aria-label="Notifications"
               >
-                <Bell size={16} className="text-gray-600" />
+                <Bell className="w-4 h-4 text-gray-600" />
               </button>
               </div>
             </div>
 
+<<<<<<< HEAD
             {/* Tabs */}
           <div className="relative flex gap-8 pb-3">
+=======
+          {/* Tabs */}
+          <div className="relative flex gap-4 sm:gap-8 pb-3">
+>>>>>>> origin/aarish
             <button
               onClick={() => setActiveTab('today')}
               onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
               onMouseLeave={(e) => e.currentTarget.style.color = activeTab === 'today' ? '#239BCF' : '#1b1b1b'}
-              className="relative font-medium transition-all duration-300"
+              className="relative font-medium transition-all duration-300 text-sm sm:text-base"
               style={{
-                color: activeTab === 'today' ? '#239BCF' : '#1b1b1b',
-                fontSize: '16px'
+                color: activeTab === 'today' ? '#239BCF' : '#1b1b1b'
               }}
             >
               {activeTab === 'today' && (
@@ -546,10 +721,9 @@ export function VisitsDashboard() {
               onClick={() => setActiveTab('14days')}
               onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
               onMouseLeave={(e) => e.currentTarget.style.color = activeTab === '14days' ? '#239BCF' : '#1b1b1b'}
-              className="relative font-medium transition-all duration-300"
+              className="relative font-medium transition-all duration-300 text-sm sm:text-base"
               style={{
-                color: activeTab === '14days' ? '#239BCF' : '#1b1b1b',
-                fontSize: '16px',
+                color: activeTab === '14days' ? '#239BCF' : '#1b1b1b'
               }}
             >
               {activeTab === '14days' && (
@@ -570,7 +744,7 @@ export function VisitsDashboard() {
               style={{
                 backgroundColor: '#239BCF',
                 width: activeTab === 'today' ? '48px' : '105px',
-                transform: activeTab === 'today' ? 'translateX(0)' : 'translateX(calc(48px + 2rem))',
+                transform: activeTab === 'today' ? 'translateX(0)' : 'translateX(calc(48px + 1rem))',
                 boxShadow: '0 0 10px rgba(35, 155, 207, 0.5)'
               }}
             />
@@ -581,6 +755,7 @@ export function VisitsDashboard() {
             </div>
           </div>
 
+<<<<<<< HEAD
       {/* Main Content Area - positioned after sidebar with proper spacing */}
       <div className="pt-32 px-6 pb-6 flex-1 overflow-y-auto">
           {/* Equipment Section */}
@@ -660,28 +835,134 @@ export function VisitsDashboard() {
             <h3 className="text-xl font-medium mb-0" style={{ color: '#1b1b1b' }}>
               {activeTab === 'today' ? "Today's Visits" : "Upcoming Visits"}
             </h3>
+=======
+      {/* Sticky Date Header for 14 Days view */}
+      {activeTab === '14days' && stickyDate && (
+        <div className="fixed top-32 left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-sm lg:left-49 mobile-header">
+          <div className="px-4 sm:px-6 py-3">
+            <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 sm:px-4 py-3">
+              <h4 className="text-sm font-medium text-gray-700">{stickyDate}</h4>
+            </div>
+>>>>>>> origin/aarish
           </div>
+        </div>
+      )}
 
-          {/* Visit Cards Layout */}
-          <div className="space-y-6">
-            {activeTab === '14days' ? (
-              <>
-                {Object.entries(groupedVisits).map(([date, visits]) => (
-                  <div key={date} className="space-y-4">
-                    {/* Date Header */}
-                    <div className="bg-gray-100 border border-gray-200 rounded-lg px-4 py-3">
-                      <h4 className="text-sm font-medium text-gray-700">{date}</h4>
+      {/* Main Content Area - fully responsive layout */}
+      <div className={`pt-35 px-4 sm:px-6 pb-6 flex-1 overflow-y-auto lg:ml-10 max-w-full mobile-content ${activeTab === '14days' && stickyDate ? 'pt-50' : ''}`}>
+        {/* Equipment Section */}
+        <Card
+          onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
+          className="mb-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer transition-all select-none outline-none w-full max-w-[1101px] "
+          style={{ minHeight: '56px' }}
+        >
+          <CardContent className="p-3 sm:p-4 bg-transparent">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div className="mb-3 sm:mb-0">
+                <h2
+                  className="font-medium text-sm"
+                  style={{
+                    color: '#1b1b1b',
+                    fontFamily:
+                      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  }}
+                >
+                  {activeTab === 'today'
+                    ? 'Equipment Needed Today'
+                    : 'Equipment Needed - Next 14 Days'}
+                </h2>
+              </div>
+
+              <div className="flex items-center gap-2 sm:gap-4">
+                <p className="text-xs text-gray-500 flex-shrink-0">
+                  {visitCount} visits scheduled • {equipmentCount} items
+                </p>
+
+                {/* Chevron Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation() // ⛔ Stop bubbling
+                    setIsEquipmentExpanded(!isEquipmentExpanded)
+                  }}
+                  className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+                >
+                  <ChevronDown
+                    className={cn(
+                      'w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform duration-300',
+                      isEquipmentExpanded ? 'rotate-180' : ''
+                    )}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* Expandable Content */}
+            <div
+              className={cn(
+                'overflow-hidden transition-all duration-500 ease-in-out',
+                isEquipmentExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+              )}
+            >
+              <div className="mt-1 pt-2">
+                <div className="flex flex-wrap gap-2 sm:gap-3">
+                  {currentEquipment.map((eq, i) => (
+                    <div
+                      key={i}
+                      className="bg-white px-2 sm:px-3 py-1 rounded-full text-xs border inline-flex items-center gap-1"
+                      style={{ color: '#239BCF', borderColor: '#239BCF' }}
+                    >
+                      <span className="text-xs">{eq.name}</span>
+                      <span className="font-normal text-xs">({eq.visits})</span>
                     </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-                    {/* Responsive layout for 14 days view - optimized for large screens */}
-                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin px-1 xl:gap-6">
+        {/* Today's Visits Section */}
+        <div className="mb-4 sm:mb-6">
+          <h3 className="text-lg sm:text-xl font-medium mb-0" style={{ color: '#1b1b1b' }}>
+            {activeTab === 'today' ? "Today's Visits" : "Upcoming Visits"}
+          </h3>
+        </div>
+
+        {/* Visit Cards Layout */}
+        <div className="space-y-4 sm:space-y-6 w-full">
+          {activeTab === '14days' ? (
+            <>
+              {Object.entries(groupedVisits).map(([date, visits]) => (
+                <div key={date} className="date-visits-container">
+                  {/* Date Header */}
+                  <div 
+                    ref={el => dateRefs.current[date] = el}
+                    className="date-card rounded-lg px-3 sm:px-4 py-3 w-full mb-4"
+                  >
+                    <h4 className="text-sm font-medium">{date}</h4>
+                  </div>
+
+                  {/* Responsive layout for 14 days view - fully responsive */}
+                  <div className="w-full">
+                    {/* Mobile: Stack cards vertically */}
+                    <div className="block sm:hidden space-y-3">
                       {visits.map(v => (
-                        <div key={v.id} className="flex-shrink-0 w-80 min-w-80 xl:w-96 xl:min-w-96 2xl:w-[420px] 2xl:min-w-[420px]">
+                        <div key={v.id} className="w-full visit-card-mobile">
+                          <VisitCard visit={v} />
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Tablet and Desktop: Responsive grid that adapts to zoom */}
+                    <div className="hidden sm:block visits-grid">
+                      {visits.map(v => (
+                        <div key={v.id} className="visit-card-container">
                           <VisitCard visit={v} />
                         </div>
                       ))}
                     </div>
                   </div>
+<<<<<<< HEAD
                 ))}
               </>
             ) : (
@@ -692,6 +973,37 @@ export function VisitsDashboard() {
                 ))}
               </div>
             )}
+=======
+                </div>
+              ))}
+            </>
+          ) : (
+            /* Single column layout for today's visits - one card per line */
+            <div 
+              className="space-y-4 w-full single-column-layout today-visits-container"
+              style={{ 
+                display: 'block', 
+                width: '100%', 
+                maxWidth: '100%' 
+              }}
+            >
+              {currentVisits.map((visit) => (
+                <div 
+                  key={visit.id} 
+                  className="w-full visit-card-mobile"
+                  style={{ 
+                    width: '100%', 
+                    maxWidth: '100%', 
+                    marginBottom: '1rem',
+                    display: 'block'
+                  }}
+                >
+                  <VisitCard visit={visit} />
+                </div>
+              ))}
+            </div>
+          )}
+>>>>>>> origin/aarish
         </div>
       </div>
     </div>
