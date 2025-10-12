@@ -371,7 +371,7 @@ function VisitCard({ visit }: { visit: Visit }) {
                   style={{
                     color: '#239BCF',
                     borderColor: '#239BCF',
-                    backgroundColor: '#f0f9ff'
+                    // backgroundColor: '#f0f9ff'
                   }}
                 >
                   <VideocamIcon className="w-3 h-3" />
@@ -399,7 +399,7 @@ function VisitCard({ visit }: { visit: Visit }) {
                 style={{
                   color: '#239BCF',
                   borderColor: '#239BCF',
-                  backgroundColor: '#f0f9ff'
+                  // backgroundColor: '#f0f9ff'
                 }}
               >
                 <VideocamIcon className="w-3 h-3" />
@@ -606,6 +606,42 @@ export function VisitsDashboard() {
           width: 100% !important;
           margin-bottom: 1rem !important;
         }
+        
+        /* Next 14 Days styling */
+        .date-card {
+          background-color: rgba(35, 155, 207, 0.1) !important;
+          border: 1px solid rgba(35, 155, 207, 0.2) !important;
+          color: #239BCF !important;
+        }
+        
+        .date-visits-container {
+          background-color: white !important;
+          border-radius: 8px !important;
+          padding: 1rem !important;
+          margin-bottom: 1.5rem !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .visits-grid {
+          display: grid !important;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+          gap: 1rem !important;
+          width: 100% !important;
+        }
+        
+        @media (min-width: 768px) {
+          .visits-grid {
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+            gap: 1.25rem !important;
+          }
+        }
+        
+        @media (min-width: 1024px) {
+          .visits-grid {
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
+            gap: 1.5rem !important;
+          }
+        }
       `}</style>
       {/* Fixed Header - fully responsive */}
       <div className="fixed top-0 left-0 right-0 z-10 bg-white border-b border-gray-200 shadow-sm lg:left-49 mobile-header">
@@ -790,13 +826,13 @@ export function VisitsDashboard() {
           {activeTab === '14days' ? (
             <>
               {Object.entries(groupedVisits).map(([date, visits]) => (
-                <div key={date} className="space-y-4 w-full">
+                <div key={date} className="date-visits-container">
                   {/* Date Header */}
                   <div 
                     ref={el => dateRefs.current[date] = el}
-                    className="bg-gray-100 border border-gray-200 rounded-lg px-3 sm:px-4 py-3 w-full"
+                    className="date-card rounded-lg px-3 sm:px-4 py-3 w-full mb-4"
                   >
-                    <h4 className="text-sm font-medium text-gray-700">{date}</h4>
+                    <h4 className="text-sm font-medium">{date}</h4>
                   </div>
 
                   {/* Responsive layout for 14 days view - fully responsive */}
@@ -811,7 +847,7 @@ export function VisitsDashboard() {
                     </div>
                     
                     {/* Tablet and Desktop: Responsive grid that adapts to zoom */}
-                    <div className="hidden sm:block responsive-grid pb-4">
+                    <div className="hidden sm:block visits-grid">
                       {visits.map(v => (
                         <div key={v.id} className="visit-card-container">
                           <VisitCard visit={v} />
