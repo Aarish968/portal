@@ -795,25 +795,13 @@ export function VisitsDashboard() {
               ))}
             </>
           ) : (
-            /* Responsive layout for today's visits */
-            <div className="w-full">
-              {/* Mobile: Stack cards vertically */}
-              <div className="block sm:hidden space-y-3">
-                {currentVisits.map((visit) => (
-                  <div key={visit.id} className="w-full">
-                    <VisitCard visit={visit} />
-                  </div>
-                ))}
-              </div>
-              
-              {/* Tablet and Desktop: Responsive grid that adapts to zoom */}
-              <div className="hidden sm:block responsive-grid">
-                {currentVisits.map((visit) => (
-                  <div key={visit.id} className="visit-card-container">
-                    <VisitCard visit={visit} />
-                  </div>
-                ))}
-              </div>
+            /* Single column layout for today's visits - one card per line */
+            <div className="space-y-4 w-full">
+              {currentVisits.map((visit) => (
+                <div key={visit.id} className="w-full">
+                  <VisitCard visit={visit} />
+                </div>
+              ))}
             </div>
           )}
         </div>
