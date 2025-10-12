@@ -582,117 +582,117 @@ export function VisitsDashboard() {
       </div>
 
       {/* Main Content Area - positioned after sidebar with proper spacing */}
-      <div className="ml-40 pt-32 px-6 pb-6 flex-1 overflow-y-auto">
-          {/* Equipment Section */}
-          <Card
-            onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
-            className="mb-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer transition-all select-none outline-none"
-            style={{ minHeight: '56px' }}
-          >
-            <CardContent className="p-4 bg-transparent">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <div className="mb-4 sm:mb-0">
-                  <h2
-                    className="font-medium"
-                    style={{
-                      color: '#1b1b1b',
-                      fontSize: '14px',
-                      fontFamily:
-                        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                    }}
-                  >
-                    {activeTab === 'today'
-                      ? 'Equipment Needed Today'
-                      : 'Equipment Needed - Next 14 Days'}
-                  </h2>
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <p className="text-xs text-gray-500">
-                    {visitCount} visits scheduled • {equipmentCount} items
-                  </p>
-
-                  {/* Chevron Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation() // ⛔ Stop bubbling
-                      setIsEquipmentExpanded(!isEquipmentExpanded)
-                    }}
-                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                  >
-                    <ChevronDown
-                      className={cn(
-                        'w-5 h-5 text-gray-400 transition-transform duration-300',
-                        isEquipmentExpanded ? 'rotate-180' : ''
-                      )}
-                    />
-                  </button>
-                </div>
+      <div className="ml-10 pt-32 px-6 pb-6 flex-1 overflow-y-auto">
+        {/* Equipment Section */}
+        <Card
+          onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
+          className="mb-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer transition-all select-none outline-none"
+          style={{ minHeight: '56px' }}
+        >
+          <CardContent className="p-4 bg-transparent">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div className="mb-4 sm:mb-0">
+                <h2
+                  className="font-medium"
+                  style={{
+                    color: '#1b1b1b',
+                    fontSize: '14px',
+                    fontFamily:
+                      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  }}
+                >
+                  {activeTab === 'today'
+                    ? 'Equipment Needed Today'
+                    : 'Equipment Needed - Next 14 Days'}
+                </h2>
               </div>
 
-              {/* Expandable Content */}
-              <div
-                className={cn(
-                  'overflow-hidden transition-all duration-500 ease-in-out',
-                  isEquipmentExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
-                )}
-              >
-                <div className="mt-1 pt-2">
-                  <div className="flex flex-wrap gap-3">
-                    {currentEquipment.map((eq, i) => (
-                      <div
-                        key={i}
-                        className="bg-white px-3 py-1 rounded-full text-xs border inline-flex items-center gap-1"
-                        style={{ color: '#239BCF', borderColor: '#239BCF' }}
-                      >
-                        <span>{eq.name}</span>
-                        <span className="font-normal">({eq.visits})</span>
+              <div className="flex items-center gap-4">
+                <p className="text-xs text-gray-500">
+                  {visitCount} visits scheduled • {equipmentCount} items
+                </p>
+
+                {/* Chevron Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation() // ⛔ Stop bubbling
+                    setIsEquipmentExpanded(!isEquipmentExpanded)
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <ChevronDown
+                    className={cn(
+                      'w-5 h-5 text-gray-400 transition-transform duration-300',
+                      isEquipmentExpanded ? 'rotate-180' : ''
+                    )}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* Expandable Content */}
+            <div
+              className={cn(
+                'overflow-hidden transition-all duration-500 ease-in-out',
+                isEquipmentExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+              )}
+            >
+              <div className="mt-1 pt-2">
+                <div className="flex flex-wrap gap-3">
+                  {currentEquipment.map((eq, i) => (
+                    <div
+                      key={i}
+                      className="bg-white px-3 py-1 rounded-full text-xs border inline-flex items-center gap-1"
+                      style={{ color: '#239BCF', borderColor: '#239BCF' }}
+                    >
+                      <span>{eq.name}</span>
+                      <span className="font-normal">({eq.visits})</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Today's Visits Section */}
+        <div className="mb-6">
+          <h3 className="text-xl font-medium mb-0" style={{ color: '#1b1b1b' }}>
+            {activeTab === 'today' ? "Today's Visits" : "Upcoming Visits"}
+          </h3>
+        </div>
+
+        {/* Visit Cards Layout */}
+        <div className="space-y-6">
+          {activeTab === '14days' ? (
+            <>
+              {Object.entries(groupedVisits).map(([date, visits]) => (
+                <div key={date} className="space-y-4">
+                  {/* Date Header */}
+                  <div className="bg-gray-100 border border-gray-200 rounded-lg px-4 py-3">
+                    <h4 className="text-sm font-medium text-gray-700">{date}</h4>
+                  </div>
+
+                  {/* Responsive layout for 14 days view - optimized for large screens */}
+                  <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin px-1 xl:gap-6">
+                    {visits.map(v => (
+                      <div key={v.id} className="flex-shrink-0 w-80 min-w-80 xl:w-96 xl:min-w-96 2xl:w-[420px] 2xl:min-w-[420px]">
+                        <VisitCard visit={v} />
                       </div>
                     ))}
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Today's Visits Section */}
-          <div className="mb-6">
-            <h3 className="text-xl font-medium mb-0" style={{ color: '#1b1b1b' }}>
-              {activeTab === 'today' ? "Today's Visits" : "Upcoming Visits"}
-            </h3>
-          </div>
-
-          {/* Visit Cards Layout */}
-          <div className="space-y-6">
-            {activeTab === '14days' ? (
-              <>
-                {Object.entries(groupedVisits).map(([date, visits]) => (
-                  <div key={date} className="space-y-4">
-                    {/* Date Header */}
-                    <div className="bg-gray-100 border border-gray-200 rounded-lg px-4 py-3">
-                      <h4 className="text-sm font-medium text-gray-700">{date}</h4>
-                    </div>
-
-                    {/* Responsive layout for 14 days view - optimized for large screens */}
-                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin px-1 xl:gap-6">
-                      {visits.map(v => (
-                        <div key={v.id} className="flex-shrink-0 w-80 min-w-80 xl:w-96 xl:min-w-96 2xl:w-[420px] 2xl:min-w-[420px]">
-                          <VisitCard visit={v} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </>
-            ) : (
-              /* Single column layout for today's visits */
-              <div className="space-y-4">
-                {currentVisits.map((visit) => (
-                  <VisitCard key={visit.id} visit={visit} />
-                ))}
-              </div>
-            )}
-          </div>
+              ))}
+            </>
+          ) : (
+            /* Single column layout for today's visits */
+            <div className="space-y-4">
+              {currentVisits.map((visit) => (
+                <VisitCard key={visit.id} visit={visit} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
