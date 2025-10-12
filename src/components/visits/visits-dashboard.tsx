@@ -344,7 +344,7 @@ function VisitCard({ visit }: { visit: Visit }) {
   }
 
   return (
-    <Card className="w-full bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer">
+    <Card className="w-full bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer" style={{ width: '100%', maxWidth: '100%' }}>
       <CardContent className="p-3 sm:p-4 md:p-5 lg:p-6">
         <div className="space-y-4 sm:space-y-5">
           {/* Header Row */}
@@ -520,68 +520,96 @@ export function VisitsDashboard() {
   }, [activeTab, groupedVisits])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Custom styles for responsive zoom behavior */}
+    <div className="min-h-screen bg-gray-50 w-[1101px]">
+      {/* Custom styles for responsive zoom behavior and mobile fixes */}
       <style>{`
-        @media (min-width: 640px) {
-          .visit-card-container {
-            min-width: 280px;
-            max-width: 100%;
-            width: 100%;
+        /* Force mobile header positioning */
+        @media (max-width: 639px) {
+          .mobile-header {
+            left: 191px !important;
+            right: 0 !important;
+            z-index: 50 !important;
+            position: fixed !important;
           }
           
-          /* Responsive to zoom levels */
-          @media (min-resolution: 0.75dppx) {
-            .visit-card-container {
-              min-width: 320px;
-            }
+          .mobile-content {
+            padding-top: 10rem !important;
+            padding-left: 2.5rem !important;
+            padding-right: 1rem !important;
+            margin-left: 0 !important;
           }
           
-          @media (min-resolution: 1.25dppx) {
-            .visit-card-container {
-              min-width: 280px;
-            }
+          .visit-card-mobile {
+            width: 100% !important;
+            margin-bottom: 1rem !important;
+            display: block !important;
           }
           
-          @media (min-resolution: 1.5dppx) {
-            .visit-card-container {
-              min-width: 260px;
-            }
+          /* Force single column on mobile */
+          .single-column-layout {
+            display: block !important;
+            width: 100% !important;
           }
         }
         
-        /* Ensure cards fill available space on zoom out */
-        .responsive-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 1rem;
-          width: 100%;
+        /* Desktop responsive behavior - ensure cards stay in position */
+        @media (min-width: 640px) {
+          .visit-card-container {
+            width: 100%;
+            max-width: none;
+          }
+          
+          /* Cards stay in position but grow in width on zoom out */
+          .single-column-layout {
+            max-width: 100% !important;
+            width: 100% !important;
+            display: block !important;
+          }
+          
+          /* Responsive grid for 14 days view */
+          .responsive-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+            gap: 1rem;
+            width: 100%;
+          }
         }
         
         @media (min-width: 768px) {
           .responsive-grid {
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
             gap: 1.25rem;
           }
         }
         
         @media (min-width: 1024px) {
           .responsive-grid {
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
             gap: 1.5rem;
           }
         }
         
         @media (min-width: 1280px) {
           .responsive-grid {
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)) !important;
             gap: 1.75rem;
           }
         }
+        
+        /* Force single column layout for Today's visits */
+        .today-visits-container {
+          display: block !important;
+          width: 100% !important;
+        }
+        
+        .today-visits-container > div {
+          width: 100% !important;
+          margin-bottom: 1rem !important;
+        }
       `}</style>
       {/* Fixed Header - fully responsive */}
-      <div className="fixed top-0 left-0 right-0 z-10 bg-white border-b border-gray-200 shadow-sm lg:left-49">
-        <div className="px-4 sm:px-6 py-4">
+      <div className="fixed top-0 left-0 right-0 z-10 bg-white border-b border-gray-200 shadow-sm lg:left-49 mobile-header">
+        <div className="px-4 sm:px-6 py-4 pb-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
             <div className="mb-4 sm:mb-0">
               <h1 className="font-medium text-base sm:text-lg" style={{ color: '#1b1b1b', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
@@ -668,7 +696,7 @@ export function VisitsDashboard() {
 
       {/* Sticky Date Header for 14 Days view */}
       {activeTab === '14days' && stickyDate && (
-        <div className="fixed top-32 left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-sm lg:left-49">
+        <div className="fixed top-32 left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-sm lg:left-49 mobile-header">
           <div className="px-4 sm:px-6 py-3">
             <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 sm:px-4 py-3">
               <h4 className="text-sm font-medium text-gray-700">{stickyDate}</h4>
@@ -678,11 +706,11 @@ export function VisitsDashboard() {
       )}
 
       {/* Main Content Area - fully responsive layout */}
-      <div className={`pt-32 px-4 sm:px-6 pb-6 flex-1 overflow-y-auto lg:ml-10 max-w-full ${activeTab === '14days' && stickyDate ? 'pt-48' : ''}`}>
+      <div className={`pt-35 px-4 sm:px-6 pb-6 flex-1 overflow-y-auto lg:ml-10 max-w-full mobile-content ${activeTab === '14days' && stickyDate ? 'pt-50' : ''}`}>
         {/* Equipment Section */}
         <Card
           onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
-          className="mb-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer transition-all select-none outline-none w-full"
+          className="mb-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer transition-all select-none outline-none w-full max-w-[1101px] "
           style={{ minHeight: '56px' }}
         >
           <CardContent className="p-3 sm:p-4 bg-transparent">
@@ -776,7 +804,7 @@ export function VisitsDashboard() {
                     {/* Mobile: Stack cards vertically */}
                     <div className="block sm:hidden space-y-3">
                       {visits.map(v => (
-                        <div key={v.id} className="w-full">
+                        <div key={v.id} className="w-full visit-card-mobile">
                           <VisitCard visit={v} />
                         </div>
                       ))}
@@ -796,9 +824,25 @@ export function VisitsDashboard() {
             </>
           ) : (
             /* Single column layout for today's visits - one card per line */
-            <div className="space-y-4 w-full">
+            <div 
+              className="space-y-4 w-full single-column-layout today-visits-container"
+              style={{ 
+                display: 'block', 
+                width: '100%', 
+                maxWidth: '100%' 
+              }}
+            >
               {currentVisits.map((visit) => (
-                <div key={visit.id} className="w-full">
+                <div 
+                  key={visit.id} 
+                  className="w-full visit-card-mobile"
+                  style={{ 
+                    width: '100%', 
+                    maxWidth: '100%', 
+                    marginBottom: '1rem',
+                    display: 'block'
+                  }}
+                >
                   <VisitCard visit={visit} />
                 </div>
               ))}
