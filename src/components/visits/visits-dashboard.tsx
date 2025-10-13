@@ -593,7 +593,7 @@ export function VisitsDashboard() {
 
     try {
       const scrollTop = window.scrollY
-      const headerHeight = 133 // Height of the fixed header
+      const headerHeight = 140 // Height of the fixed header
       const sidebarWidth = 200 // Sidebar width
 
       const dateEntries = Object.entries(groupedVisits)
@@ -607,6 +607,19 @@ export function VisitsDashboard() {
 
         const whiteContainer = dateSectionElement.querySelector('.bg-white.rounded-lg')
         if (!whiteContainer) return
+
+        // Store original width if not already stored (when in static position)
+        if (!dateElement.dataset.originalWidth) {
+          const computedStyle = window.getComputedStyle(dateElement)
+          if (computedStyle.position === 'static' || !dateElement.style.position) {
+            dateElement.dataset.originalWidth = dateElement.offsetWidth.toString()
+          }
+        }
+
+        // Get the stored original width or calculate from parent
+        const originalWidth = dateElement.dataset.originalWidth
+          ? parseInt(dateElement.dataset.originalWidth)
+          : dateSectionElement.offsetWidth
 
         // Get positions using getBoundingClientRect for accuracy
         const sectionRect = dateSectionElement.getBoundingClientRect()
@@ -638,7 +651,6 @@ export function VisitsDashboard() {
           dateElement.style.visibility = 'visible'
         } else if (containerBottomFromViewport > headerHeight + dateCardHeight) {
           // Section is active - make it sticky (fixed)
-          const originalWidth = dateElement.offsetWidth
           dateElement.style.position = 'fixed'
           dateElement.style.top = `${headerHeight}px`
           dateElement.style.left = `${sidebarWidth + 20}px`
@@ -650,7 +662,6 @@ export function VisitsDashboard() {
           const whiteContainerOffsetTop = whiteContainer.offsetTop
           const whiteContainerHeight = whiteContainer.offsetHeight
           const absoluteTop = whiteContainerOffsetTop + whiteContainerHeight - dateCardHeight
-          const originalWidth = dateElement.offsetWidth
 
           dateElement.style.position = 'absolute'
           dateElement.style.top = `${absoluteTop}px`
