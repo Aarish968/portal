@@ -634,16 +634,13 @@ export function VisitsDashboard() {
           // Set wrapper height to maintain space
           if (wrapper) wrapper.style.height = `${originalHeight + 16}px`
         } else if (containerBottom <= dateCardBottom && containerBottom > headerHeight) {
-          // Stopped state - date card stops at white container bottom
-          const whiteContainerOffsetTop = whiteContainer.offsetTop
-          const whiteContainerHeight = whiteContainer.offsetHeight
-          const absoluteTop = whiteContainerOffsetTop + whiteContainerHeight - originalHeight - 16
-
-          dateElement.style.position = 'absolute'
-          dateElement.style.top = `${absoluteTop}px`
-          dateElement.style.left = '0'
+          // Stopped state - date card moves down with container bottom
+          // Keep it fixed but move it down as container scrolls up
+          dateElement.style.position = 'fixed'
+          dateElement.style.top = `${containerBottom - originalHeight}px`
+          dateElement.style.left = `${sidebarWidth + 20}px`
           dateElement.style.width = `${originalWidth}px`
-          dateElement.style.zIndex = '50'
+          dateElement.style.zIndex = '15'
           dateElement.style.margin = '0'
           // Keep wrapper height
           if (wrapper) wrapper.style.height = `${originalHeight + 16}px`
