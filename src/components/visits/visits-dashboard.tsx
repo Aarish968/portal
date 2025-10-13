@@ -191,35 +191,129 @@ const mockVisits14Days: Visit[] = [
   },
   {
     id: '3',
-    patientName: 'Brandon Young',
-    time: '1:00PM',
-    address: '147 Willow Court, Englewo...',
-    insurance: 'BCBS',
+    patientName: 'Sarah Johnson',
+    time: '10:00AM',
+    address: '789 Pine Street, Dayton, OH',
+    insurance: 'Aetna',
     status: 'not-started',
     visitType: 'in-home',
-    date: 'Thursday, August 8, 2025',
+    date: 'Thursday, August 7, 2025',
     procedures: [
-      { name: 'EKG' },
-      { name: 'Hepatitis C Test' },
-      { name: 'HIV Test' },
-      { name: 'FIT/FOBT Test' },
+      { name: 'HbA1c Test' },
+      { name: 'Blood Pressure' },
+      { name: 'Retinal Screening' },
     ],
     healthRiskAssessment: 'not-started',
   },
   {
     id: '4',
-    patientName: 'Brandon Young',
-    time: '1:00PM',
-    address: '147 Willow Court, Englewo...',
-    insurance: 'BCBS',
+    patientName: 'Michael Brown',
+    time: '2:30PM',
+    address: '321 Oak Avenue, Dayton, OH',
+    insurance: 'UHC',
     status: 'not-started',
     visitType: 'in-home',
     date: 'Thursday, August 7, 2025',
     procedures: [
-      { name: 'EKG' },
-      { name: 'Hepatitis C Test' },
+      { name: 'Lipid Panel' },
+      { name: 'Bone Density' },
+      { name: 'Vaccine' },
+    ],
+    healthRiskAssessment: 'not-started',
+  },
+  {
+    id: '5',
+    patientName: 'Lisa Wilson',
+    time: '11:00AM',
+    address: '',
+    insurance: 'Medicare',
+    status: 'not-started',
+    visitType: 'telehealth',
+    date: 'Thursday, August 8, 2025',
+    procedures: [
+      { name: 'Pap/HPV Test' },
+      { name: 'STI Testing' },
       { name: 'HIV Test' },
+    ],
+    healthRiskAssessment: 'not-started',
+  },
+  {
+    id: '6',
+    patientName: 'David Miller',
+    time: '3:00PM',
+    address: '456 Elm Street, Dayton, OH',
+    insurance: 'BCBS',
+    status: 'not-started',
+    visitType: 'in-home',
+    date: 'Thursday, August 8, 2025',
+    procedures: [
+      { name: 'Portable ECG' },
+      { name: 'Hepatitis C Test' },
       { name: 'FIT/FOBT Test' },
+    ],
+    healthRiskAssessment: 'not-started',
+  },
+  {
+    id: '7',
+    patientName: 'Jennifer Garcia',
+    time: '9:00AM',
+    address: '654 Maple Drive, Dayton, OH',
+    insurance: 'Aetna',
+    status: 'not-started',
+    visitType: 'in-home',
+    date: 'Friday, August 9, 2025',
+    procedures: [
+      { name: 'Microalbumin Test' },
+      { name: 'Spirometry Test' },
+      { name: 'Vaccine' },
+    ],
+    healthRiskAssessment: 'not-started',
+  },
+  {
+    id: '8',
+    patientName: 'Robert Taylor',
+    time: '1:30PM',
+    address: '987 Cedar Lane, Dayton, OH',
+    insurance: 'UHC',
+    status: 'not-started',
+    visitType: 'in-home',
+    date: 'Friday, August 9, 2025',
+    procedures: [
+      { name: 'Retinal Camera' },
+      { name: 'Bone Density' },
+      { name: 'Portable Ultrasound' },
+    ],
+    healthRiskAssessment: 'not-started',
+  },
+  {
+    id: '9',
+    patientName: 'Maria Rodriguez',
+    time: '10:30AM',
+    address: '',
+    insurance: 'Medicare',
+    status: 'not-started',
+    visitType: 'telehealth',
+    date: 'Monday, August 12, 2025',
+    procedures: [
+      { name: 'HbA1c Test' },
+      { name: 'Lipid Panel' },
+      { name: 'Blood Pressure' },
+    ],
+    healthRiskAssessment: 'not-started',
+  },
+  {
+    id: '10',
+    patientName: 'James Anderson',
+    time: '2:00PM',
+    address: '123 Birch Street, Dayton, OH',
+    insurance: 'BCBS',
+    status: 'not-started',
+    visitType: 'in-home',
+    date: 'Monday, August 12, 2025',
+    procedures: [
+      { name: 'EKG' },
+      { name: 'HIV Test' },
+      { name: 'Hepatitis C Test' },
     ],
     healthRiskAssessment: 'not-started',
   },
@@ -448,6 +542,7 @@ export function VisitsDashboard() {
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
   const [time, setTime] = useState('')
   const dateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+  const dateSectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
   const currentVisits = activeTab === 'today' ? visitsToday : mockVisits14Days
   const currentEquipment = activeTab === 'today' ? equipmentDataToday : equipmentData14Days
@@ -504,7 +599,7 @@ export function VisitsDashboard() {
       // First, reset all date cards to normal positioning
       Object.entries(groupedVisits).forEach(([date]) => {
         const dateElement = dateRefs.current[date]
-        if (dateElement && dateElement.style.position === 'fixed') {
+        if (dateElement) {
           dateElement.style.position = 'static'
           dateElement.style.top = 'auto'
           dateElement.style.zIndex = 'auto'
@@ -513,45 +608,47 @@ export function VisitsDashboard() {
           dateElement.style.right = 'auto'
           dateElement.style.maxWidth = 'auto'
           dateElement.style.margin = 'auto'
-          dateElement.style.transition = 'all 0.2s ease-in-out'
+          dateElement.style.transition = 'none'
         }
       })
       
-      // Find the current date section being viewed
+      // Find which date section should be sticky
       const dateEntries = Object.entries(groupedVisits)
-      let currentDate = null
+      let stickyDate = null
       
-      // Check each date section to find which one is currently in view
+      // Check each date section to find which one should be sticky
       for (let i = 0; i < dateEntries.length; i++) {
-        const [date] = dateEntries[i]
+        const [date, visits] = dateEntries[i]
         const dateElement = dateRefs.current[date]
+        const dateSectionElement = dateSectionRefs.current[date]
         
-        if (dateElement) {
-          const rect = dateElement.getBoundingClientRect()
-          const elementTop = rect.top + scrollTop
-          const elementBottom = elementTop + rect.height
+        if (dateElement && dateSectionElement) {
+          const dateRect = dateElement.getBoundingClientRect()
+          const sectionRect = dateSectionElement.getBoundingClientRect()
+          const dateTop = dateRect.top + scrollTop
+          const sectionBottom = sectionRect.bottom + scrollTop
           
           // Check if we're currently viewing this date section
-          if (scrollTop + headerHeight >= elementTop && scrollTop + headerHeight < elementBottom) {
-            currentDate = date
+          if (scrollTop + headerHeight >= dateTop && scrollTop + headerHeight < sectionBottom) {
+            stickyDate = date
             break
           }
         }
       }
       
       // Make only the current date card sticky
-      if (currentDate) {
-        const currentDateElement = dateRefs.current[currentDate]
-        if (currentDateElement) {
-          currentDateElement.style.position = 'fixed'
-          currentDateElement.style.top = `${headerHeight}px`
-          currentDateElement.style.zIndex = '20'
-          currentDateElement.style.width = 'calc(100% - 2rem)' // Match the container padding
-          currentDateElement.style.left = `${sidebarWidth + 16}px` // Add sidebar width + padding
-          currentDateElement.style.right = '1rem'
-          currentDateElement.style.maxWidth = '1101px' // Match the visit cards max width
-          currentDateElement.style.margin = '0'
-          currentDateElement.style.transition = 'all 0.2s ease-in-out' // Smooth transition
+      if (stickyDate) {
+        const stickyDateElement = dateRefs.current[stickyDate]
+        if (stickyDateElement) {
+          stickyDateElement.style.position = 'fixed'
+          stickyDateElement.style.top = `${headerHeight}px`
+          stickyDateElement.style.zIndex = '20'
+          stickyDateElement.style.width = 'calc(100% - 2rem)' // Match the container padding
+          stickyDateElement.style.left = `${sidebarWidth + 16}px` // Add sidebar width + padding
+          stickyDateElement.style.right = '1rem'
+          stickyDateElement.style.maxWidth = '1101px' // Match the visit cards max width
+          stickyDateElement.style.margin = '0'
+          stickyDateElement.style.transition = 'all 0.3s ease-in-out' // Smooth transition
         }
       }
     } catch (error) {
@@ -903,7 +1000,7 @@ export function VisitsDashboard() {
           {activeTab === '14days' ? (
             <>
               {Object.entries(groupedVisits).map(([date, visits]) => (
-                <div key={date} className="w-full">
+                <div key={date} className="w-full" ref={el => dateSectionRefs.current[date] = el}>
                   {/* Date Header */}
                   <div
                     ref={el => dateRefs.current[date] = el}
