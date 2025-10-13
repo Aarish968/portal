@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { Clock, MapPin, Building, Check, ChevronDown, Bell } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
@@ -447,7 +447,6 @@ export function VisitsDashboard() {
   const [visitsToday, setVisitsToday] = useState<Visit[]>(mockVisitsToday)
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
   const [time, setTime] = useState('')
-  const [stickyDate, setStickyDate] = useState('')
   const dateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
   const currentVisits = activeTab === 'today' ? visitsToday : mockVisits14Days
@@ -490,6 +489,97 @@ export function VisitsDashboard() {
     const timer = setInterval(updateTime, 60000)
     return () => clearInterval(timer)
   }, [])
+
+  // Scroll detection for making date cards sticky
+  const handleScroll = useCallback(() => {
+    if (activeTab !== '14days') {
+      return
+    }
+
+    try {
+      const scrollTop = window.scrollY
+      const headerHeight = 200 // Approximate height of the fixed header
+      const sidebarWidth = 200 // Approximate sidebar width
+      
+      // Make date cards sticky when they reach the top
+      Object.entries(groupedVisits).forEach(([date]) => {
+        const dateElement = dateRefs.current[date]
+        if (dateElement) {
+          const rect = dateElement.getBoundingClientRect()
+          const elementTop = rect.top + scrollTop
+          
+          // If the date card has scrolled past the header, make it sticky
+          if (scrollTop + headerHeight > elementTop) {
+            // Only apply sticky if not already sticky to prevent flickering
+            if (dateElement.style.position !== 'fixed') {
+              dateElement.style.position = 'fixed'
+              dateElement.style.top = `${headerHeight}px`
+              dateElement.style.zIndex = '20'
+              dateElement.style.width = 'calc(100% - 2rem)' // Match the container padding
+              dateElement.style.left = `${sidebarWidth + 16}px` // Add sidebar width + padding
+              dateElement.style.right = '1rem'
+              dateElement.style.maxWidth = '1101px' // Match the visit cards max width
+              dateElement.style.margin = '0'
+              dateElement.style.transition = 'all 0.2s ease-in-out' // Smooth transition
+            }
+          } else {
+            // Reset to normal positioning
+            if (dateElement.style.position === 'fixed') {
+              dateElement.style.position = 'static'
+              dateElement.style.top = 'auto'
+              dateElement.style.zIndex = 'auto'
+              dateElement.style.width = 'auto'
+              dateElement.style.left = 'auto'
+              dateElement.style.right = 'auto'
+              dateElement.style.maxWidth = 'auto'
+              dateElement.style.margin = 'auto'
+              dateElement.style.transition = 'all 0.2s ease-in-out'
+            }
+          }
+        }
+      })
+    } catch (error) {
+      console.error('Scroll handler error:', error)
+    }
+  }, [activeTab, groupedVisits])
+
+  useEffect(() => {
+    if (activeTab === '14days') {
+      window.addEventListener('scroll', handleScroll, { passive: true })
+      return () => {
+        window.removeEventListener('scroll', handleScroll)
+        // Reset all date card styles when switching tabs
+        Object.values(dateRefs.current).forEach(element => {
+          if (element) {
+            element.style.position = 'static'
+            element.style.top = 'auto'
+            element.style.zIndex = 'auto'
+            element.style.width = 'auto'
+            element.style.left = 'auto'
+            element.style.right = 'auto'
+            element.style.maxWidth = 'auto'
+            element.style.margin = 'auto'
+            element.style.transition = 'none'
+          }
+        })
+      }
+    } else {
+      // Reset all date card styles when not on 14days tab
+      Object.values(dateRefs.current).forEach(element => {
+        if (element) {
+          element.style.position = 'static'
+          element.style.top = 'auto'
+          element.style.zIndex = 'auto'
+          element.style.width = 'auto'
+          element.style.left = 'auto'
+          element.style.right = 'auto'
+          element.style.maxWidth = 'auto'
+          element.style.margin = 'auto'
+          element.style.transition = 'none'
+        }
+      })
+    }
+  }, [activeTab, handleScroll])
 
 
 
@@ -710,6 +800,7 @@ export function VisitsDashboard() {
           <div className="h-px bg-gray-300 w-full"></div>
         </div>
       </div>
+
 
       {/* Main Content Area - fully responsive layout */}
       <div className="pt-35 px-4 sm:px-6 pb-6 flex-1 overflow-y-auto lg:ml-10 max-w-full mobile-content">
