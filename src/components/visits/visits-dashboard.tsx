@@ -491,33 +491,7 @@ export function VisitsDashboard() {
     return () => clearInterval(timer)
   }, [])
 
-  // Sticky date header functionality
-  useEffect(() => {
-    if (activeTab !== '14days') return
 
-    const handleScroll = () => {
-      const headerHeight = 200 // Approximate height of fixed header
-      
-      // Find which date section is currently in view
-      const dates = Object.keys(groupedVisits)
-      let currentDate = ''
-      
-      for (const date of dates) {
-        const element = dateRefs.current[date]
-        if (element) {
-          const rect = element.getBoundingClientRect()
-          if (rect.top <= headerHeight + 50) {
-            currentDate = date
-          }
-        }
-      }
-      
-      setStickyDate(currentDate)
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [activeTab, groupedVisits])
 
   return (
     <div className="min-h-screen bg-gray-50 w-[1101px]">
@@ -612,34 +586,41 @@ export function VisitsDashboard() {
           background-color: rgba(35, 155, 207, 0.1) !important;
           border: 1px solid rgba(35, 155, 207, 0.2) !important;
           color: #239BCF !important;
+          margin-bottom: 1rem !important;
         }
         
-        .date-visits-container {
-          background-color: white !important;
-          border-radius: 8px !important;
-          padding: 1rem !important;
-          margin-bottom: 1.5rem !important;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-        }
+
         
         .visits-grid {
-          display: grid !important;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+          display: flex !important;
+          flex-wrap: wrap !important;
           gap: 1rem !important;
           width: 100% !important;
         }
         
+        .visits-grid > div {
+          flex: 1 1 calc(50% - 0.5rem) !important;
+          min-width: 300px !important;
+          max-width: 100% !important;
+        }
+        
         @media (min-width: 768px) {
           .visits-grid {
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
             gap: 1.25rem !important;
+          }
+          .visits-grid > div {
+            flex: 1 1 calc(50% - 0.625rem) !important;
+            min-width: 320px !important;
           }
         }
         
         @media (min-width: 1024px) {
           .visits-grid {
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
             gap: 1.5rem !important;
+          }
+          .visits-grid > div {
+            flex: 1 1 calc(50% - 0.75rem) !important;
+            min-width: 350px !important;
           }
         }
       `}</style>
@@ -730,19 +711,8 @@ export function VisitsDashboard() {
         </div>
       </div>
 
-      {/* Sticky Date Header for 14 Days view */}
-      {activeTab === '14days' && stickyDate && (
-        <div className="fixed top-32 left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-sm lg:left-49 mobile-header">
-          <div className="px-4 sm:px-6 py-3">
-            <div className="bg-gray-100 border border-gray-200 rounded-lg px-3 sm:px-4 py-3">
-              <h4 className="text-sm font-medium text-gray-700">{stickyDate}</h4>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Main Content Area - fully responsive layout */}
-      <div className={`pt-35 px-4 sm:px-6 pb-6 flex-1 overflow-y-auto lg:ml-10 max-w-full mobile-content ${activeTab === '14days' && stickyDate ? 'pt-50' : ''}`}>
+      <div className="pt-35 px-4 sm:px-6 pb-6 flex-1 overflow-y-auto lg:ml-10 max-w-full mobile-content">
         {/* Equipment Section */}
         <Card
           onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
@@ -826,13 +796,16 @@ export function VisitsDashboard() {
           {activeTab === '14days' ? (
             <>
               {Object.entries(groupedVisits).map(([date, visits]) => (
-                <div key={date} className="date-visits-container">
+                <div key={date} className="w-full">
                   {/* Date Header */}
-                  <div 
+                  <div
                     ref={el => dateRefs.current[date] = el}
-                    className="date-card rounded-lg px-3 sm:px-4 py-3 w-full mb-4"
+                    className="date-card rounded-lg px-3 sm:px-4 py-3 w-full"
                   >
-                    <h4 className="text-sm font-medium">{date}</h4>
+                    <h4 className="text-sm font-medium mb-1">{date}</h4>
+                    <span className="text-xs font-medium" style={{ color: '#939090' }}>
+                      {visits.length} {visits.length === 1 ? 'Visit' : 'Visits'} Scheduled
+                    </span>
                   </div>
 
                   {/* Responsive layout for 14 days view - fully responsive */}
@@ -840,12 +813,12 @@ export function VisitsDashboard() {
                     {/* Mobile: Stack cards vertically */}
                     <div className="block sm:hidden space-y-3">
                       {visits.map(v => (
-                        <div key={v.id} className="w-full visit-card-mobile">
+                        <div key={v.id} className="visit-card-mobile">
                           <VisitCard visit={v} />
                         </div>
                       ))}
                     </div>
-                    
+
                     {/* Tablet and Desktop: Responsive grid that adapts to zoom */}
                     <div className="hidden sm:block visits-grid">
                       {visits.map(v => (
@@ -860,21 +833,21 @@ export function VisitsDashboard() {
             </>
           ) : (
             /* Single column layout for today's visits - one card per line */
-            <div 
+            <div
               className="space-y-4 w-full single-column-layout today-visits-container"
-              style={{ 
-                display: 'block', 
-                width: '100%', 
-                maxWidth: '100%' 
+              style={{
+                display: 'block',
+                width: '100%',
+                maxWidth: '100%'
               }}
             >
               {currentVisits.map((visit) => (
-                <div 
-                  key={visit.id} 
+                <div
+                  key={visit.id}
                   className="w-full visit-card-mobile"
-                  style={{ 
-                    width: '100%', 
-                    maxWidth: '100%', 
+                  style={{
+                    width: '100%',
+                    maxWidth: '100%',
                     marginBottom: '1rem',
                     display: 'block'
                   }}
