@@ -629,7 +629,7 @@ export function VisitsDashboard() {
           dateElement.style.top = `${headerHeight}px`
           dateElement.style.left = `${sidebarWidth + 20}px`
           dateElement.style.width = `${originalWidth}px`
-          dateElement.style.zIndex = '50'
+          dateElement.style.zIndex = '5'
           dateElement.style.margin = '0'
           // Set wrapper height to maintain space
           if (wrapper) wrapper.style.height = `${originalHeight + 16}px`
@@ -640,7 +640,7 @@ export function VisitsDashboard() {
           dateElement.style.top = `${containerBottom - originalHeight}px`
           dateElement.style.left = `${sidebarWidth + 20}px`
           dateElement.style.width = `${originalWidth}px`
-          dateElement.style.zIndex = '15'
+          dateElement.style.zIndex = '5'
           dateElement.style.margin = '0'
           // Keep wrapper height
           if (wrapper) wrapper.style.height = `${originalHeight + 16}px`
