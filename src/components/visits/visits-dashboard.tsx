@@ -596,27 +596,11 @@ export function VisitsDashboard() {
       const headerHeight = 200 // Approximate height of the fixed header
       const sidebarWidth = 200 // Approximate sidebar width
       
-      // First, reset all date cards to normal positioning
-      Object.entries(groupedVisits).forEach(([date]) => {
-        const dateElement = dateRefs.current[date]
-        if (dateElement) {
-          dateElement.style.position = 'static'
-          dateElement.style.top = 'auto'
-          dateElement.style.zIndex = 'auto'
-          dateElement.style.width = 'auto'
-          dateElement.style.left = 'auto'
-          dateElement.style.right = 'auto'
-          dateElement.style.maxWidth = 'auto'
-          dateElement.style.margin = 'auto'
-          dateElement.style.transition = 'none'
-        }
-      })
-      
-      // Find which date section should be sticky
       const dateEntries = Object.entries(groupedVisits)
       let stickyDate = null
+      let stoppedDates = new Set<string>()
       
-      // Check each date section to find which one should be sticky
+      // First pass: determine which dates should be sticky or stopped
       for (let i = 0; i < dateEntries.length; i++) {
         const [date, visits] = dateEntries[i]
         const dateElement = dateRefs.current[date]
@@ -625,36 +609,86 @@ export function VisitsDashboard() {
         if (dateElement && dateSectionElement) {
           const sectionRect = dateSectionElement.getBoundingClientRect()
           const sectionTop = sectionRect.top + scrollTop
-          const sectionBottom = sectionRect.bottom + scrollTop
           const dateCardHeight = dateElement.offsetHeight
           
-          // Check if we're currently viewing this date section
-          // The date card should be sticky when:
-          // 1. The section top has passed the header
-          // 2. The section bottom hasn't reached the header + date card height
-          if (scrollTop + headerHeight >= sectionTop && 
-              scrollTop + headerHeight + dateCardHeight < sectionBottom) {
-            stickyDate = date
-            break
+          // Find the white background container (visit cards container)
+          const whiteContainer = dateSectionElement.querySelector('.bg-white.rounded-lg')
+          
+          if (whiteContainer) {
+            const containerRect = whiteContainer.getBoundingClientRect()
+            const containerBottom = containerRect.bottom + scrollTop
+            
+            // Calculate when date card bottom should touch white container bottom
+            const stopPoint = containerBottom - dateCardHeight
+            
+            // Check if date card should be sticky (moving with scroll)
+            if (scrollTop + headerHeight >= sectionTop && 
+                scrollTop + headerHeight < stopPoint) {
+              stickyDate = date
+              break
+            }
+            // Check if date card should be stopped (at the bottom of white container)
+            else if (scrollTop + headerHeight >= stopPoint && 
+                     scrollTop + headerHeight < containerBottom + 50) {
+              stoppedDates.add(date)
+            }
           }
         }
       }
       
-      // Make only the current date card sticky
-      if (stickyDate) {
-        const stickyDateElement = dateRefs.current[stickyDate]
-        if (stickyDateElement) {
-          stickyDateElement.style.position = 'fixed'
-          stickyDateElement.style.top = `${headerHeight}px`
-          stickyDateElement.style.zIndex = '20'
-          stickyDateElement.style.width = 'calc(100% - 2rem)' // Match the container padding
-          stickyDateElement.style.left = `${sidebarWidth + 16}px` // Add sidebar width + padding
-          stickyDateElement.style.right = '1rem'
-          stickyDateElement.style.maxWidth = '1101px' // Match the visit cards max width
-          stickyDateElement.style.margin = '0'
-          stickyDateElement.style.transition = 'all 0.3s ease-in-out' // Smooth transition
+      // Second pass: apply styles to all date cards
+      Object.entries(groupedVisits).forEach(([date]) => {
+        const dateElement = dateRefs.current[date]
+        const dateSectionElement = dateSectionRefs.current[date]
+        
+        if (dateElement && dateSectionElement) {
+          if (date === stickyDate) {
+            // Make it sticky (fixed position)
+            const originalWidth = dateElement.offsetWidth
+            dateElement.style.position = 'fixed'
+            dateElement.style.top = `${headerHeight}px`
+            dateElement.style.zIndex = '20'
+            dateElement.style.width = `${originalWidth}px`
+            dateElement.style.left = `${sidebarWidth + 16}px`
+            dateElement.style.right = 'auto'
+            dateElement.style.maxWidth = 'none'
+            dateElement.style.margin = '0'
+            dateElement.style.transition = 'all 0.3s ease-in-out'
+          } else if (stoppedDates.has(date)) {
+            // Make it stopped (absolute position at bottom of white container)
+            const whiteContainer = dateSectionElement.querySelector('.bg-white.rounded-lg')
+            if (whiteContainer) {
+              const sectionRect = dateSectionElement.getBoundingClientRect()
+              const sectionTop = sectionRect.top + scrollTop
+              const containerRect = whiteContainer.getBoundingClientRect()
+              const containerBottom = containerRect.bottom + scrollTop
+              const dateCardHeight = dateElement.offsetHeight
+              const stopPoint = containerBottom - dateCardHeight
+              
+              const originalWidth = dateElement.offsetWidth
+              dateElement.style.position = 'absolute'
+              dateElement.style.top = `${stopPoint - sectionTop}px`
+              dateElement.style.left = '0'
+              dateElement.style.right = 'auto'
+              dateElement.style.width = `${originalWidth}px`
+              dateElement.style.zIndex = '10'
+              dateElement.style.maxWidth = 'none'
+              dateElement.style.margin = '0'
+            }
+          } else {
+            // Reset to normal (static position)
+            dateElement.style.position = 'static'
+            dateElement.style.top = 'auto'
+            dateElement.style.zIndex = 'auto'
+            dateElement.style.width = 'auto'
+            dateElement.style.left = 'auto'
+            dateElement.style.right = 'auto'
+            dateElement.style.maxWidth = 'auto'
+            dateElement.style.margin = 'auto'
+            dateElement.style.transition = 'none'
+          }
         }
-      }
+      })
     } catch (error) {
       console.error('Scroll handler error:', error)
     }
@@ -790,10 +824,11 @@ export function VisitsDashboard() {
         
         /* Next 14 Days styling */
         .date-card {
-          background-color: rgba(35, 155, 207, 0.1) !important;
-          border: 1px solid rgba(35, 155, 207, 0.2) !important;
+          background-color: rgba(35, 155, 207, 0.15) !important;
+          border: 1px solid rgba(35, 155, 207, 0.3) !important;
           color: #239BCF !important;
           margin-bottom: 0 !important;
+          backdrop-filter: blur(8px) !important;
         }
         
 
