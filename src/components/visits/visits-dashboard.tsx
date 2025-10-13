@@ -593,121 +593,93 @@ export function VisitsDashboard() {
 
     try {
       const scrollTop = window.scrollY
-      const headerHeight = 135 // Approximate height of the fixed header
-      const sidebarWidth = 200 // Approximate sidebar width
-      
+      const headerHeight = 133 // Height of the fixed header
+      const sidebarWidth = 200 // Sidebar width
+
       const dateEntries = Object.entries(groupedVisits)
-      let stickyDate = null
-      let stoppedDates = new Set<string>()
-      
-      // First pass: determine which dates should be sticky or stopped
-      for (let i = 0; i < dateEntries.length; i++) {
-        const [date, visits] = dateEntries[i]
+
+      // Process each date section
+      dateEntries.forEach(([date, visits], index) => {
         const dateElement = dateRefs.current[date]
         const dateSectionElement = dateSectionRefs.current[date]
-        
-        if (dateElement && dateSectionElement) {
-          const sectionRect = dateSectionElement.getBoundingClientRect()
-          const sectionTop = sectionRect.top + scrollTop
-          const sectionBottom = sectionRect.bottom + scrollTop
-          const dateCardHeight = dateElement.offsetHeight
-          
-          // Find the white background container (visit cards container)
-          const whiteContainer = dateSectionElement.querySelector('.bg-white.rounded-lg')
-          
-          if (whiteContainer) {
-            const containerRect = whiteContainer.getBoundingClientRect()
-            const containerBottom = containerRect.bottom + scrollTop
-            
-            // Calculate when date card bottom should touch white container bottom
-            const stopPoint = containerBottom - dateCardHeight
-            
-            // Date card should be sticky (fixed at header position) when:
-            // 1. Section has started (section top passed the header)
-            // 2. We haven't reached the stop point (bottom of white container)
-            if (scrollTop + headerHeight > sectionTop && 
-                scrollTop + headerHeight < stopPoint) {
-              stickyDate = date
-              break
-            }
-            // Date card should be stopped (absolute at bottom of white container) when:
-            // We've reached the stop point but haven't scrolled past the entire section
-            else if (scrollTop + headerHeight >= stopPoint && 
-                     scrollTop + headerHeight < sectionBottom) {
-              stoppedDates.add(date)
-            }
+
+        if (!dateElement || !dateSectionElement) return
+
+        const whiteContainer = dateSectionElement.querySelector('.bg-white.rounded-lg')
+        if (!whiteContainer) return
+
+        // Get positions using getBoundingClientRect for accuracy
+        const sectionRect = dateSectionElement.getBoundingClientRect()
+        const containerRect = whiteContainer.getBoundingClientRect()
+        const dateCardHeight = dateElement.offsetHeight
+
+        // Calculate if this section is in view
+        const sectionTopFromViewport = sectionRect.top
+        const containerBottomFromViewport = containerRect.bottom
+
+        // Check if next section exists and is overlapping
+        const nextDate = dateEntries[index + 1]
+        let nextSectionTop = Infinity
+        if (nextDate) {
+          const nextSection = dateSectionRefs.current[nextDate[0]]
+          if (nextSection) {
+            nextSectionTop = nextSection.getBoundingClientRect().top
           }
         }
-      }
-      
-      // Second pass: apply styles to all date cards
-      Object.entries(groupedVisits).forEach(([date]) => {
-        const dateElement = dateRefs.current[date]
-        const dateSectionElement = dateSectionRefs.current[date]
-        
-        if (dateElement && dateSectionElement) {
-          // Store previous state to avoid unnecessary transitions
-          const prevPosition = dateElement.style.position
-          
-          if (date === stickyDate) {
-            // Make it sticky (fixed position)
-            const originalWidth = dateElement.offsetWidth || dateElement.getBoundingClientRect().width
-            
-            // Only apply transition if transitioning from static to fixed
-            const shouldTransition = prevPosition === 'sticky' || prevPosition === ''
-            
-            dateElement.style.position = 'fixed'
-            dateElement.style.top = `${headerHeight}px`
-            dateElement.style.zIndex = '10'
-            dateElement.style.width = `${originalWidth}px`
-            dateElement.style.left = `${sidebarWidth + 20}px`
-            dateElement.style.right = 'auto'
-            dateElement.style.maxWidth = 'none'
-            dateElement.style.margin = '0'
-            dateElement.style.transform = 'none'
-            dateElement.style.transition = shouldTransition ? 'none' : 'top 0.2s ease-out'
-          } else if (stoppedDates.has(date)) {
-            // Make it stopped (absolute position at bottom of white container)
-            const whiteContainer = dateSectionElement.querySelector('.bg-white.rounded-lg')
-            if (whiteContainer) {
-              // Get the white container's position relative to the section
-              const whiteContainerOffsetTop = whiteContainer.offsetTop
-              const whiteContainerHeight = whiteContainer.offsetHeight
-              const dateCardHeight = dateElement.offsetHeight
-              
-              // Position date card at the bottom of white container
-              const absoluteTop = whiteContainerOffsetTop + whiteContainerHeight - dateCardHeight
-              
-              const originalWidth = dateElement.offsetWidth || dateElement.getBoundingClientRect().width
-              
-              dateElement.style.position = 'absolute'
-              dateElement.style.top = `${absoluteTop}px`
-              dateElement.style.left = '0'
-              dateElement.style.right = 'auto'
-              dateElement.style.width = `${originalWidth}px`
-              dateElement.style.zIndex = '10'
-              dateElement.style.maxWidth = 'none'
-              dateElement.style.margin = '0'
-              dateElement.style.visibility = 'visible'
-              dateElement.style.opacity = '1'
-              dateElement.style.transform = 'none'
-              dateElement.style.transition = 'none'
-            }
-          } else {
-            // Reset to normal (static position)
-            dateElement.style.position = 'sticky'
-            dateElement.style.top = 'auto'
-            dateElement.style.zIndex = 'auto'
-            dateElement.style.width = 'auto'
-            dateElement.style.left = 'auto'
-            dateElement.style.right = 'auto'
-            dateElement.style.maxWidth = 'auto'
-            dateElement.style.margin = 'auto'
-            dateElement.style.transform = 'none'
-            dateElement.style.transition = 'none'
-            dateElement.style.visibility = 'visible'
-            dateElement.style.opacity = '1'
-          }
+
+        // Determine state based on viewport position
+        if (sectionTopFromViewport > headerHeight) {
+          // Section hasn't reached the sticky point yet
+          dateElement.style.position = 'static'
+          dateElement.style.top = 'auto'
+          dateElement.style.left = 'auto'
+          dateElement.style.width = 'auto'
+          dateElement.style.zIndex = 'auto'
+          dateElement.style.visibility = 'visible'
+        } else if (containerBottomFromViewport > headerHeight + dateCardHeight) {
+          // Section is active - make it sticky (fixed)
+          const originalWidth = dateElement.offsetWidth
+          dateElement.style.position = 'fixed'
+          dateElement.style.top = `${headerHeight}px`
+          dateElement.style.left = `${sidebarWidth + 20}px`
+          dateElement.style.width = `${originalWidth}px`
+          dateElement.style.zIndex = '20'
+          dateElement.style.visibility = 'visible'
+        } else if (containerBottomFromViewport <= headerHeight + dateCardHeight && containerBottomFromViewport > headerHeight) {
+          // Container bottom is near - stop the date card at container bottom
+          const whiteContainerOffsetTop = whiteContainer.offsetTop
+          const whiteContainerHeight = whiteContainer.offsetHeight
+          const absoluteTop = whiteContainerOffsetTop + whiteContainerHeight - dateCardHeight
+          const originalWidth = dateElement.offsetWidth
+
+          dateElement.style.position = 'absolute'
+          dateElement.style.top = `${absoluteTop}px`
+          dateElement.style.left = '0'
+          dateElement.style.width = `${originalWidth}px`
+          dateElement.style.zIndex = '1'
+          dateElement.style.visibility = 'visible'
+        } else {
+          // Section has scrolled past - hide it
+          dateElement.style.position = 'absolute'
+          dateElement.style.top = '0'
+          dateElement.style.left = '0'
+          dateElement.style.width = 'auto'
+          dateElement.style.zIndex = '1'
+          dateElement.style.visibility = 'hidden'
+          dateElement.style.opacity = '0'
+        }
+
+        // Common styles
+        dateElement.style.right = 'auto'
+        dateElement.style.maxWidth = 'none'
+        dateElement.style.margin = dateElement.style.position === 'static' ? 'auto' : '0'
+        dateElement.style.transform = 'translateZ(0)'
+        dateElement.style.transition = 'none'
+        dateElement.style.willChange = 'transform'
+
+        // Ensure opacity is 1 for visible states
+        if (dateElement.style.visibility === 'visible') {
+          dateElement.style.opacity = '1'
         }
       })
     } catch (error) {
