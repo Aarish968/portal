@@ -586,7 +586,7 @@ export function VisitsDashboard() {
           background-color: rgba(35, 155, 207, 0.1) !important;
           border: 1px solid rgba(35, 155, 207, 0.2) !important;
           color: #239BCF !important;
-          margin-bottom: 1rem !important;
+          margin-bottom: 0 !important;
         }
         
 
@@ -809,7 +809,7 @@ export function VisitsDashboard() {
                   </div>
 
                   {/* Responsive layout for 14 days view - fully responsive */}
-                  <div className="w-full">
+                  <div className="w-full bg-white rounded-lg p-4 sm:p-6 shadow-sm">
                     {/* Mobile: Stack cards vertically */}
                     <div className="block sm:hidden space-y-3">
                       {visits.map(v => (
