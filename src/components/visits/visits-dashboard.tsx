@@ -587,114 +587,80 @@ export function VisitsDashboard() {
 
   // Scroll detection for making date cards sticky
   const handleScroll = useCallback(() => {
-    if (activeTab !== '14days') {
-      return
-    }
+    if (activeTab !== '14days') return
 
     try {
       const scrollTop = window.scrollY
-      const headerHeight = 140 // Height of the fixed header
-      const sidebarWidth = 200 // Sidebar width
+      const headerHeight = 135
+      const sidebarWidth = 200
 
-      const dateEntries = Object.entries(groupedVisits)
-
-      // Process each date section
-      dateEntries.forEach(([date, visits], index) => {
+      Object.entries(groupedVisits).forEach(([date, visits]) => {
         const dateElement = dateRefs.current[date]
         const dateSectionElement = dateSectionRefs.current[date]
 
         if (!dateElement || !dateSectionElement) return
 
+        const wrapper = dateElement.parentElement
         const whiteContainer = dateSectionElement.querySelector('.bg-white.rounded-lg')
+
         if (!whiteContainer) return
 
-        // Store original width if not already stored (when in static position)
+        // Store original dimensions once
         if (!dateElement.dataset.originalWidth) {
-          const computedStyle = window.getComputedStyle(dateElement)
-          if (computedStyle.position === 'static' || !dateElement.style.position) {
-            dateElement.dataset.originalWidth = dateElement.offsetWidth.toString()
-          }
+          dateElement.dataset.originalWidth = dateElement.offsetWidth.toString()
+          dateElement.dataset.originalHeight = dateElement.offsetHeight.toString()
         }
+        const originalWidth = parseInt(dateElement.dataset.originalWidth)
+        const originalHeight = parseInt(dateElement.dataset.originalHeight)
 
-        // Get the stored original width or calculate from parent
-        const originalWidth = dateElement.dataset.originalWidth
-          ? parseInt(dateElement.dataset.originalWidth)
-          : dateSectionElement.offsetWidth
-
-        // Get positions using getBoundingClientRect for accuracy
         const sectionRect = dateSectionElement.getBoundingClientRect()
         const containerRect = whiteContainer.getBoundingClientRect()
-        const dateCardHeight = dateElement.offsetHeight
+        const sectionTop = sectionRect.top
+        const containerBottom = containerRect.bottom
 
-        // Calculate if this section is in view
-        const sectionTopFromViewport = sectionRect.top
-        const containerBottomFromViewport = containerRect.bottom
+        // Date card should be fixed when:
+        // 1. Section has started (sectionTop <= headerHeight)
+        // 2. White container bottom hasn't reached the date card bottom position
+        const dateCardBottom = headerHeight + originalHeight
 
-        // Check if next section exists and is overlapping
-        const nextDate = dateEntries[index + 1]
-        let nextSectionTop = Infinity
-        if (nextDate) {
-          const nextSection = dateSectionRefs.current[nextDate[0]]
-          if (nextSection) {
-            nextSectionTop = nextSection.getBoundingClientRect().top
-          }
-        }
-
-        // Determine state based on viewport position
-        if (sectionTopFromViewport > headerHeight) {
-          // Section hasn't reached the sticky point yet
-          dateElement.style.position = 'static'
-          dateElement.style.top = 'auto'
-          dateElement.style.left = 'auto'
-          dateElement.style.width = 'auto'
-          dateElement.style.zIndex = 'auto'
-          dateElement.style.visibility = 'visible'
-        } else if (containerBottomFromViewport > headerHeight + dateCardHeight) {
-          // Section is active - make it sticky (fixed)
+        if (sectionTop <= headerHeight && containerBottom > dateCardBottom) {
+          // Fixed state - date card is sticky
           dateElement.style.position = 'fixed'
           dateElement.style.top = `${headerHeight}px`
           dateElement.style.left = `${sidebarWidth + 20}px`
           dateElement.style.width = `${originalWidth}px`
-          dateElement.style.zIndex = '20'
-          dateElement.style.visibility = 'visible'
-        } else if (containerBottomFromViewport <= headerHeight + dateCardHeight && containerBottomFromViewport > headerHeight) {
-          // Container bottom is near - stop the date card at container bottom
+          dateElement.style.zIndex = '50'
+          dateElement.style.margin = '0'
+          // Set wrapper height to maintain space
+          if (wrapper) wrapper.style.height = `${originalHeight + 16}px`
+        } else if (containerBottom <= dateCardBottom && containerBottom > headerHeight) {
+          // Stopped state - date card stops at white container bottom
           const whiteContainerOffsetTop = whiteContainer.offsetTop
           const whiteContainerHeight = whiteContainer.offsetHeight
-          const absoluteTop = whiteContainerOffsetTop + whiteContainerHeight - dateCardHeight
+          const absoluteTop = whiteContainerOffsetTop + whiteContainerHeight - originalHeight - 16
 
           dateElement.style.position = 'absolute'
           dateElement.style.top = `${absoluteTop}px`
           dateElement.style.left = '0'
           dateElement.style.width = `${originalWidth}px`
-          dateElement.style.zIndex = '1'
-          dateElement.style.visibility = 'visible'
+          dateElement.style.zIndex = '50'
+          dateElement.style.margin = '0'
+          // Keep wrapper height
+          if (wrapper) wrapper.style.height = `${originalHeight + 16}px`
         } else {
-          // Section has scrolled past - hide it
-          dateElement.style.position = 'absolute'
-          dateElement.style.top = '0'
-          dateElement.style.left = '0'
-          dateElement.style.width = 'auto'
-          dateElement.style.zIndex = '1'
-          dateElement.style.visibility = 'hidden'
-          dateElement.style.opacity = '0'
-        }
-
-        // Common styles
-        dateElement.style.right = 'auto'
-        dateElement.style.maxWidth = 'none'
-        dateElement.style.margin = dateElement.style.position === 'static' ? 'auto' : '0'
-        dateElement.style.transform = 'translateZ(0)'
-        dateElement.style.transition = 'none'
-        dateElement.style.willChange = 'transform'
-
-        // Ensure opacity is 1 for visible states
-        if (dateElement.style.visibility === 'visible') {
-          dateElement.style.opacity = '1'
+          // Normal state - before section starts or after section ends
+          dateElement.style.position = ''
+          dateElement.style.top = ''
+          dateElement.style.left = ''
+          dateElement.style.width = ''
+          dateElement.style.zIndex = ''
+          dateElement.style.margin = ''
+          // Reset wrapper height
+          if (wrapper) wrapper.style.height = ''
         }
       })
     } catch (error) {
-      console.error('Scroll handler error:', error)
+      console.error('Scroll error:', error)
     }
   }, [activeTab, groupedVisits])
 
@@ -1043,16 +1009,18 @@ export function VisitsDashboard() {
           {activeTab === '14days' ? (
             <>
               {Object.entries(groupedVisits).map(([date, visits]) => (
-                <div key={date} className="w-full relative" ref={el => dateSectionRefs.current[date] = el}>
-                  {/* Date Header */}
-                  <div
-                    ref={el => dateRefs.current[date] = el}
-                    className="date-card rounded-lg px-3 sm:px-4 py-3 w-full"
-                  >
-                    <h4 className="text-sm font-medium mb-1">{date}</h4>
-                    <span className="text-xs font-medium" style={{ color: '#939090' }}>
-                      {visits.length} {visits.length === 1 ? 'Visit' : 'Visits'} Scheduled
-                    </span>
+                <div key={date} className="w-full" ref={el => dateSectionRefs.current[date] = el}>
+                  {/* Date Header Wrapper - maintains space when date card is fixed */}
+                  <div className="date-card-wrapper" style={{ minHeight: 'fit-content' }}>
+                    <div
+                      ref={el => dateRefs.current[date] = el}
+                      className="date-card rounded-lg px-3 sm:px-4 py-3 w-full mb-4"
+                    >
+                      <h4 className="text-sm font-medium mb-1">{date}</h4>
+                      <span className="text-xs font-medium" style={{ color: '#939090' }}>
+                        {visits.length} {visits.length === 1 ? 'Visit' : 'Visits'} Scheduled
+                      </span>
+                    </div>
                   </div>
 
                   {/* Responsive layout for 14 days view - fully responsive */}
