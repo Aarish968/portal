@@ -630,9 +630,11 @@ export function VisitsDashboard() {
           dateElement.style.left = `${sidebarWidth + 20}px`
           dateElement.style.width = `${originalWidth}px`
           dateElement.style.zIndex = '5'
-          dateElement.style.margin = '0'
-          // Set wrapper height to maintain space
-          if (wrapper) wrapper.style.height = `${originalHeight + 16}px`
+          dateElement.style.marginBottom = '0'
+          // Remove mb-4 class to prevent bottom margin
+          dateElement.classList.remove('mb-4')
+          // Set wrapper height to maintain space (no extra margin)
+          if (wrapper) wrapper.style.height = `${originalHeight}px`
         } else if (containerBottom <= dateCardBottom && containerBottom > headerHeight) {
           // Stopped state - date card moves down with container bottom
           // Keep it fixed but move it down as container scrolls up
@@ -641,9 +643,11 @@ export function VisitsDashboard() {
           dateElement.style.left = `${sidebarWidth + 20}px`
           dateElement.style.width = `${originalWidth}px`
           dateElement.style.zIndex = '5'
-          dateElement.style.margin = '0'
-          // Keep wrapper height
-          if (wrapper) wrapper.style.height = `${originalHeight + 16}px`
+          dateElement.style.marginBottom = '0'
+          // Remove mb-4 class to prevent bottom margin
+          dateElement.classList.remove('mb-0')
+          // Keep wrapper height (no extra margin)
+          if (wrapper) wrapper.style.height = `${originalHeight}px`
         } else {
           // Normal state - before section starts or after section ends
           dateElement.style.position = ''
@@ -651,7 +655,11 @@ export function VisitsDashboard() {
           dateElement.style.left = ''
           dateElement.style.width = ''
           dateElement.style.zIndex = ''
-          dateElement.style.margin = ''
+          dateElement.style.marginBottom = ''
+          // Restore mb-4 class
+          if (!dateElement.classList.contains('mb-0')) {
+            dateElement.classList.add('mb-0')
+          }
           // Reset wrapper height
           if (wrapper) wrapper.style.height = ''
         }
