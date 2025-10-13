@@ -501,43 +501,59 @@ export function VisitsDashboard() {
       const headerHeight = 200 // Approximate height of the fixed header
       const sidebarWidth = 200 // Approximate sidebar width
       
-      // Make date cards sticky when they reach the top
+      // First, reset all date cards to normal positioning
       Object.entries(groupedVisits).forEach(([date]) => {
         const dateElement = dateRefs.current[date]
+        if (dateElement && dateElement.style.position === 'fixed') {
+          dateElement.style.position = 'static'
+          dateElement.style.top = 'auto'
+          dateElement.style.zIndex = 'auto'
+          dateElement.style.width = 'auto'
+          dateElement.style.left = 'auto'
+          dateElement.style.right = 'auto'
+          dateElement.style.maxWidth = 'auto'
+          dateElement.style.margin = 'auto'
+          dateElement.style.transition = 'all 0.2s ease-in-out'
+        }
+      })
+      
+      // Find the current date section being viewed
+      const dateEntries = Object.entries(groupedVisits)
+      let currentDate = null
+      
+      // Check each date section to find which one is currently in view
+      for (let i = 0; i < dateEntries.length; i++) {
+        const [date] = dateEntries[i]
+        const dateElement = dateRefs.current[date]
+        
         if (dateElement) {
           const rect = dateElement.getBoundingClientRect()
           const elementTop = rect.top + scrollTop
+          const elementBottom = elementTop + rect.height
           
-          // If the date card has scrolled past the header, make it sticky
-          if (scrollTop + headerHeight > elementTop) {
-            // Only apply sticky if not already sticky to prevent flickering
-            if (dateElement.style.position !== 'fixed') {
-              dateElement.style.position = 'fixed'
-              dateElement.style.top = `${headerHeight}px`
-              dateElement.style.zIndex = '20'
-              dateElement.style.width = 'calc(100% - 2rem)' // Match the container padding
-              dateElement.style.left = `${sidebarWidth + 16}px` // Add sidebar width + padding
-              dateElement.style.right = '1rem'
-              dateElement.style.maxWidth = '1101px' // Match the visit cards max width
-              dateElement.style.margin = '0'
-              dateElement.style.transition = 'all 0.2s ease-in-out' // Smooth transition
-            }
-          } else {
-            // Reset to normal positioning
-            if (dateElement.style.position === 'fixed') {
-              dateElement.style.position = 'static'
-              dateElement.style.top = 'auto'
-              dateElement.style.zIndex = 'auto'
-              dateElement.style.width = 'auto'
-              dateElement.style.left = 'auto'
-              dateElement.style.right = 'auto'
-              dateElement.style.maxWidth = 'auto'
-              dateElement.style.margin = 'auto'
-              dateElement.style.transition = 'all 0.2s ease-in-out'
-            }
+          // Check if we're currently viewing this date section
+          if (scrollTop + headerHeight >= elementTop && scrollTop + headerHeight < elementBottom) {
+            currentDate = date
+            break
           }
         }
-      })
+      }
+      
+      // Make only the current date card sticky
+      if (currentDate) {
+        const currentDateElement = dateRefs.current[currentDate]
+        if (currentDateElement) {
+          currentDateElement.style.position = 'fixed'
+          currentDateElement.style.top = `${headerHeight}px`
+          currentDateElement.style.zIndex = '20'
+          currentDateElement.style.width = 'calc(100% - 2rem)' // Match the container padding
+          currentDateElement.style.left = `${sidebarWidth + 16}px` // Add sidebar width + padding
+          currentDateElement.style.right = '1rem'
+          currentDateElement.style.maxWidth = '1101px' // Match the visit cards max width
+          currentDateElement.style.margin = '0'
+          currentDateElement.style.transition = 'all 0.2s ease-in-out' // Smooth transition
+        }
+      }
     } catch (error) {
       console.error('Scroll handler error:', error)
     }
