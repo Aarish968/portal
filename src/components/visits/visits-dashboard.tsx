@@ -317,6 +317,51 @@ const mockVisits14Days: Visit[] = [
     ],
     healthRiskAssessment: 'not-started',
   },
+  {
+    id: '11',
+    patientName: 'Patricia White',
+    time: '4:30PM',
+    address: '789 Cedar Avenue, Dayton, OH',
+    insurance: 'UHC',
+    status: 'not-started',
+    visitType: 'in-home',
+    date: 'Monday, August 12, 2025',
+    procedures: [
+      { name: 'Blood Pressure' },
+      { name: 'Vaccine' },
+    ],
+    healthRiskAssessment: 'not-started',
+  },
+  {
+    id: '12',
+    patientName: 'Thomas Clark',
+    time: '6:00PM',
+    address: '456 Pine Street, Dayton, OH',
+    insurance: 'Medicare',
+    status: 'not-started',
+    visitType: 'in-home',
+    date: 'Monday, August 12, 2025',
+    procedures: [
+      { name: 'Lipid Panel' },
+      { name: 'HbA1c Test' },
+    ],
+    healthRiskAssessment: 'not-started',
+  },
+  {
+    id: '13',
+    patientName: 'Piter Clark',
+    time: '7:00PM',
+    address: '456 Pine Street, Dayton, OH',
+    insurance: 'Medicare',
+    status: 'not-started',
+    visitType: 'in-home',
+    date: 'Monday, August 12, 2025',
+    procedures: [
+      { name: 'Lipid Panel' },
+      { name: 'HbA1c Test' },
+    ],
+    healthRiskAssessment: 'not-started',
+  },
 ]
 
 function StatusBadge({ status }: { status: Visit['status'] }) {
@@ -818,7 +863,7 @@ export function VisitsDashboard() {
         .visits-grid > div {
           flex: 1 1 calc(50% - 0.5rem) !important;
           min-width: 300px !important;
-          max-width: 100% !important;
+          max-width: calc(50% - 0.5rem) !important;
         }
         
         @media (min-width: 768px) {
@@ -828,6 +873,7 @@ export function VisitsDashboard() {
           .visits-grid > div {
             flex: 1 1 calc(50% - 0.625rem) !important;
             min-width: 320px !important;
+            max-width: calc(50% - 0.625rem) !important;
           }
         }
         
@@ -838,6 +884,7 @@ export function VisitsDashboard() {
           .visits-grid > div {
             flex: 1 1 calc(50% - 0.75rem) !important;
             min-width: 350px !important;
+            max-width: calc(50% - 0.75rem) !important;
           }
         }
       `}</style>
