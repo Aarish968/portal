@@ -623,13 +623,17 @@ export function VisitsDashboard() {
         const dateSectionElement = dateSectionRefs.current[date]
         
         if (dateElement && dateSectionElement) {
-          const dateRect = dateElement.getBoundingClientRect()
           const sectionRect = dateSectionElement.getBoundingClientRect()
-          const dateTop = dateRect.top + scrollTop
+          const sectionTop = sectionRect.top + scrollTop
           const sectionBottom = sectionRect.bottom + scrollTop
+          const dateCardHeight = dateElement.offsetHeight
           
           // Check if we're currently viewing this date section
-          if (scrollTop + headerHeight >= dateTop && scrollTop + headerHeight < sectionBottom) {
+          // The date card should be sticky when:
+          // 1. The section top has passed the header
+          // 2. The section bottom hasn't reached the header + date card height
+          if (scrollTop + headerHeight >= sectionTop && 
+              scrollTop + headerHeight + dateCardHeight < sectionBottom) {
             stickyDate = date
             break
           }
