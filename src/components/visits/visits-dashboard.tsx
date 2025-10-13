@@ -628,8 +628,9 @@ export function VisitsDashboard() {
               break
             }
             // Check if date card should be stopped (at the bottom of white container)
+            // Only stop if we're still within this section (not scrolled past it)
             else if (scrollTop + headerHeight >= stopPoint && 
-                     scrollTop + headerHeight < containerBottom + 50) {
+                     scrollTop + headerHeight < sectionTop + dateSectionElement.offsetHeight) {
               stoppedDates.add(date)
             }
           }
@@ -642,9 +643,16 @@ export function VisitsDashboard() {
         const dateSectionElement = dateSectionRefs.current[date]
         
         if (dateElement && dateSectionElement) {
+          // Store previous state to avoid unnecessary transitions
+          const prevPosition = dateElement.style.position
+          
           if (date === stickyDate) {
             // Make it sticky (fixed position)
-            const originalWidth = dateElement.offsetWidth
+            const originalWidth = dateElement.offsetWidth || dateElement.getBoundingClientRect().width
+            
+            // Only apply transition if transitioning from static to fixed
+            const shouldTransition = prevPosition === 'static' || prevPosition === ''
+            
             dateElement.style.position = 'fixed'
             dateElement.style.top = `${headerHeight}px`
             dateElement.style.zIndex = '20'
@@ -653,27 +661,34 @@ export function VisitsDashboard() {
             dateElement.style.right = 'auto'
             dateElement.style.maxWidth = 'none'
             dateElement.style.margin = '0'
-            dateElement.style.transition = 'all 0.3s ease-in-out'
+            dateElement.style.transform = 'none'
+            dateElement.style.transition = shouldTransition ? 'none' : 'top 0.1s ease-out'
           } else if (stoppedDates.has(date)) {
             // Make it stopped (absolute position at bottom of white container)
             const whiteContainer = dateSectionElement.querySelector('.bg-white.rounded-lg')
             if (whiteContainer) {
-              const sectionRect = dateSectionElement.getBoundingClientRect()
-              const sectionTop = sectionRect.top + scrollTop
-              const containerRect = whiteContainer.getBoundingClientRect()
-              const containerBottom = containerRect.bottom + scrollTop
+              // Get the white container's position relative to the section
+              const whiteContainerOffsetTop = whiteContainer.offsetTop
+              const whiteContainerHeight = whiteContainer.offsetHeight
               const dateCardHeight = dateElement.offsetHeight
-              const stopPoint = containerBottom - dateCardHeight
               
-              const originalWidth = dateElement.offsetWidth
+              // Position date card at the bottom of white container
+              const absoluteTop = whiteContainerOffsetTop + whiteContainerHeight - dateCardHeight
+              
+              const originalWidth = dateElement.offsetWidth || dateElement.getBoundingClientRect().width
+              
               dateElement.style.position = 'absolute'
-              dateElement.style.top = `${stopPoint - sectionTop}px`
+              dateElement.style.top = `${absoluteTop}px`
               dateElement.style.left = '0'
               dateElement.style.right = 'auto'
               dateElement.style.width = `${originalWidth}px`
-              dateElement.style.zIndex = '10'
+              dateElement.style.zIndex = '5'
               dateElement.style.maxWidth = 'none'
               dateElement.style.margin = '0'
+              dateElement.style.visibility = 'visible'
+              dateElement.style.opacity = '1'
+              dateElement.style.transform = 'none'
+              dateElement.style.transition = 'none'
             }
           } else {
             // Reset to normal (static position)
@@ -685,7 +700,10 @@ export function VisitsDashboard() {
             dateElement.style.right = 'auto'
             dateElement.style.maxWidth = 'auto'
             dateElement.style.margin = 'auto'
+            dateElement.style.transform = 'none'
             dateElement.style.transition = 'none'
+            dateElement.style.visibility = 'visible'
+            dateElement.style.opacity = '1'
           }
         }
       })
@@ -1039,7 +1057,7 @@ export function VisitsDashboard() {
           {activeTab === '14days' ? (
             <>
               {Object.entries(groupedVisits).map(([date, visits]) => (
-                <div key={date} className="w-full" ref={el => dateSectionRefs.current[date] = el}>
+                <div key={date} className="w-full relative" ref={el => dateSectionRefs.current[date] = el}>
                   {/* Date Header */}
                   <div
                     ref={el => dateRefs.current[date] = el}
