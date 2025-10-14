@@ -22,7 +22,7 @@ const reasonLabels: Record<string, string> = {
 }
 
 type OutcomeValue = 'completed' | 'not-completed'
-type VisitStatus = 'in-progress' | 'ready-to-save' | 'completed'
+type VisitStatus = 'not-started' | 'in-progress' | 'ready-to-save' | 'completed'
 
 export default function VisitDetailsView() {
   const navigate = useNavigate()
@@ -32,7 +32,7 @@ export default function VisitDetailsView() {
   const [procedureReasons, setProcedureReasons] = React.useState<Record<string, string>>({})
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [selectedProcedure, setSelectedProcedure] = React.useState<{id: string, title: string} | null>(null)
-  const [visitStatus, setVisitStatus] = React.useState<VisitStatus>('in-progress')
+  const [visitStatus, setVisitStatus] = React.useState<VisitStatus>('not-started')
 
   // Extract visit either from navigation state or fallback to param id
   const visitFromState = (location.state as any)?.visit
@@ -42,6 +42,13 @@ export default function VisitDetailsView() {
   const time = visitFromState?.time || '10:30AM'
   const insurance = visitFromState?.insurance || 'UHC'
   const statusLabel = visitFromState?.status === 'in-progress' ? 'In Progress' : visitFromState?.status === 'completed' ? 'Completed' : 'Not Started'
+  
+  // Set initial visit status from navigation state
+  React.useEffect(() => {
+    if (visitFromState?.status) {
+      setVisitStatus(visitFromState.status)
+    }
+  }, [visitFromState?.status])
 
   const handleOutcomeClick = (procedureId: string, outcome: OutcomeValue) => {
     if (outcome === 'not-completed') {
@@ -55,6 +62,10 @@ export default function VisitDetailsView() {
         ...prev,
         [procedureId]: outcome
       }))
+      // When HRA is started, change status to in-progress
+      if (procedureId === 'hra' && visitStatus === 'not-started') {
+        setVisitStatus('in-progress')
+      }
     }
   }
 
@@ -97,7 +108,7 @@ export default function VisitDetailsView() {
 
   // Update visit status based on completion
   React.useEffect(() => {
-    if (allOutcomesCompleted && visitStatus === 'in-progress') {
+    if (allOutcomesCompleted && (visitStatus === 'in-progress' || visitStatus === 'not-started')) {
       setVisitStatus('ready-to-save')
     }
   }, [allOutcomesCompleted, visitStatus])
@@ -144,10 +155,7 @@ export default function VisitDetailsView() {
     navigate('/visit-outcomes', { state: { visitData }, replace: true })
   }
 
-  const handleLogOutcomes = () => {
-    console.log('Logging outcomes for visit:', visitId)
-    // This will show the procedure outcome selection interface
-  }
+
 
 
   return (
@@ -218,18 +226,16 @@ export default function VisitDetailsView() {
               </>
             )}
             
+            {visitStatus === 'not-started' && (
+              <div className="px-4 py-2 bg-gray-100 rounded-lg">
+                <span className="text-sm font-medium text-gray-700">Not Started</span>
+              </div>
+            )}
+            
             {visitStatus === 'in-progress' && (
-              <>
-                <div className="px-4 py-2 bg-gray-100 rounded-lg">
-                  <span className="text-sm font-medium text-gray-700">{statusLabel}</span>
-                </div>
-                <button
-                  onClick={handleLogOutcomes}
-                  className="px-6 py-2 bg-[#5538A6] hover:bg-[#4A2F95] text-white rounded-lg font-medium transition-colors uppercase tracking-wide"
-                >
-                  LOG OUTCOMES
-                </button>
-              </>
+              <div className="px-4 py-2 bg-orange-100 rounded-lg">
+                <span className="text-sm font-medium text-orange-700">In Progress</span>
+              </div>
             )}
           </div>
         </div>

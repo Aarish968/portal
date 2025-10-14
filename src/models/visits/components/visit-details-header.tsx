@@ -110,12 +110,41 @@ export function VisitDetailsHeader({
           style={{ display: 'flex', padding: '0 4px', flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}
         >
           <div 
-            className=":uno: flex min-w-16px p-4px_6px justify-center items-center rounded-100px border-1px border-#939090 bg-white"
-            style={{ display: 'flex', minWidth: '16px', padding: '4px 6px', justifyContent: 'center', alignItems: 'center', borderRadius: '100px', border: '1px solid #939090', background: '#FFF' }}
+            className={`:uno: flex min-w-16px p-4px_6px justify-center items-center rounded-100px border-1px ${
+              status === 'in-progress' 
+                ? 'border-orange-500 bg-orange-100' 
+                : status === 'completed'
+                ? 'border-green-500 bg-green-100'
+                : 'border-#939090 bg-white'
+            }`}
+            style={{ 
+              display: 'flex', 
+              minWidth: '16px', 
+              padding: '4px 6px', 
+              justifyContent: 'center', 
+              alignItems: 'center', 
+              borderRadius: '100px',
+              border: status === 'in-progress' ? '1px solid #f97316' : status === 'completed' ? '1px solid #10b981' : '1px solid #939090',
+              background: status === 'in-progress' ? '#fed7aa' : status === 'completed' ? '#d1fae5' : '#FFF'
+            }}
           >
             <span 
-              className=":uno: color-#1B1B1B text-center font-family-Roboto font-size-12px font-weight-500 line-height-16px letter-spacing-0.5px"
-              style={{ color: '#1B1B1B', textAlign: 'center', fontFamily: 'Roboto', fontSize: '12px', fontWeight: '500', lineHeight: '16px', letterSpacing: '0.5px' }}
+              className={`:uno: text-center font-family-Roboto font-size-12px font-weight-500 line-height-16px letter-spacing-0.5px ${
+                status === 'in-progress' 
+                  ? 'color-orange-700' 
+                  : status === 'completed'
+                  ? 'color-green-700'
+                  : 'color-#1B1B1B'
+              }`}
+              style={{ 
+                color: status === 'in-progress' ? '#c2410c' : status === 'completed' ? '#047857' : '#1B1B1B',
+                textAlign: 'center', 
+                fontFamily: 'Roboto', 
+                fontSize: '12px', 
+                fontWeight: '500', 
+                lineHeight: '16px', 
+                letterSpacing: '0.5px' 
+              }}
             >
               {getStatusLabel()}
             </span>

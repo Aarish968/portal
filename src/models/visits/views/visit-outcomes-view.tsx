@@ -102,7 +102,7 @@ export default function VisitOutcomesView() {
             time: visit.visitTime,
             address: visit.address,
             insurance: visit.insurance,
-            status: 'in-progress'
+            status: visit.status === 'not-started' ? 'not-started' : 'in-progress'
           },
           fromOutcomes: true
         }
