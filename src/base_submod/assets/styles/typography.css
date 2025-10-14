@@ -1,0 +1,26 @@
+h1 {
+  @apply :uno: text-style-h1;
+}
+
+h2 {
+  @apply :uno: text-style-h2;
+}
+
+h3 {
+  @apply :uno: text-style-h3;
+}
+
+h4 {
+  @apply :uno: text-style-h4;
+}
+
+h5 {
+  @apply :uno: text-style-h5;
+}
+
+html {
+  font-size: 100%;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

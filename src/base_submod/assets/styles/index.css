@@ -1,0 +1,70 @@
+html {
+  scroll-behavior: smooth;
+  transition: background-color 0.8s ease, color 0.8s ease !important;
+}
+
+body {
+  @apply :uno: !bg-#fafafb !text-text-main font-hind;
+}
+
+a {
+  @apply :uno: font-semibold underline text-link-color active:text-link-light active:\!no-underline hover:text-link-light hover:\!no-underline disabled:text-color-gray disabled:\!no-underline color-trans;
+}
+
+input[type='radio'] {
+  @apply accent-primary-light;
+}
+
+input[type='checkbox'] {
+  @apply accent-primary-light;
+}
+
+.bounce-menu-item-container {
+  @apply flex flex-col space-y-2 text-[#121212] overflow-hidden;
+}
+
+.bounce-menu-item-container.active {
+  max-height: 200px;
+  opacity: 1;
+  margin-bottom: 1rem;
+}
+
+.custom-autofill {
+
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--bg-muted) inset !important;
+    -webkit-text-fill-color: var(--text-lighten) !important;
+  }
+
+  &:autofill {
+    box-shadow: 0 0 0 30px var(--bg-muted) inset !important;
+    color: var(--text-lighten) !important;
+  }
+}
+
+/* Custom scrollbar styles for horizontal visit cards */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}

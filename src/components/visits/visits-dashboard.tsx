@@ -755,7 +755,7 @@ export function VisitsDashboard() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 w-[1101px]">
+    <div className="min-h-screen bg-gray-50 w-full">
       {/* Custom styles for responsive zoom behavior and mobile fixes */}
       <style>{`
         /* Force mobile header positioning */
@@ -801,33 +801,16 @@ export function VisitsDashboard() {
             display: block !important;
           }
           
-          /* Responsive grid for 14 days view */
+          /* Force all cards to be full width */
           .responsive-grid {
-            display: grid !important;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
-            gap: 1rem;
-            width: 100%;
+            display: block !important;
+            width: 100% !important;
           }
-        }
-        
-        @media (min-width: 768px) {
-          .responsive-grid {
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
-            gap: 1.25rem;
-          }
-        }
-        
-        @media (min-width: 1024px) {
-          .responsive-grid {
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
-            gap: 1.5rem;
-          }
-        }
-        
-        @media (min-width: 1280px) {
-          .responsive-grid {
-            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)) !important;
-            gap: 1.75rem;
+          
+          .responsive-grid > div {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 1rem !important;
           }
         }
         
@@ -853,39 +836,30 @@ export function VisitsDashboard() {
         
 
         
-        .visits-grid {
-          display: flex !important;
-          flex-wrap: wrap !important;
+        /* 14-day view: 3 cards per row grid layout */
+        .visits-grid-14days {
+          display: grid !important;
+          grid-template-columns: repeat(3, 1fr) !important;
           gap: 1rem !important;
           width: 100% !important;
         }
         
-        .visits-grid > div {
-          flex: 1 1 calc(50% - 0.5rem) !important;
-          min-width: 300px !important;
-          max-width: calc(50% - 0.5rem) !important;
+        .visits-grid-14days > div {
+          width: 100% !important;
+          max-width: 100% !important;
         }
         
-        @media (min-width: 768px) {
-          .visits-grid {
-            gap: 1.25rem !important;
-          }
-          .visits-grid > div {
-            flex: 1 1 calc(50% - 0.625rem) !important;
-            min-width: 320px !important;
-            max-width: calc(50% - 0.625rem) !important;
-          }
+        /* Today view: full width single column */
+        .visits-grid-today {
+          display: block !important;
+          width: 100% !important;
         }
         
-        @media (min-width: 1024px) {
-          .visits-grid {
-            gap: 1.5rem !important;
-          }
-          .visits-grid > div {
-            flex: 1 1 calc(50% - 0.75rem) !important;
-            min-width: 350px !important;
-            max-width: calc(50% - 0.75rem) !important;
-          }
+        .visits-grid-today > div {
+          width: 100% !important;
+          max-width: 100% !important;
+          margin-bottom: 1rem !important;
+          display: block !important;
         }
       `}</style>
       {/* Fixed Header - fully responsive */}
@@ -981,7 +955,7 @@ export function VisitsDashboard() {
         {/* Equipment Section */}
         <Card
           onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
-          className="mb-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer transition-all select-none outline-none w-full max-w-[1101px] "
+          className="mb-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer transition-all select-none outline-none w-full"
           style={{ minHeight: '56px' }}
         >
           <CardContent className="p-3 sm:p-4 bg-transparent">
@@ -1086,10 +1060,10 @@ export function VisitsDashboard() {
                       ))}
                     </div>
 
-                    {/* Tablet and Desktop: Responsive grid that adapts to zoom */}
-                    <div className="hidden sm:block visits-grid">
+                    {/* Desktop: 3 cards per row grid */}
+                    <div className="hidden sm:block visits-grid-14days">
                       {visits.map(v => (
-                        <div key={v.id} className="visit-card-container">
+                        <div key={v.id}>
                           <VisitCard visit={v} />
                         </div>
                       ))}
@@ -1100,25 +1074,9 @@ export function VisitsDashboard() {
             </>
           ) : (
             /* Single column layout for today's visits - one card per line */
-            <div
-              className="space-y-4 w-full single-column-layout today-visits-container"
-              style={{
-                display: 'block',
-                width: '100%',
-                maxWidth: '100%'
-              }}
-            >
+            <div className="visits-grid-today">
               {currentVisits.map((visit) => (
-                <div
-                  key={visit.id}
-                  className="w-full visit-card-mobile"
-                  style={{
-                    width: '100%',
-                    maxWidth: '100%',
-                    marginBottom: '1rem',
-                    display: 'block'
-                  }}
-                >
+                <div key={visit.id}>
                   <VisitCard visit={visit} />
                 </div>
               ))}
