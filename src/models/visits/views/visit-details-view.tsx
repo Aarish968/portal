@@ -116,7 +116,7 @@ export default function VisitDetailsView() {
   const handleSaveVisit = () => {
     console.log('Saving visit...', { outcomes, procedureReasons })
     setVisitStatus('completed')
-    // After saving, navigate back to outcomes with updated state
+    // After saving, stay on visit details page with completed status
     const visitData = {
       id: visitId,
       patientName,
@@ -131,9 +131,7 @@ export default function VisitDetailsView() {
     try {
       sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
     } catch {}
-    // If we came from outcomes, return there; otherwise go back to visits dashboard
-    const fromOutcomes = (location.state as any)?.fromOutcomes
-    navigate(fromOutcomes ? '/visit-outcomes' : '/visits', { state: fromOutcomes ? { visitData } : undefined, replace: true })
+    // Stay on current page - don't navigate away
   }
 
   const handleEditVisit = () => {
@@ -168,7 +166,17 @@ export default function VisitDetailsView() {
               // Check if we came from visit outcomes, if so go back there
               const fromOutcomes = location.state?.fromOutcomes
               if (fromOutcomes) {
-                navigate('/visit-outcomes', { state: { visitData: { id: visitId, patientName, address, time, insurance, status: visitStatus, outcomes, procedureReasons } }, replace: true })
+                const visitData = {
+                  id: visitId,
+                  patientName,
+                  address,
+                  time,
+                  insurance,
+                  status: visitStatus,
+                  outcomes,
+                  procedureReasons
+                }
+                navigate('/visit-outcomes', { state: { visitData }, replace: true })
               } else {
                 navigate('/visits', { replace: true })
               }
@@ -185,13 +193,6 @@ export default function VisitDetailsView() {
           <div className="flex items-center gap-3">
             {visitStatus === 'ready-to-save' && (
               <>
-                <button
-                  onClick={handleViewSummary}
-                  className="px-4 py-2 border border-[#5538A6] text-[#5538A6] bg-white rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                >
-                  <FileText className="w-4 h-4 inline mr-2" />
-                  Visit Summary
-                </button>
                 <div className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg">
                   <span className="text-sm font-medium">Ready to Save</span>
                 </div>
@@ -206,13 +207,6 @@ export default function VisitDetailsView() {
             
             {visitStatus === 'completed' && (
               <>
-                <button
-                  onClick={handleViewSummary}
-                  className="px-4 py-2 border border-[#5538A6] text-[#5538A6] bg-white rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                >
-                  <FileText className="w-4 h-4 inline mr-2" />
-                  Visit Summary
-                </button>
                 <div className="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg">
                   <span className="text-sm font-medium">Completed</span>
                 </div>

@@ -203,7 +203,7 @@ export default function VisitOutcomesView() {
                               : 'bg-red-100 text-red-700'
                           }`}>
                             <CheckCircle className="w-4 h-4" />
-                            <span>{procedure.name}</span>
+                            <span>{procedure.name} - {procedure.status === 'completed' ? 'Completed' : 'Not Completed'}</span>
                           </div>
                         ))}
                       </div>
