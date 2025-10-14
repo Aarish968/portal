@@ -138,6 +138,14 @@ export default function VisitDetailsView() {
     setVisitStatus('in-progress')
   }
 
+  // Check if visit needs to be saved after editing
+  const needsSaving = React.useMemo(() => {
+    if (visitStatus === 'in-progress' && allOutcomesSet) {
+      return true
+    }
+    return false
+  }, [visitStatus, allOutcomesSet])
+
   const handleViewSummary = () => {
     // Pass visit data to outcomes page
     const visitData = {
@@ -191,7 +199,7 @@ export default function VisitDetailsView() {
           
           {/* Dynamic Header Buttons */}
           <div className="flex items-center gap-3">
-            {visitStatus === 'ready-to-save' && (
+            {(visitStatus === 'ready-to-save' || needsSaving) && (
               <>
                 <div className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg">
                   <span className="text-sm font-medium">Ready to Save</span>
