@@ -235,8 +235,8 @@ export default function VisitDetailsView() {
             )}
             
             {visitStatus === 'in-progress' && (
-              <div className="px-4 py-2 bg-orange-100 rounded-lg">
-                <span className="text-sm font-medium text-orange-700">In Progress</span>
+              <div className="flex items-center gap-1 px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
+                <span>In Progress</span>
               </div>
             )}
           </div>
