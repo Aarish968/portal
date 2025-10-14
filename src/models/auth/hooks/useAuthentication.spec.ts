@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { GenerateCodeChallenge } from '../../../base_submod/utils/Generate'
+import { GenerateCodeChallenge } from '../../../assets/base_submod/utils/Generate'
 import { useAuthentication } from './useAuthentication'
 
 vi.mock('react-router-dom', () => ({
