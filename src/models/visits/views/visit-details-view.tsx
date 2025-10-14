@@ -101,17 +101,17 @@ export default function VisitDetailsView() {
   const totalOutcomes = procedures.length + 1
   const progressPercent = Math.min(100, Math.round((completedCount / totalOutcomes) * 100))
 
-  // Check if all procedures and HRA are completed
-  const allProceduresCompleted = procedures.every(proc => outcomes[proc.id] === 'completed')
-  const hraCompleted = outcomes['hra'] === 'completed'
-  const allOutcomesCompleted = allProceduresCompleted && hraCompleted
+  // Check if all procedures and HRA have outcomes (completed or not-completed)
+  const allProceduresHaveOutcomes = procedures.every(proc => outcomes[proc.id])
+  const hraHasOutcome = outcomes['hra']
+  const allOutcomesSet = allProceduresHaveOutcomes && hraHasOutcome
 
   // Update visit status based on completion
   React.useEffect(() => {
-    if (allOutcomesCompleted && (visitStatus === 'in-progress' || visitStatus === 'not-started')) {
+    if (allOutcomesSet && (visitStatus === 'in-progress' || visitStatus === 'not-started')) {
       setVisitStatus('ready-to-save')
     }
-  }, [allOutcomesCompleted, visitStatus])
+  }, [allOutcomesSet, visitStatus])
 
   const handleSaveVisit = () => {
     console.log('Saving visit...', { outcomes, procedureReasons })
@@ -349,14 +349,16 @@ export default function VisitDetailsView() {
                             </>
                           )}
                         </div>
-                        {/* Edit Button */}
-                        <button
-                          onClick={() => handleEditClick(procedure.id)}
-                          className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
-                          title="Edit status"
-                        >
-                          <Pencil className="w-4 h-4 text-gray-500" />
-                        </button>
+                        {/* Edit Button - show for both completed and not-completed when visit is completed */}
+                        {visitStatus === 'completed' && (
+                          <button
+                            onClick={() => handleEditClick(procedure.id)}
+                            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                            title="Edit status"
+                          >
+                            <Pencil className="w-4 h-4 text-gray-500" />
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>

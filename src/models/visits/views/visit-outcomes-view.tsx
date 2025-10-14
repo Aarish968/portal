@@ -64,9 +64,9 @@ export default function VisitOutcomesView() {
     visitType: 'In-Home Visit',
     status: source.status,
     completedProcedures: [
-      { name: 'A1C', status: source.outcomes?.['a1c'] === 'completed' ? 'completed' : 'not-completed' },
-      { name: 'Blood Pressure', status: source.outcomes?.['blood-pressure'] === 'completed' ? 'completed' : 'not-completed' },
-      { name: 'Urine Sample', status: source.outcomes?.['urine-sample'] === 'completed' ? 'completed' : 'not-completed' }
+      { name: 'A1C', status: source.outcomes?.['a1c'] || 'not-completed' },
+      { name: 'Blood Pressure', status: source.outcomes?.['blood-pressure'] || 'not-completed' },
+      { name: 'Urine Sample', status: source.outcomes?.['urine-sample'] || 'not-completed' }
     ],
     hraStatus: source.outcomes?.hra === 'completed' ? 'completed' : 'in-progress'
   }] : completedVisits
