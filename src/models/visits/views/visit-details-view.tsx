@@ -35,6 +35,9 @@ export default function VisitDetailsView() {
   const [visitStatus, setVisitStatus] = React.useState<VisitStatus>('not-started')
   const [editDialogOpen, setEditDialogOpen] = React.useState(false)
   const [editingProcedure, setEditingProcedure] = React.useState<{id: string, title: string} | null>(null)
+  const [isReopening, setIsReopening] = React.useState(false)
+  const [isSaving, setIsSaving] = React.useState(false)
+  const [cardEditingId, setCardEditingId] = React.useState<string | null>(null)
 
   // Extract visit either from navigation state or fallback to param id
   const visitFromState = (location.state as any)?.visit
@@ -144,10 +147,11 @@ export default function VisitDetailsView() {
   }
 
   const handleEditClick = (procedureId: string) => {
-    const procedure = procedures.find(p => p.id === procedureId)
-    if (procedure) {
-      setEditingProcedure(procedure)
-      setEditDialogOpen(true)
+    // Toggle card editing mode
+    if (cardEditingId === procedureId) {
+      setCardEditingId(null) // Close editing if already editing this card
+    } else {
+      setCardEditingId(procedureId) // Start editing this card
     }
   }
 
@@ -203,49 +207,71 @@ export default function VisitDetailsView() {
   const allOutcomesSet = allProceduresHaveOutcomes && hraHasOutcome
 
   // Update visit status based on completion - only set to ready-to-save, not completed
+  // Don't auto-change status if user explicitly clicked edit
+  const [isExplicitlyEditing, setIsExplicitlyEditing] = React.useState(false)
+  
   React.useEffect(() => {
-    if (allOutcomesSet && (visitStatus === 'in-progress' || visitStatus === 'not-started')) {
+    if (allOutcomesSet && visitStatus === 'not-started') {
       setVisitStatus('ready-to-save')
     }
-  }, [allOutcomesSet, visitStatus])
+    // Only auto-change from in-progress to ready-to-save if not explicitly editing
+    if (allOutcomesSet && visitStatus === 'in-progress' && !isExplicitlyEditing) {
+      setVisitStatus('ready-to-save')
+    }
+  }, [allOutcomesSet, visitStatus, isExplicitlyEditing])
 
   const handleSaveVisit = () => {
     console.log('Saving visit...', { outcomes, procedureReasons })
-    setVisitStatus('completed')
-    // After saving, stay on visit details page with completed status
-    const visitData = {
-      id: visitId,
-      patientName,
-      address,
-      time,
-      insurance,
-      status: 'completed' as const,
-      outcomes,
-      procedureReasons
-    }
-    // Persist for other pages (e.g., Visits dashboard)
-    try {
-      sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
-    } catch {}
-    // Stay on current page - don't navigate away
+    setIsSaving(true)
+    
+    // Show "Saving" for a brief moment, then complete
+    setTimeout(() => {
+      setIsSaving(false)
+      setVisitStatus('completed')
+      setIsExplicitlyEditing(false)
+      
+      // After saving, stay on visit details page with completed status
+      const visitData = {
+        id: visitId,
+        patientName,
+        address,
+        time,
+        insurance,
+        status: 'completed' as const,
+        outcomes,
+        procedureReasons
+      }
+      // Persist for other pages (e.g., Visits dashboard)
+      try {
+        sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+      } catch {}
+    }, 1000) // Show "Saving" for 1 second
   }
 
   const handleEditVisit = () => {
-    setVisitStatus('in-progress')
-    // Update session storage immediately when editing
-    const visitData = {
-      id: visitId,
-      patientName,
-      address,
-      time,
-      insurance,
-      status: 'in-progress' as const,
-      outcomes,
-      procedureReasons
-    }
-    try {
-      sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
-    } catch {}
+    setIsReopening(true)
+    
+    // Show "Reopening" for a brief moment, then switch to edit mode
+    setTimeout(() => {
+      setIsReopening(false)
+      setVisitStatus('in-progress')
+      setIsExplicitlyEditing(true)
+      
+      // Update session storage immediately when editing
+      const visitData = {
+        id: visitId,
+        patientName,
+        address,
+        time,
+        insurance,
+        status: 'in-progress' as const,
+        outcomes,
+        procedureReasons
+      }
+      try {
+        sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+      } catch {}
+    }, 1000) // Show "Reopening" for 1 second
   }
 
   // Check if visit needs to be saved after editing
@@ -276,10 +302,10 @@ export default function VisitDetailsView() {
 
 
   return (
-    <div className="h-full bg-gray-50 p-6 overflow-y-auto">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+    <div className="h-full bg-gray-50 overflow-y-auto">
+      {/* Header - Full Width */}
+      <div className="w-full">
+        <div className="flex items-center justify-between bg-white border border-gray-300 px-6 py-4">
           <div className="flex items-center gap-4">
             <button onClick={() => {
               // Check if we came from visit outcomes, if so go back there
@@ -299,7 +325,31 @@ export default function VisitDetailsView() {
               } else {
                 navigate('/visits', { replace: true })
               }
-            }} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            }} style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              boxSizing: 'border-box',
+              cursor: 'pointer',
+              userSelect: 'none',
+              verticalAlign: 'middle',
+              appearance: 'none',
+              textAlign: 'center',
+              fontSize: '1.5rem',
+              color: 'rgb(147, 144, 144)',
+              backgroundColor: 'rgb(245, 245, 245)',
+              width: '44px',
+              height: '44px',
+              outline: '0px',
+              border: '0px',
+              margin: '0px',
+              textDecoration: 'none',
+              flex: '0 0 auto',
+              padding: '8px',
+              borderRadius: '50%',
+              transition: 'background-color 150ms cubic-bezier(0.4, 0, 0.2, 1)'
+            }}>
               <ArrowLeft className="w-5 h-5 text-gray-700" />
             </button>
             <div>
@@ -310,103 +360,207 @@ export default function VisitDetailsView() {
           
           {/* Dynamic Header Buttons */}
           <div className="flex items-center gap-3">
-            {(visitStatus === 'ready-to-save' || needsSaving) && (
+            {/* Reopening State - with Completed button */}
+            {isReopening && (
               <>
-                <div className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg">
-                  <span className="text-sm font-medium">Ready to Save</span>
+                <div className="inline-flex items-center justify-center h-8 text-xs font-medium text-white whitespace-nowrap rounded-full px-3" style={{
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  backgroundColor: 'rgb(25, 154, 146)',
+                  lineHeight: '1.5',
+                  cursor: 'unset',
+                  transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)'
+                }}>
+                  Completed
                 </div>
+                <div className="inline-flex items-center justify-center h-8 text-xs font-medium whitespace-nowrap rounded-full px-3" style={{
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  backgroundColor: 'white',
+                  color: 'rgb(107, 114, 128)',
+                  lineHeight: '1.5',
+                  border: '1px solid rgb(229, 231, 235)',
+                  transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)'
+                }}>
+                  Reopening...
+                </div>
+              </>
+            )}
+            
+            {/* Saving State - with Ready to Save button */}
+            {isSaving && (
+              <>
+                <div className="inline-flex items-center justify-center h-8 text-xs font-medium text-gray-900 whitespace-nowrap rounded-full px-3" style={{
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  backgroundColor: 'rgba(35, 155, 207, 0.08)',
+                  lineHeight: '1.5',
+                  transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)'
+                }}>
+                  Ready to Save
+                </div>
+                <div className="inline-flex items-center justify-center h-8 text-xs font-medium whitespace-nowrap rounded-full px-3" style={{
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  backgroundColor: 'white',
+                  color: 'rgb(107, 114, 128)',
+                  lineHeight: '1.5',
+                  border: '1px solid rgb(229, 231, 235)',
+                  transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)'
+                }}>
+                  Saving...
+                </div>
+              </>
+            )}
+            
+            {/* Save Mode - Show appropriate buttons based on state */}
+            {!isReopening && !isSaving && (visitStatus === 'in-progress' || visitStatus === 'ready-to-save' || needsSaving) && (
+              <>
+                {/* Show Ready to Save button only when ready to save */}
+                {(visitStatus === 'ready-to-save' || needsSaving) && (
+                  <div className="inline-flex items-center justify-center h-8 text-xs font-medium text-gray-900 whitespace-nowrap rounded-full px-3" style={{
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                    backgroundColor: 'rgba(35, 155, 207, 0.08)',
+                    lineHeight: '1.5',
+                    transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}>
+                    Ready to Save
+                  </div>
+                )}
+                
                 <button
                   onClick={handleSaveVisit}
-                  className="px-6 py-2 bg-[#5538A6] hover:bg-[#4A2F95] text-white rounded-lg font-medium transition-colors"
+                  className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none text-sm leading-7 min-w-16 text-white font-semibold px-6 py-2 min-h-10 outline-0 m-0 no-underline border-0 transition-all duration-250 ease-out"
+                  style={{
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                    backgroundColor: 'rgb(85, 56, 166)',
+                    borderRadius: '18px',
+                    textTransform: 'none',
+                    transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
                 >
                   Save
                 </button>
               </>
             )}
             
-            {visitStatus === 'completed' && (
+            {!isReopening && !isSaving && visitStatus === 'completed' && (
               <>
-                <div className="px-4 py-2 bg-teal-100 text-teal-700 rounded-lg">
-                  <span className="text-sm font-medium">Completed</span>
+                <div className="inline-flex items-center justify-center h-8 text-xs font-medium text-white whitespace-nowrap rounded-full px-3" style={{
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  backgroundColor: 'rgb(25, 154, 146)',
+                  lineHeight: '1.5',
+                  cursor: 'unset',
+                  transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)'
+                }}>
+                  Completed
                 </div>
                 <button
                   onClick={handleEditVisit}
-                  className="px-4 py-2 border border-[#5538A6] text-[#5538A6] bg-white rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none text-sm leading-7 min-w-16 font-semibold px-6 py-2 min-h-10 outline-0 m-0 no-underline border border-solid transition-all duration-250 ease-out ml-4"
+                  style={{
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                    backgroundColor: 'transparent',
+                    color: 'rgb(85, 56, 166)',
+                    borderColor: 'rgb(85, 56, 166)',
+                    borderRadius: '18px',
+                    textTransform: 'none',
+                    transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
                 >
-                  <Pencil className="w-4 h-4 inline mr-2" />
+                  <Pencil className="w-4 h-4 inline mr-2" style={{ color: 'rgb(85, 56, 166)' }} />
                   Edit
                 </button>
               </>
             )}
             
             {visitStatus === 'not-started' && (
-              <div className="px-4 py-2 bg-gray-100 rounded-lg">
+              <div className="px-4 py-2 bg-gray-100 rounded-2xl">
                 <span className="text-sm font-medium text-gray-700">Not Started</span>
               </div>
             )}
             
-            {visitStatus === 'in-progress' && (
-              <div className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium" style={{ backgroundColor: 'rgb(249 115 22)' }}>
-                <span className="text-white">In Progress</span>
-              </div>
-            )}
+
           </div>
         </div>
+      </div>
 
+      {/* Content Container - Centered with max width */}
+      <div className="max-w-7xl mx-auto px-6">
         {/* Main Info Card */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8 mb-6">
+        <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8 mb-6 mt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Patient Info */}
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">{patientName}</h2>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p className="font-medium text-gray-500">ID: {visitId}</p>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  <span>{time}</span>
-                </div>
+              <h2 className="text-lg font-semibold mb-4" style={{ 
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                color: '#1B1B1B'
+              }}>{patientName}</h2>
+              <div className="space-y-2 text-sm">
+                <p className="font-medium" style={{ 
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  color: '#939090'
+                }}>ID: {visitId}</p>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
-                  <span>{address}</span>
+                  <span style={{ 
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                    color: '#1B1B1B'
+                  }}>{address}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Building className="w-4 h-4" />
-                  <span>{insurance}</span>
-                </div>
-              </div>
-              <div className="mt-4">
-                <div className="px-3 py-1.5 border border-purple-600 text-purple-600 bg-white rounded-full text-sm font-medium w-fit">
-                  In-Home Visit
+                  <Clock className="w-4 h-4" />
+                  <span style={{ 
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                    color: '#1B1B1B'
+                  }}>{time}</span>
                 </div>
               </div>
             </div>
 
             {/* Visit Progress */}
             <div>
-              <h3 className="text-base font-semibold text-gray-900 mb-2">Visit Progress</h3>
-              <p className="text-sm text-gray-600 mb-2">Outcomes Captured</p>
+              <h3 className="text-base font-semibold mb-2" style={{ 
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                color: '#1B1B1B'
+              }}>Visit Progress</h3>
+              <p className="text-sm mb-2" style={{ 
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                color: '#939090'
+              }}>Outcomes Captured</p>
               <div className="flex items-center gap-3">
                 <div className="flex-1">
                   <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden">
                     <div
-                      className="h-2 bg-gray-900 rounded-full transition-all"
-                      style={{ width: `${progressPercent}%` }}
+                      className="h-2 rounded-full transition-all"
+                      style={{ width: `${progressPercent}%`, backgroundColor: 'rgb(85, 56, 166)' }}
                     />
                   </div>
                 </div>
-                <span className="text-base font-semibold text-gray-900">{completedCount}/{totalOutcomes}</span>
+                <span className="text-base font-semibold" style={{ 
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  color: '#1B1B1B'
+                }}>{completedCount}/{totalOutcomes}</span>
               </div>
               
               <div className="mt-6">
-                <h4 className="text-base font-semibold text-gray-900 mb-3">Equipment Needed</h4>
+                <h4 className="text-base font-semibold mb-3" style={{ 
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  color: '#1B1B1B'
+                }}>Equipment Needed</h4>
                 <div className="flex flex-wrap gap-2">
-                  <span className="px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs text-gray-700">
+                  <span className="px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs" style={{ 
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                    color: '#1B1B1B'
+                  }}>
                     A1C Kit
                   </span>
-                  <span className="px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs text-gray-700">
+                  <span className="px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs" style={{ 
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                    color: '#1B1B1B'
+                  }}>
                     Blood Pressure Monitor
                   </span>
-                  <span className="px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs text-gray-700">
+                  <span className="px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs" style={{ 
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                    color: '#1B1B1B'
+                  }}>
                     Urine Collection Kit
                   </span>
                 </div>
@@ -415,17 +569,40 @@ export default function VisitDetailsView() {
 
             {/* HRA Assessment */}
             <div>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">HRA Assessment</h3>
-              <p className="text-sm text-gray-500 mb-4">Health Risk Assessment questionnaire</p>
+              <h3 className="text-base font-semibold mb-1" style={{ 
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                color: '#1B1B1B'
+              }}>HRA Assessment</h3>
+              <p className="text-sm mb-4" style={{ 
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                color: '#939090'
+              }}>Health Risk Assessment questionnaire</p>
               {outcomes['hra'] === 'completed' ? (
-                <div className="flex items-center gap-2 text-green-600 font-medium">
-                  <CheckCircle className="w-5 h-5" />
+                <div className="flex items-center gap-2 font-medium" style={{ color: 'rgb(25, 154, 146)' }}>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 16 16" 
+                    fill="none"
+                    style={{
+                      userSelect: 'none',
+                      width: '1em',
+                      height: '1em',
+                      display: 'inline-block',
+                      flexShrink: 0,
+                      fontSize: '1.25rem',
+                      transition: 'fill 200ms cubic-bezier(0.4, 0, 0.2, 1)'
+                    }}
+                  >
+                    <path d="M6.5 11.3L3.5 8.3L4.55 7.25L6.5 9.2L11.45 4.25L12.5 5.3L6.5 11.3Z" fill="white"/>
+                  </svg>
                   <span>Assessment Complete</span>
                 </div>
               ) : (
                 <button
                   onClick={() => handleOutcomeClick('hra', 'completed')}
-                  className="w-full bg-[#5538A6] hover:bg-[#4A2F95] text-white font-medium py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm active:scale-[0.99]"
+                  className="w-full bg-[#5538A6] hover:bg-[#4A2F95] text-white font-medium py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-sm active:scale-[0.99]"
                   aria-pressed={false}
                 >
                   <Play className="w-5 h-5 fill-white" />
@@ -445,42 +622,58 @@ export default function VisitDetailsView() {
               const reason = procedureReasons[procedure.id]
               
               return (
-                <div key={procedure.id} className="bg-white rounded-2xl shadow-sm p-6">
+                <div key={procedure.id} className={`bg-white rounded-2xl shadow-sm p-6 transition-shadow duration-300 hover:shadow-md ${cardEditingId === procedure.id ? 'flex flex-col min-h-[280px]' : ''}`}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-base font-semibold text-gray-900">{procedure.title}</h3>
-                    {outcome && (
-                      <div className="flex items-center gap-2">
-                        {/* Status Badge */}
+                    <div className="flex items-center gap-2">
+                      {/* Status Badge - show when outcome exists or when this card is being edited */}
+                      {(outcome || cardEditingId === procedure.id) && (
                         <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium ${
                           outcome === 'completed' 
                             ? 'bg-green-100 text-green-700' 
-                            : 'bg-red-100 text-red-700'
+                            : outcome === 'not-completed'
+                            ? 'bg-red-100 text-red-700'
+                            : cardEditingId === procedure.id
+                            ? 'bg-orange-100 text-orange-700'
+                            : ''
                         }`}>
                           {outcome === 'completed' ? (
                             <>
                               <Check className="w-4 h-4" />
                               <span>Completed</span>
                             </>
-                          ) : (
+                          ) : outcome === 'not-completed' ? (
                             <>
                               <X className="w-4 h-4" />
                               <span>Not Completed</span>
                             </>
-                          )}
+                          ) : cardEditingId === procedure.id ? (
+                            <span>Editing</span>
+                          ) : null}
                         </div>
-                        {/* Edit Button - show for both completed and not-completed when visit is completed */}
-                        {visitStatus === 'completed' && (
-                          <button
-                            onClick={() => handleEditClick(procedure.id)}
-                            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
-                            title="Edit status"
-                          >
-                            <Pencil className="w-4 h-4 text-gray-500" />
-                          </button>
-                        )}
-                      </div>
-                    )}
+                      )}
+                      {/* Edit Button - show when Save button is visible at top and procedure has outcome */}
+                      {(visitStatus === 'in-progress' || visitStatus === 'ready-to-save' || needsSaving) && outcome && (
+                        <button
+                          onClick={() => handleEditClick(procedure.id)}
+                          className="p-1.5 hover:bg-gray-100 rounded-2xl transition-colors"
+                          title="Edit status"
+                        >
+                          <Pencil className="w-4 h-4 text-gray-500" />
+                        </button>
+                      )}
+                    </div>
                   </div>
+                  
+                  {/* Edit Mode Message - only show when this specific card is being edited */}
+                  {cardEditingId === procedure.id && (
+                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+                      <span className="text-sm text-blue-700">Editing mode - Select outcome and save changes</span>
+                    </div>
+                  )}
                   
                   {/* Show reason for not completed procedures */}
                   {outcome === 'not-completed' && reason && (
@@ -490,23 +683,48 @@ export default function VisitDetailsView() {
                     </div>
                   )}
                   
-                  {/* Action buttons - only show if no outcome set */}
-                  {!outcome && (
-                    <div>
-                      <p className="text-sm text-gray-600 mb-3">Outcome:</p>
-                      <div className="flex gap-3">
-                        <button
-                          onClick={() => handleOutcomeClick(procedure.id, 'completed')}
-                          className="flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                        >
-                          Completed
-                        </button>
-                        <button
-                          onClick={() => handleOutcomeClick(procedure.id, 'not-completed')}
-                          className="flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
-                        >
-                          Not Completed
-                        </button>
+                  {/* Action buttons - show when this card is being edited or when no outcome set */}
+                  {(cardEditingId === procedure.id || !outcome) && (
+                    <div className={cardEditingId === procedure.id ? 'mt-auto' : ''}>
+                      <div>
+                        <p className="text-sm text-gray-600 mb-3">Outcome:</p>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => {
+                              handleOutcomeClick(procedure.id, 'completed')
+                              if (cardEditingId === procedure.id) {
+                                setCardEditingId(null) // Close editing after selection
+                              }
+                            }}
+                            className={`flex-1 py-2 px-4 rounded-2xl text-sm font-medium transition-colors border ${
+                              outcome === 'completed' 
+                                ? 'border-gray-300 hover:bg-gray-50' 
+                                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                            }`}
+                            style={outcome === 'completed' ? {
+                              backgroundColor: 'rgba(25, 154, 146, 0.1)',
+                              borderColor: 'rgb(25, 154, 146)',
+                              color: 'rgb(25, 154, 146)'
+                            } : {}}
+                          >
+                            Completed
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleOutcomeClick(procedure.id, 'not-completed')
+                              if (cardEditingId === procedure.id) {
+                                setCardEditingId(null) // Close editing after selection
+                              }
+                            }}
+                            className={`flex-1 py-2 px-4 rounded-2xl text-sm font-medium transition-colors border ${
+                              outcome === 'not-completed' 
+                                ? 'bg-red-100 border-red-300 text-red-700' 
+                                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            Not Completed
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -569,7 +787,7 @@ function EditProcedureDialog({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+      <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
         <h3 className="text-lg font-semibold text-gray-900 mb-2">{procedureName}</h3>
         <p className="text-sm text-gray-600 mb-1">Editing</p>
         <p className="text-xs text-gray-500 mb-4">Editing mode - Select outcome and save changes</p>
@@ -577,7 +795,7 @@ function EditProcedureDialog({
         <div className="space-y-3 mb-4">
           <button
             onClick={() => setSelectedOutcome('completed')}
-            className={`w-full p-3 rounded-lg border text-left ${
+            className={`w-full p-3 rounded-2xl border text-left ${
               selectedOutcome === 'completed' 
                 ? 'border-green-500 bg-green-50 text-green-700' 
                 : 'border-gray-300 hover:bg-gray-50'
@@ -588,7 +806,7 @@ function EditProcedureDialog({
           
           <button
             onClick={() => setSelectedOutcome('not-completed')}
-            className={`w-full p-3 rounded-lg border text-left ${
+            className={`w-full p-3 rounded-2xl border text-left ${
               selectedOutcome === 'not-completed' 
                 ? 'border-red-500 bg-red-50 text-red-700' 
                 : 'border-gray-300 hover:bg-gray-50'

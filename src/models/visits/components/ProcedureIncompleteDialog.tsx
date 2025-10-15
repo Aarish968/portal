@@ -57,11 +57,11 @@ const incompleteReasons = [
   }
 ]
 
-export function ProcedureIncompleteDialog({ 
-  isOpen, 
-  onClose, 
-  procedureName, 
-  onSave 
+export function ProcedureIncompleteDialog({
+  isOpen,
+  onClose,
+  procedureName,
+  onSave
 }: ProcedureIncompleteDialogProps) {
   const [selectedReason, setSelectedReason] = useState<string>('')
   const [description, setDescription] = useState<string>('')
@@ -120,7 +120,7 @@ export function ProcedureIncompleteDialog({
                     <div className="text-sm text-gray-500 mt-1">{reason.description}</div>
                   </div>
                 </label>
-                
+
                 {/* Text input for technical issues */}
                 {reason.hasTextField && selectedReason === reason.id && (
                   <div className="ml-7 mt-2">
