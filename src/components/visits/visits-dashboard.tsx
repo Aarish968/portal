@@ -383,12 +383,12 @@ function StatusBadge({ status }: { status: Visit['status'] }) {
   return (
     <div
       className={cn(
-        'px-3 sm:px-4 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer',
+        'px-3 sm:px-4 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap',
         variant.className
       )}
       style={{ color: '#1B1B1B' }}
     >
-      {status === 'completed' && <Check className="w-3 h-3" />}
+      {status === 'completed' && <Check className="w-3 h-3 flex-shrink-0" />}
       <span className="text-xs">{variant.text}</span>
     </div>
   )
@@ -397,14 +397,14 @@ function StatusBadge({ status }: { status: Visit['status'] }) {
 function ProcedureBadge({ procedure }: { procedure: VisitProcedure }) {
   if (procedure.completed) {
     return (
-      <div className="border border-gray-300 bg-white text-gray-700 px-2 sm:px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1">
-        <Check className="w-3 h-3" />
+      <div className="border border-gray-300 bg-white text-gray-700 px-2 sm:px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 whitespace-nowrap">
+        <Check className="w-3 h-3 flex-shrink-0" />
         <span className="text-xs">{procedure.name}</span>
       </div>
     )
   }
   return (
-    <div className="border border-gray-300 rounded-full bg-white text-gray-700 px-2 sm:px-3 py-1 text-xs font-medium">
+    <div className="border border-gray-300 rounded-full bg-white text-gray-700 px-2 sm:px-3 py-1 text-xs font-medium whitespace-nowrap">
       {procedure.name}
     </div>
   )
@@ -470,12 +470,12 @@ function VisitCard({ visit }: { visit: Visit }) {
     return (
       <div
         className={cn(
-          'px-3 sm:px-4 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1',
+          'px-3 sm:px-4 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 whitespace-nowrap',
           variant.className
         )}
       >
         {visit.healthRiskAssessment === 'completed' && (
-          <Check className="w-3 h-3" />
+          <Check className="w-3 h-3 flex-shrink-0" />
         )}
         <span className="text-xs">{variant.text}</span>
       </div>
@@ -483,34 +483,35 @@ function VisitCard({ visit }: { visit: Visit }) {
   }
 
   return (
-    <Card className="w-full bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer" style={{ width: '100%', maxWidth: '100%' }}>
-      <CardContent className="p-3 sm:p-4 md:p-5 lg:p-6">
+    <Card className="w-full bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer h-full" style={{ width: '100%', maxWidth: '100%' }}>
+      <CardContent className="p-3 sm:p-4 md:p-5 lg:p-6 h-full flex flex-col visit-card-content">
         <div className="space-y-4 sm:space-y-5">
           {/* Header Row */}
           <div className="flex flex-col gap-3 sm:gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                <h3 className="text-base sm:text-lg font-medium" style={{ color: '#1b1b1b' }}>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 min-w-0">
+                <h3 className="text-base sm:text-lg font-medium truncate" style={{ color: '#1b1b1b' }}>
                   {visit.patientName}
                 </h3>
-                <StatusBadge status={visit.status} />
+                <div className="flex-shrink-0">
+                  <StatusBadge status={visit.status} />
+                </div>
               </div>
               <div className="w-full sm:w-auto sm:flex-shrink-0">{getActionButton()}</div>
             </div>
           </div>
 
           {/* Visit Details */}
-          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 text-sm">
-            <div className="flex items-center gap-2" style={{ color: '#939090' }}>
+          <div className="flex flex-col gap-2 text-sm">
+            <div className="flex items-center gap-2 min-w-0" style={{ color: '#939090' }}>
               <Clock className="w-4 h-4 flex-shrink-0" />
-              <span className="text-sm">{visit.time}</span>
+              <span className="text-sm whitespace-nowrap">{visit.time}</span>
               {visit.visitType === 'telehealth' && (
                 <div
-                  className="ml-1 sm:ml-2 px-2 sm:px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 border"
+                  className="ml-1 px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 border flex-shrink-0"
                   style={{
                     color: '#239BCF',
                     borderColor: '#239BCF',
-                    // backgroundColor: '#f0f9ff'
                   }}
                 >
                   <VideocamIcon className="w-3 h-3" />
@@ -519,14 +520,14 @@ function VisitCard({ visit }: { visit: Visit }) {
               )}
             </div>
             {visit.address && visit.visitType !== 'telehealth' && (
-              <div className="flex items-center gap-2" style={{ color: '#939090' }}>
+              <div className="flex items-center gap-2 min-w-0" style={{ color: '#939090' }}>
                 <MapPin className="w-4 h-4 flex-shrink-0" />
-                <span className="truncate text-sm">{visit.address}</span>
+                <span className="text-sm truncate">{visit.address}</span>
               </div>
             )}
             <div className="flex items-center gap-2" style={{ color: '#939090' }}>
               <Building className="w-4 h-4 flex-shrink-0" />
-              <span className="text-sm">{visit.insurance}</span>
+              <span className="text-sm whitespace-nowrap">{visit.insurance}</span>
             </div>
           </div>
 
@@ -560,7 +561,9 @@ function VisitCard({ visit }: { visit: Visit }) {
             </h4>
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {visit.procedures.map((p, i) => (
-                <ProcedureBadge key={i} procedure={p} />
+                <div key={i} className="flex-shrink-0">
+                  <ProcedureBadge procedure={p} />
+                </div>
               ))}
             </div>
           </div>
@@ -780,6 +783,10 @@ export function VisitsDashboard() {
             display: block !important;
           }
           
+          .visits-grid-14days {
+            grid-template-columns: 1fr !important;
+          }
+          
           /* Force single column on mobile */
           .single-column-layout {
             display: block !important;
@@ -836,17 +843,41 @@ export function VisitsDashboard() {
         
 
         
-        /* 14-day view: 3 cards per row grid layout */
+        /* 14-day view: responsive grid layout */
         .visits-grid-14days {
           display: grid !important;
-          grid-template-columns: repeat(3, 1fr) !important;
+          grid-template-columns: 1fr !important;
           gap: 1rem !important;
           width: 100% !important;
+        }
+        
+        @media (min-width: 768px) {
+          .visits-grid-14days {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+        }
+        
+        @media (min-width: 1200px) {
+          .visits-grid-14days {
+            grid-template-columns: repeat(3, 1fr) !important;
+          }
         }
         
         .visits-grid-14days > div {
           width: 100% !important;
           max-width: 100% !important;
+          min-height: 100% !important;
+          overflow: hidden !important;
+        }
+        
+        /* Prevent text wrapping in cards */
+        .visit-card-content {
+          overflow: hidden !important;
+        }
+        
+        .visit-card-content * {
+          word-break: normal !important;
+          overflow-wrap: normal !important;
         }
         
         /* Today view: full width single column */
@@ -1051,17 +1082,8 @@ export function VisitsDashboard() {
 
                   {/* Responsive layout for 14 days view - fully responsive */}
                   <div className="w-full bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-                    {/* Mobile: Stack cards vertically */}
-                    <div className="block sm:hidden space-y-3">
-                      {visits.map(v => (
-                        <div key={v.id} className="visit-card-mobile">
-                          <VisitCard visit={v} />
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Desktop: 3 cards per row grid */}
-                    <div className="hidden sm:block visits-grid-14days">
+                    {/* Unified responsive grid - works on both mobile and desktop */}
+                    <div className="visits-grid-14days">
                       {visits.map(v => (
                         <div key={v.id}>
                           <VisitCard visit={v} />
