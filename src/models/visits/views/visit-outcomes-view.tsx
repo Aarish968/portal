@@ -228,22 +228,45 @@ export default function VisitOutcomesView() {
 
                   {/* Action Button */}
                   <div className="ml-6">
-                    {visit.status === 'completed' ? (
-                      <button
-                        onClick={() => handleViewSummary(visit.id)}
-                        className="px-4 py-2 border border-[#5538A6] text-[#5538A6] bg-white rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                      >
-                        <FileText className="w-4 h-4 inline mr-2" />
-                        View Summary
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleLogOutcomes(visit.id)}
-                        className="px-4 py-2 bg-[#5538A6] hover:bg-[#4A2F95] text-white rounded-lg font-medium transition-colors"
-                      >
-                        Log Outcomes
-                      </button>
-                    )}
+                    {(() => {
+                      // Check if visit has any outcomes (partial completion)
+                      const hasOutcomes = source?.outcomes && Object.keys(source.outcomes).length > 0
+                      
+                      // Check if all procedures are completed
+                      const allProceduresCompleted = visit.completedProcedures.every(p => p.status === 'completed')
+                      const hraCompleted = visit.hraStatus === 'completed'
+                      const fullyCompleted = allProceduresCompleted && hraCompleted
+                      
+                      if (visit.status === 'completed' || fullyCompleted) {
+                        return (
+                          <button
+                            onClick={() => handleViewSummary(visit.id)}
+                            className="px-4 py-2 border border-[#5538A6] text-[#5538A6] bg-white rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                          >
+                            <FileText className="w-4 h-4 inline mr-2" />
+                            View Summary
+                          </button>
+                        )
+                      } else if (hasOutcomes || visit.status === 'in-progress') {
+                        return (
+                          <button
+                            onClick={() => handleLogOutcomes(visit.id)}
+                            className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors"
+                          >
+                            Continue Visit
+                          </button>
+                        )
+                      } else {
+                        return (
+                          <button
+                            onClick={() => handleLogOutcomes(visit.id)}
+                            className="px-4 py-2 bg-[#5538A6] hover:bg-[#4A2F95] text-white rounded-lg font-medium transition-colors"
+                          >
+                            Log Outcomes
+                          </button>
+                        )
+                      }
+                    })()}
                   </div>
                 </div>
               </div>

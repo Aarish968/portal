@@ -431,25 +431,55 @@ function VisitCard({ visit }: { visit: Visit }) {
     navigate(ROUTES.app.visitDetails.href.replace(':visitId', visit.id), { state: { visit } })
   }
 
-  const getActionButton = () => (
-    visit.status === 'completed' ? (
-      <Button
-        className="rounded-full px-3 sm:px-6 py-2 text-xs sm:text-sm font-medium w-full sm:w-auto sm:min-w-[120px] transition-colors bg-white border border-[#5538A6] text-[#5538A6] hover:bg-gray-50"
-        variant="outline"
-        onClick={handleVisitClick}
-      >
-        View Summary
-      </Button>
-    ) : (
-      <Button
-        className="text-white rounded-full px-3 sm:px-6 py-2 text-xs sm:text-sm font-medium w-full sm:w-auto sm:min-w-[120px] transition-colors hover:bg-[#4A2F95]"
-        style={{ backgroundColor: '#5538A6' }}
-        onClick={handleVisitClick}
-      >
-        Log Outcomes
-      </Button>
-    )
-  )
+  const getActionButton = () => {
+    // Check session storage for visit state
+    const visitState = (() => {
+      try {
+        const stored = sessionStorage.getItem(`visit-state-${visit.id}`)
+        return stored ? JSON.parse(stored) : null
+      } catch { 
+        return null
+      }
+    })()
+
+    // Check if visit is completed in session storage
+    const isCompleted = visitState?.status === 'completed' || visit.status === 'completed'
+    
+    // Check if visit has any outcomes (partial completion)
+    const hasOutcomes = visitState?.outcomes && Object.keys(visitState.outcomes).length > 0
+
+    if (isCompleted) {
+      return (
+        <Button
+          className="rounded-full px-3 sm:px-6 py-2 text-xs sm:text-sm font-medium w-full sm:w-auto sm:min-w-[120px] transition-colors bg-white border border-[#5538A6] text-[#5538A6] hover:bg-gray-50"
+          variant="outline"
+          onClick={handleVisitClick}
+        >
+          View Summary
+        </Button>
+      )
+    } else if (hasOutcomes) {
+      return (
+        <Button
+          className="text-white rounded-full px-3 sm:px-6 py-2 text-xs sm:text-sm font-medium w-full sm:w-auto sm:min-w-[120px] transition-colors hover:bg-[#4A2F95]"
+          style={{ backgroundColor: '#5538A6' }}
+          onClick={handleVisitClick}
+        >
+          Continue Visit
+        </Button>
+      )
+    } else {
+      return (
+        <Button
+          className="text-white rounded-full px-3 sm:px-6 py-2 text-xs sm:text-sm font-medium w-full sm:w-auto sm:min-w-[120px] transition-colors hover:bg-[#4A2F95]"
+          style={{ backgroundColor: '#5538A6' }}
+          onClick={handleVisitClick}
+        >
+          Log Outcomes
+        </Button>
+      )
+    }
+  }
 
   const getHRABadge = () => {
     const variants = {

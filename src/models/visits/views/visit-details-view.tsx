@@ -43,12 +43,30 @@ export default function VisitDetailsView() {
   const insurance = visitFromState?.insurance || 'UHC'
   const statusLabel = visitFromState?.status === 'in-progress' ? 'In Progress' : visitFromState?.status === 'completed' ? 'Completed' : 'Not Started'
   
-  // Set initial visit status from navigation state
+  // Load saved data from session storage and set initial visit status
   React.useEffect(() => {
-    if (visitFromState?.status) {
+    // Load saved visit data from session storage
+    try {
+      const stored = sessionStorage.getItem(`visit-state-${visitId}`)
+      if (stored) {
+        const savedData = JSON.parse(stored)
+        if (savedData.outcomes) {
+          setOutcomes(savedData.outcomes)
+        }
+        if (savedData.procedureReasons) {
+          setProcedureReasons(savedData.procedureReasons)
+        }
+        if (savedData.status) {
+          setVisitStatus(savedData.status)
+        }
+      }
+    } catch {}
+    
+    // Set initial visit status from navigation state if no saved data
+    if (visitFromState?.status && !sessionStorage.getItem(`visit-state-${visitId}`)) {
       setVisitStatus(visitFromState.status)
     }
-  }, [visitFromState?.status])
+  }, [visitId, visitFromState?.status])
 
   const handleOutcomeClick = (procedureId: string, outcome: OutcomeValue) => {
     if (outcome === 'not-completed') {
@@ -58,12 +76,29 @@ export default function VisitDetailsView() {
         setDialogOpen(true)
       }
     } else {
-      setOutcomes(prev => ({
-        ...prev,
+      const newOutcomes = {
+        ...outcomes,
         [procedureId]: outcome
-      }))
-      // When HRA is started, change status to in-progress
-      if (procedureId === 'hra' && visitStatus === 'not-started') {
+      }
+      setOutcomes(newOutcomes)
+      
+      // Save to session storage immediately
+      const visitData = {
+        id: visitId,
+        patientName,
+        address,
+        time,
+        insurance,
+        status: visitStatus === 'not-started' ? 'in-progress' : visitStatus,
+        outcomes: newOutcomes,
+        procedureReasons
+      }
+      try {
+        sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+      } catch {}
+      
+      // When any outcome is set, change status to in-progress
+      if (visitStatus === 'not-started') {
         setVisitStatus('in-progress')
       }
     }
@@ -72,14 +107,37 @@ export default function VisitDetailsView() {
   const handleDialogSave = (reason: string, description?: string) => {
     if (selectedProcedure) {
       console.log(`Procedure ${selectedProcedure.title} not completed:`, { reason, description })
-      setOutcomes(prev => ({
-        ...prev,
+      const newOutcomes = {
+        ...outcomes,
         [selectedProcedure.id]: 'not-completed'
-      }))
-      setProcedureReasons(prev => ({
-        ...prev,
+      }
+      const newReasons = {
+        ...procedureReasons,
         [selectedProcedure.id]: reason
-      }))
+      }
+      
+      setOutcomes(newOutcomes)
+      setProcedureReasons(newReasons)
+      
+      // Save to session storage immediately
+      const visitData = {
+        id: visitId,
+        patientName,
+        address,
+        time,
+        insurance,
+        status: visitStatus === 'not-started' ? 'in-progress' : visitStatus,
+        outcomes: newOutcomes,
+        procedureReasons: newReasons
+      }
+      try {
+        sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+      } catch {}
+      
+      // Change status to in-progress if not started
+      if (visitStatus === 'not-started') {
+        setVisitStatus('in-progress')
+      }
     }
   }
 
