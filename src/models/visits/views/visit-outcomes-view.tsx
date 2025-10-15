@@ -49,11 +49,43 @@ export default function VisitOutcomesView() {
   const persisted = (() => {
     try {
       const id = visitDataFromState?.id || '1'
-      return JSON.parse(sessionStorage.getItem(`visit-state-${id}`) || 'null')
+      const stored = sessionStorage.getItem(`visit-state-${id}`)
+      console.log('Loading visit data for ID:', id, 'Data:', stored)
+      return stored ? JSON.parse(stored) : null
     } catch { return null }
   })()
 
-  // Use visit data from state or persisted, otherwise use defaults
+  // Load all visits and merge with session storage data
+  const getAllVisits = () => {
+    // Get all possible visit IDs from session storage
+    const visitIds = ['1', '2', '3', '4'] // Add more IDs as needed
+    
+    return visitIds.map(id => {
+      try {
+        const stored = sessionStorage.getItem(`visit-state-${id}`)
+        if (stored) {
+          const data = JSON.parse(stored)
+          return {
+            id: data.id,
+            patientName: data.patientName,
+            visitTime: data.time,
+            address: data.address,
+            insurance: data.insurance,
+            visitType: 'In-Home Visit',
+            status: data.status,
+            completedProcedures: [
+              { name: 'A1C', status: data.outcomes?.['a1c'] || 'not-completed' },
+              { name: 'Blood Pressure', status: data.outcomes?.['blood-pressure'] || 'not-completed' },
+              { name: 'Urine Sample', status: data.outcomes?.['urine-sample'] || 'not-completed' }
+            ],
+            hraStatus: data.outcomes?.hra === 'completed' ? 'completed' : 'not-started'
+          }
+        }
+      } catch {}
+      return null
+    }).filter(Boolean)
+  }
+  
   const source = visitDataFromState || persisted
   const visits = source ? [{
     id: source.id,
@@ -68,8 +100,8 @@ export default function VisitOutcomesView() {
       { name: 'Blood Pressure', status: source.outcomes?.['blood-pressure'] || 'not-completed' },
       { name: 'Urine Sample', status: source.outcomes?.['urine-sample'] || 'not-completed' }
     ],
-    hraStatus: source.outcomes?.hra === 'completed' ? 'completed' : 'in-progress'
-  }] : completedVisits
+    hraStatus: source.outcomes?.hra === 'completed' ? 'completed' : 'not-started'
+  }] : getAllVisits().length > 0 ? getAllVisits() : completedVisits
 
   const handleViewSummary = (visitId: string) => {
     const visit = visits.find(v => v.id === visitId)
@@ -196,16 +228,23 @@ export default function VisitOutcomesView() {
                     <div className="mb-4">
                       <h4 className="text-sm text-gray-500 mb-3">Visit Procedures:</h4>
                       <div className="flex flex-wrap gap-2">
-                        {visit.completedProcedures.map((procedure, index) => (
-                          <div key={index} className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium ${
-                            procedure.status === 'completed' 
-                              ? 'bg-teal-100 text-teal-700' 
-                              : 'bg-red-100 text-red-700'
-                          }`}>
-                            <CheckCircle className="w-4 h-4" />
-                            <span>{procedure.name} - {procedure.status === 'completed' ? 'Completed' : 'Not Completed'}</span>
-                          </div>
-                        ))}
+                        {visit.completedProcedures.map((procedure, index) => {
+                          const isCompleted = procedure.status === 'completed'
+                          return (
+                            <div key={index} className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium ${
+                              isCompleted 
+                                ? 'bg-green-100 text-green-700' 
+                                : 'bg-red-100 text-red-700'
+                            }`}>
+                              {isCompleted ? (
+                                <CheckCircle className="w-4 h-4" />
+                              ) : (
+                                <span className="w-4 h-4 text-center">✗</span>
+                              )}
+                              <span>{procedure.name} - {isCompleted ? 'Completed' : 'Not Completed'}</span>
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
 
@@ -229,15 +268,19 @@ export default function VisitOutcomesView() {
                   {/* Action Button */}
                   <div className="ml-6">
                     {(() => {
-                      // Check if visit has any outcomes (partial completion)
-                      const hasOutcomes = source?.outcomes && Object.keys(source.outcomes).length > 0
+                      // Get individual visit session storage data
+                      const getVisitData = () => {
+                        try {
+                          const stored = sessionStorage.getItem(`visit-state-${visit.id}`)
+                          return stored ? JSON.parse(stored) : null
+                        } catch { return null }
+                      }
                       
-                      // Check if all procedures are completed
-                      const allProceduresCompleted = visit.completedProcedures.every(p => p.status === 'completed')
-                      const hraCompleted = visit.hraStatus === 'completed'
-                      const fullyCompleted = allProceduresCompleted && hraCompleted
+                      const visitData = getVisitData()
+                      const hasOutcomes = visitData?.outcomes && Object.keys(visitData.outcomes).length > 0
+                      const sessionStatus = visitData?.status
                       
-                      if (visit.status === 'completed' || fullyCompleted) {
+                      if (sessionStatus === 'completed') {
                         return (
                           <button
                             onClick={() => handleViewSummary(visit.id)}

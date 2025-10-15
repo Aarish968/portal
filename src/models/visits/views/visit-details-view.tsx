@@ -33,6 +33,8 @@ export default function VisitDetailsView() {
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [selectedProcedure, setSelectedProcedure] = React.useState<{id: string, title: string} | null>(null)
   const [visitStatus, setVisitStatus] = React.useState<VisitStatus>('not-started')
+  const [editDialogOpen, setEditDialogOpen] = React.useState(false)
+  const [editingProcedure, setEditingProcedure] = React.useState<{id: string, title: string} | null>(null)
 
   // Extract visit either from navigation state or fallback to param id
   const visitFromState = (location.state as any)?.visit
@@ -144,9 +146,45 @@ export default function VisitDetailsView() {
   const handleEditClick = (procedureId: string) => {
     const procedure = procedures.find(p => p.id === procedureId)
     if (procedure) {
-      setSelectedProcedure(procedure)
-      setDialogOpen(true)
+      setEditingProcedure(procedure)
+      setEditDialogOpen(true)
     }
+  }
+
+  const handleEditDialogSave = (outcome: OutcomeValue, reason?: string) => {
+    if (editingProcedure) {
+      const newOutcomes = {
+        ...outcomes,
+        [editingProcedure.id]: outcome
+      }
+      const newReasons = reason ? {
+        ...procedureReasons,
+        [editingProcedure.id]: reason
+      } : procedureReasons
+      
+      setOutcomes(newOutcomes)
+      if (reason) setProcedureReasons(newReasons)
+      
+      // Update session storage
+      const visitData = {
+        id: visitId,
+        patientName,
+        address,
+        time,
+        insurance,
+        status: visitStatus,
+        outcomes: newOutcomes,
+        procedureReasons: newReasons
+      }
+      try {
+        sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+      } catch {}
+    }
+  }
+
+  const handleEditDialogClose = () => {
+    setEditDialogOpen(false)
+    setEditingProcedure(null)
   }
 
   const handleDialogClose = () => {
@@ -164,7 +202,7 @@ export default function VisitDetailsView() {
   const hraHasOutcome = outcomes['hra']
   const allOutcomesSet = allProceduresHaveOutcomes && hraHasOutcome
 
-  // Update visit status based on completion
+  // Update visit status based on completion - only set to ready-to-save, not completed
   React.useEffect(() => {
     if (allOutcomesSet && (visitStatus === 'in-progress' || visitStatus === 'not-started')) {
       setVisitStatus('ready-to-save')
@@ -194,11 +232,26 @@ export default function VisitDetailsView() {
 
   const handleEditVisit = () => {
     setVisitStatus('in-progress')
+    // Update session storage immediately when editing
+    const visitData = {
+      id: visitId,
+      patientName,
+      address,
+      time,
+      insurance,
+      status: 'in-progress' as const,
+      outcomes,
+      procedureReasons
+    }
+    try {
+      sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+    } catch {}
   }
 
   // Check if visit needs to be saved after editing
   const needsSaving = React.useMemo(() => {
-    if (visitStatus === 'in-progress' && allOutcomesSet) {
+    // Show save button when all outcomes are set (regardless of completed/not-completed)
+    if ((visitStatus === 'in-progress' || visitStatus === 'ready-to-save') && allOutcomesSet) {
       return true
     }
     return false
@@ -293,8 +346,8 @@ export default function VisitDetailsView() {
             )}
             
             {visitStatus === 'in-progress' && (
-              <div className="flex items-center gap-1 px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium">
-                <span>In Progress</span>
+              <div className="flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium" style={{ backgroundColor: 'rgb(249 115 22)' }}>
+                <span className="text-white">In Progress</span>
               </div>
             )}
           </div>
@@ -473,6 +526,111 @@ export default function VisitDetailsView() {
           onSave={handleDialogSave}
         />
       )}
+
+      {/* Edit Dialog */}
+      {editingProcedure && (
+        <EditProcedureDialog
+          isOpen={editDialogOpen}
+          onClose={handleEditDialogClose}
+          procedureName={editingProcedure.title}
+          currentOutcome={outcomes[editingProcedure.id]}
+          onSave={handleEditDialogSave}
+        />
+      )}
+    </div>
+  )
+}
+
+// Edit Procedure Dialog Component
+function EditProcedureDialog({ 
+  isOpen, 
+  onClose, 
+  procedureName, 
+  currentOutcome,
+  onSave 
+}: {
+  isOpen: boolean
+  onClose: () => void
+  procedureName: string
+  currentOutcome?: OutcomeValue
+  onSave: (outcome: OutcomeValue, reason?: string) => void
+}) {
+  const [selectedOutcome, setSelectedOutcome] = React.useState<OutcomeValue | null>(currentOutcome || null)
+  const [reason, setReason] = React.useState('')
+
+  const handleSave = () => {
+    if (selectedOutcome) {
+      onSave(selectedOutcome, selectedOutcome === 'not-completed' ? reason : undefined)
+      onClose()
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{procedureName}</h3>
+        <p className="text-sm text-gray-600 mb-1">Editing</p>
+        <p className="text-xs text-gray-500 mb-4">Editing mode - Select outcome and save changes</p>
+        
+        <div className="space-y-3 mb-4">
+          <button
+            onClick={() => setSelectedOutcome('completed')}
+            className={`w-full p-3 rounded-lg border text-left ${
+              selectedOutcome === 'completed' 
+                ? 'border-green-500 bg-green-50 text-green-700' 
+                : 'border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            Completed
+          </button>
+          
+          <button
+            onClick={() => setSelectedOutcome('not-completed')}
+            className={`w-full p-3 rounded-lg border text-left ${
+              selectedOutcome === 'not-completed' 
+                ? 'border-red-500 bg-red-50 text-red-700' 
+                : 'border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            Not Completed
+          </button>
+        </div>
+
+        {selectedOutcome === 'not-completed' && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Reason</label>
+            <select 
+              value={reason} 
+              onChange={(e) => setReason(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-lg"
+            >
+              <option value="">Select reason...</option>
+              <option value="patient-refused">Patient Refused</option>
+              <option value="supplies-unavailable">Supplies/equipment unavailable</option>
+              <option value="technical-issues">Technical Issues</option>
+              <option value="not-medically-indicated">Not Medically Indicated</option>
+            </select>
+          </div>
+        )}
+
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!selectedOutcome || (selectedOutcome === 'not-completed' && !reason)}
+            className="flex-1 px-4 py-2 bg-[#5538A6] text-white rounded-lg hover:bg-[#4A2F95] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Save
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
