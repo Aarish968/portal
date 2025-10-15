@@ -887,12 +887,6 @@ export function VisitsDashboard() {
           }
         }
         
-        @media (min-width: 1200px) {
-          .visits-grid-14days {
-            grid-template-columns: repeat(3, 1fr) !important;
-          }
-        }
-        
         .visits-grid-14days > div {
           width: 100% !important;
           max-width: 100% !important;
