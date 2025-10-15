@@ -622,44 +622,106 @@ export default function VisitDetailsView() {
               const reason = procedureReasons[procedure.id]
               
               return (
-                <div key={procedure.id} className={`bg-white rounded-2xl shadow-sm p-6 transition-shadow duration-300 hover:shadow-md ${cardEditingId === procedure.id ? 'flex flex-col min-h-[280px]' : ''}`}>
+                <div key={procedure.id} className={`bg-white rounded-2xl shadow-sm p-6 transition-shadow duration-300 hover:shadow-md ${cardEditingId === procedure.id ? 'flex flex-col' : ''}`}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-base font-semibold text-gray-900">{procedure.title}</h3>
                     <div className="flex items-center gap-2">
-                      {/* Status Badge - show when outcome exists or when this card is being edited */}
-                      {(outcome || cardEditingId === procedure.id) && (
-                        <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium ${
-                          outcome === 'completed' 
-                            ? 'bg-green-100 text-green-700' 
-                            : outcome === 'not-completed'
-                            ? 'bg-red-100 text-red-700'
-                            : cardEditingId === procedure.id
-                            ? 'bg-orange-100 text-orange-700'
-                            : ''
-                        }`}>
+                      {/* Status Badge - show when outcome exists */}
+                      {outcome && cardEditingId !== procedure.id && (
+                        <div 
+                          className="inline-flex items-center justify-center gap-2 px-4"
+                          style={{
+                            maxWidth: '100%',
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                            lineHeight: '1.5',
+                            cursor: 'unset',
+                            verticalAlign: 'middle',
+                            boxSizing: 'border-box',
+                            height: '24px',
+                            fontSize: '0.75rem',
+                            backgroundColor: outcome === 'completed' ? 'rgb(25, 154, 146)' : 'rgb(207, 35, 35)',
+                            color: 'rgb(255, 255, 255)',
+                            fontWeight: '500',
+                            whiteSpace: 'nowrap',
+                            transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                            outline: '0px',
+                            textDecoration: 'none',
+                            padding: '0px',
+                            borderWidth: '1px',
+                            borderStyle: 'solid',
+                            borderColor: outcome === 'completed' ? 'rgba(25, 154, 146, 0.7)' : 'rgba(207, 35, 35, 0.7)',
+                            borderRadius: '24px',
+                            minWidth: '120px'
+                          }}
+                        >
                           {outcome === 'completed' ? (
                             <>
-                              <Check className="w-4 h-4" />
+                              <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="none">
+                                  <path d="M6.5 11.3L3.5 8.3L4.55 7.25L6.5 9.2L11.45 4.25L12.5 5.3L6.5 11.3Z" fill="#15827B"/>
+                                </svg>
+                              </div>
                               <span>Completed</span>
                             </>
-                          ) : outcome === 'not-completed' ? (
+                          ) : (
                             <>
-                              <X className="w-4 h-4" />
+                              <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="none">
+                                  <path d="M5.12 12L8 9.12L10.88 12L12 10.88L9.12 8L12 5.12L10.88 4L8 6.88L5.12 4L4 5.12L6.88 8L4 10.88L5.12 12Z" fill="#CF2323"/>
+                                </svg>
+                              </div>
                               <span>Not Completed</span>
                             </>
-                          ) : cardEditingId === procedure.id ? (
-                            <span>Editing</span>
-                          ) : null}
+                          )}
                         </div>
                       )}
-                      {/* Edit Button - show when Save button is visible at top and procedure has outcome */}
+                      
+                      {/* Editing Badge - show when this card is being edited */}
+                      {cardEditingId === procedure.id && (
+                        <div 
+                          className="inline-flex items-center justify-center text-xs font-medium whitespace-nowrap px-4"
+                          style={{
+                            maxWidth: '100%',
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                            lineHeight: '1.5',
+                            cursor: 'unset',
+                            verticalAlign: 'middle',
+                            boxSizing: 'border-box',
+                            height: '24px',
+                            fontSize: '0.75rem',
+                            fontWeight: '500',
+                            backgroundColor: 'rgb(255, 244, 230)',
+                            color: 'rgb(228, 118, 0)',
+                            transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                            outline: '0px',
+                            textDecoration: 'none',
+                            padding: '0px',
+                            borderWidth: '1px',
+                            borderStyle: 'solid',
+                            borderRadius: '24px',
+                            borderColor: 'rgb(228, 118, 0)',
+                            minWidth: '80px'
+                          }}
+                        >
+                          Editing
+                        </div>
+                      )}
+                      {/* Edit/Close Button - show when Save button is visible at top and procedure has outcome */}
                       {(visitStatus === 'in-progress' || visitStatus === 'ready-to-save' || needsSaving) && outcome && (
                         <button
                           onClick={() => handleEditClick(procedure.id)}
-                          className="p-1.5 hover:bg-gray-100 rounded-2xl transition-colors"
-                          title="Edit status"
+                          className={`p-1.5 transition-colors ${
+                            cardEditingId === procedure.id 
+                              ? '' 
+                              : 'hover:bg-gray-100 rounded-2xl'
+                          }`}
+                          title={cardEditingId === procedure.id ? "Close editing" : "Edit status"}
                         >
-                          <Pencil className="w-4 h-4 text-gray-500" />
+                          {cardEditingId === procedure.id ? (
+                            <X className="w-4 h-4 text-gray-500 hover:text-red-700 transition-colors" />
+                          ) : (
+                            <Pencil className="w-4 h-4 text-gray-500" />
+                          )}
                         </button>
                       )}
                     </div>
@@ -668,10 +730,17 @@ export default function VisitDetailsView() {
                   {/* Edit Mode Message - only show when this specific card is being edited */}
                   {cardEditingId === procedure.id && (
                     <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-2">
-                      <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
-                      </div>
-                      <span className="text-sm text-blue-700">Editing mode - Select outcome and save changes</span>
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="20" 
+                        height="20" 
+                        viewBox="0 0 20 20" 
+                        fill="none"
+                        className="flex-shrink-0"
+                      >
+                        <path d="M10 15C10.2833 15 10.5208 14.9042 10.7125 14.7125C10.9042 14.5208 11 14.2833 11 14C11 13.7167 10.9042 13.4792 10.7125 13.2875C10.5208 13.0958 10.2833 13 10 13C9.71667 13 9.47917 13.0958 9.2875 13.2875C9.09583 13.4792 9 13.7167 9 14C9 14.2833 9.09583 14.5208 9.2875 14.7125C9.47917 14.9042 9.71667 15 10 15ZM9 11H11V5H9V11ZM10 20C8.61667 20 7.31667 19.7375 6.1 19.2125C4.88333 18.6875 3.825 17.975 2.925 17.075C2.025 16.175 1.3125 15.1167 0.7875 13.9C0.2625 12.6833 0 11.3833 0 10C0 8.61667 0.2625 7.31667 0.7875 6.1C1.3125 4.88333 2.025 3.825 2.925 2.925C3.825 2.025 4.88333 1.3125 6.1 0.7875C7.31667 0.2625 8.61667 0 10 0C11.3833 0 12.6833 0.2625 13.9 0.7875C15.1167 1.3125 16.175 2.025 17.075 2.925C17.975 3.825 18.6875 4.88333 19.2125 6.1C19.7375 7.31667 20 8.61667 20 10C20 11.3833 19.7375 12.6833 19.2125 13.9C18.6875 15.1167 17.975 16.175 17.075 17.075C16.175 17.975 15.1167 18.6875 13.9 19.2125C12.6833 19.7375 11.3833 20 10 20Z" fill="#239BCF"/>
+                      </svg>
+                      <span className="text-sm text-gray-600">Editing mode - Select outcome and save changes</span>
                     </div>
                   )}
                   
@@ -685,7 +754,7 @@ export default function VisitDetailsView() {
                   
                   {/* Action buttons - show when this card is being edited or when no outcome set */}
                   {(cardEditingId === procedure.id || !outcome) && (
-                    <div className={cardEditingId === procedure.id ? 'mt-auto' : ''}>
+                    <div>
                       <div>
                         <p className="text-sm text-gray-600 mb-3">Outcome:</p>
                         <div className="flex gap-3">
@@ -696,16 +765,34 @@ export default function VisitDetailsView() {
                                 setCardEditingId(null) // Close editing after selection
                               }
                             }}
-                            className={`flex-1 py-2 px-4 rounded-2xl text-sm font-medium transition-colors border ${
-                              outcome === 'completed' 
-                                ? 'border-gray-300 hover:bg-gray-50' 
-                                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                            }`}
-                            style={outcome === 'completed' ? {
-                              backgroundColor: 'rgba(25, 154, 146, 0.1)',
-                              borderColor: 'rgb(25, 154, 146)',
-                              color: 'rgb(25, 154, 146)'
-                            } : {}}
+                            className="flex-1"
+                            style={{
+                              position: 'relative',
+                              appearance: 'none',
+                              maxWidth: '100%',
+                              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              height: '32px',
+                              lineHeight: '1.5',
+                              verticalAlign: 'middle',
+                              boxSizing: 'border-box',
+                              userSelect: 'none',
+                              fontWeight: '500',
+                              fontSize: '0.75rem',
+                              backgroundColor: outcome === 'completed' ? 'rgb(25, 154, 146)' : 'white',
+                              color: outcome === 'completed' ? 'rgb(255, 255, 255)' : 'rgb(107, 114, 128)',
+                              cursor: 'pointer',
+                              margin: '0px',
+                              whiteSpace: 'nowrap',
+                              transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                              outline: '0px',
+                              textDecoration: 'none',
+                              border: outcome === 'completed' ? '0px' : '1px solid rgb(209, 213, 219)',
+                              padding: '0px',
+                              borderRadius: '999px'
+                            }}
                           >
                             Completed
                           </button>
@@ -716,11 +803,34 @@ export default function VisitDetailsView() {
                                 setCardEditingId(null) // Close editing after selection
                               }
                             }}
-                            className={`flex-1 py-2 px-4 rounded-2xl text-sm font-medium transition-colors border ${
-                              outcome === 'not-completed' 
-                                ? 'bg-red-100 border-red-300 text-red-700' 
-                                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                            }`}
+                            className="flex-1"
+                            style={{
+                              position: 'relative',
+                              appearance: 'none',
+                              maxWidth: '100%',
+                              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              height: '32px',
+                              lineHeight: '1.5',
+                              verticalAlign: 'middle',
+                              boxSizing: 'border-box',
+                              userSelect: 'none',
+                              fontWeight: '500',
+                              fontSize: '0.75rem',
+                              backgroundColor: outcome === 'not-completed' ? 'rgb(207, 35, 35)' : 'white',
+                              color: outcome === 'not-completed' ? 'rgb(255, 255, 255)' : 'rgb(107, 114, 128)',
+                              cursor: 'pointer',
+                              margin: '0px',
+                              whiteSpace: 'nowrap',
+                              transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                              outline: '0px',
+                              textDecoration: 'none',
+                              border: outcome === 'not-completed' ? '0px' : '1px solid rgb(209, 213, 219)',
+                              padding: '0px',
+                              borderRadius: '999px'
+                            }}
                           >
                             Not Completed
                           </button>
