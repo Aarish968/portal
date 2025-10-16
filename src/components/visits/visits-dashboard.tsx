@@ -712,19 +712,18 @@ function VisitCard({ visit }: { visit: Visit }) {
             </div>
           </div>
 
-          {/* Second Telehealth Button (below time for telehealth visits) - only on mobile */}
+          {/* Second Telehealth Button (below time for telehealth visits) */}
           {visit.visitType === 'telehealth' && (
-            <div className="flex justify-start sm:hidden">
+            <div className="flex justify-start">
               <div
                 className="px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 border"
                 style={{
                   color: '#239BCF',
                   borderColor: '#239BCF',
-                  // backgroundColor: '#f0f9ff'
                 }}
               >
                 <VideocamIcon className="w-3 h-3" />
-                Telehealth
+                <span>Telehealth</span>
               </div>
             </div>
           )}
@@ -750,7 +749,8 @@ function VisitCard({ visit }: { visit: Visit }) {
                 }
                 
                 const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
-                const isCompleted = visitState?.outcomes?.[procedureId] === 'completed' || p.completed
+                // Only show completed if actually completed in session storage
+                const isCompleted = visitState?.outcomes?.[procedureId] === 'completed'
                 
                 return (
                   <div key={i} className="flex-shrink-0">
