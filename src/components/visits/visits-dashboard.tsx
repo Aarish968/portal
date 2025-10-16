@@ -504,7 +504,11 @@ function StatusBadge({ status, visitState }: { status: Visit['status'], visitSta
       className="inline-flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
       style={config.style}
     >
-      {config.showIcon && <Check className="w-3 h-3 flex-shrink-0" />}
+      {config.showIcon && (
+        <div className="w-3 h-3 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+          <Check className="w-2 h-2" style={{ color: 'rgb(25, 154, 146)' }} />
+        </div>
+      )}
       <span className="text-xs">{config.text}</span>
     </div>
   )
@@ -628,34 +632,100 @@ function VisitCard({ visit }: { visit: Visit }) {
   }
 
   const getHRABadge = () => {
-    const variants = {
-      'not-started': {
-        className: 'bg-red-500 text-white',
-        text: 'Not Started',
-      },
-      'in-progress': {
-        className: 'bg-orange-500 text-white',
-        text: 'In Progress',
-      },
-      completed: {
-        className: 'bg-green-500 text-white flex items-center gap-1',
-        text: 'Completed',
-      },
+    // Check session storage for HRA completion
+    const hraCompleted = visitState?.outcomes?.['hra'] === 'completed'
+    
+    // Determine HRA status based on session storage and original status
+    let hraStatus = visit.healthRiskAssessment
+    
+    if (hraCompleted) {
+      // If HRA is completed in visit details but visit is not saved yet, show in-progress
+      const visitCompleted = visitState?.status === 'completed'
+      hraStatus = visitCompleted ? 'completed' : 'in-progress'
     }
-    const variant = variants[visit.healthRiskAssessment]
-    return (
-      <div
-        className={cn(
-          'px-3 sm:px-4 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 whitespace-nowrap',
-          variant.className
-        )}
-      >
-        {visit.healthRiskAssessment === 'completed' && (
-          <Check className="w-3 h-3 flex-shrink-0" />
-        )}
-        <span className="text-xs">{variant.text}</span>
-      </div>
-    )
+    
+    if (hraStatus === 'completed') {
+      return (
+        <div
+          className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full"
+          style={{
+            maxWidth: '100%',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            lineHeight: '1.5',
+            cursor: 'unset',
+            verticalAlign: 'middle',
+            boxSizing: 'border-box',
+            height: '24px',
+            fontWeight: '500',
+            fontSize: '0.75rem',
+            backgroundColor: 'rgb(25, 154, 146)',
+            color: 'rgb(255, 255, 255)',
+            whiteSpace: 'nowrap',
+            transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+            outline: '0px',
+            textDecoration: 'none',
+            borderWidth: '0px',
+            borderStyle: 'initial',
+            borderColor: 'initial',
+            borderImage: 'initial',
+            padding: '0px 12px',
+            borderRadius: '999px'
+          }}
+        >
+          <div className="w-3 h-3 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+            <Check className="w-2 h-2" style={{ color: 'rgb(25, 154, 146)' }} />
+          </div>
+          <span className="text-xs">Completed</span>
+        </div>
+      )
+    } else if (hraStatus === 'in-progress') {
+      return (
+        <div
+          className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full"
+          style={{
+            maxWidth: '100%',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            lineHeight: '1.5',
+            cursor: 'unset',
+            verticalAlign: 'middle',
+            boxSizing: 'border-box',
+            height: '24px',
+            fontWeight: '500',
+            fontSize: '0.75rem',
+            backgroundColor: 'rgb(228, 118, 0)',
+            color: 'rgb(255, 255, 255)',
+            whiteSpace: 'nowrap',
+            transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+            outline: '0px',
+            textDecoration: 'none',
+            borderWidth: '0px',
+            borderStyle: 'initial',
+            borderColor: 'initial',
+            borderImage: 'initial',
+            padding: '0px 12px',
+            borderRadius: '999px'
+          }}
+        >
+          {/* Clipboard icon */}
+          <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19,3H14.82C14.4,1.84 13.3,1 12,1C10.7,1 9.6,1.84 9.18,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M12,3A1,1 0 0,1 13,4A1,1 0 0,1 12,5A1,1 0 0,1 11,4A1,1 0 0,1 12,3M7,7H17V5H19V19H5V5H7V7M7,9V11H17V9H7M7,13V15H14V13H7Z" />
+          </svg>
+          <span className="text-xs">In Progress</span>
+        </div>
+      )
+    } else {
+      return (
+        <div className="bg-red-500 text-white px-3 sm:px-4 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 whitespace-nowrap">
+          <span className="text-xs">Not Started</span>
+        </div>
+      )
+    }
   }
 
   return (

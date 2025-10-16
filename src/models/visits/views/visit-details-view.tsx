@@ -89,20 +89,9 @@ export default function VisitDetailsView() {
         sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(initialVisitData))
       } catch {}
     } else if (!sessionStorage.getItem(`visit-state-${visitId}`)) {
-      // If no saved data and no status from navigation, save default not-started status
-      const initialVisitData = {
-        id: visitId,
-        patientName,
-        address,
-        time,
-        insurance,
-        status: 'not-started' as const,
-        outcomes: {},
-        procedureReasons: {}
-      }
-      try {
-        sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(initialVisitData))
-      } catch {}
+      // Default to not-started if no saved data and no navigation state
+      // Don't save to session storage to avoid overriding dashboard display
+      setVisitStatus('not-started')
     }
     
     setIsInitialLoad(false)
