@@ -38,6 +38,7 @@ export default function VisitDetailsView() {
   const [isReopening, setIsReopening] = React.useState(false)
   const [isSaving, setIsSaving] = React.useState(false)
   const [cardEditingId, setCardEditingId] = React.useState<string | null>(null)
+  const [isInitialLoad, setIsInitialLoad] = React.useState(true)
 
   // Extract visit either from navigation state or fallback to param id
   const visitFromState = (location.state as any)?.visit
@@ -64,6 +65,8 @@ export default function VisitDetailsView() {
         if (savedData.status) {
           setVisitStatus(savedData.status)
         }
+        setIsInitialLoad(false)
+        return
       }
     } catch {}
     
@@ -101,7 +104,9 @@ export default function VisitDetailsView() {
         sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(initialVisitData))
       } catch {}
     }
-  }, [visitId, visitFromState?.status])
+    
+    setIsInitialLoad(false)
+  }, [visitId, visitFromState?.status, patientName, address, time, insurance])
 
   const handleOutcomeClick = (procedureId: string, outcome: OutcomeValue) => {
     if (outcome === 'not-completed') {
@@ -241,6 +246,8 @@ export default function VisitDetailsView() {
   const [isExplicitlyEditing, setIsExplicitlyEditing] = React.useState(false)
   
   React.useEffect(() => {
+    if (isInitialLoad) return // Don't auto-change status during initial load
+    
     if (allOutcomesSet && visitStatus === 'not-started') {
       setVisitStatus('ready-to-save')
     }
@@ -248,10 +255,12 @@ export default function VisitDetailsView() {
     if (allOutcomesSet && visitStatus === 'in-progress' && !isExplicitlyEditing) {
       setVisitStatus('ready-to-save')
     }
-  }, [allOutcomesSet, visitStatus, isExplicitlyEditing])
+  }, [allOutcomesSet, visitStatus, isExplicitlyEditing, isInitialLoad])
 
-  // Save to session storage whenever visitStatus changes
+  // Save to session storage whenever visitStatus changes (but not during initial load)
   React.useEffect(() => {
+    if (isInitialLoad) return
+    
     const visitData = {
       id: visitId,
       patientName,
@@ -265,7 +274,7 @@ export default function VisitDetailsView() {
     try {
       sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
     } catch {}
-  }, [visitStatus, outcomes, procedureReasons, visitId, patientName, address, time, insurance])
+  }, [visitStatus, outcomes, procedureReasons, visitId, patientName, address, time, insurance, isInitialLoad])
 
   const handleSaveVisit = () => {
     console.log('Saving visit...', { outcomes, procedureReasons })
