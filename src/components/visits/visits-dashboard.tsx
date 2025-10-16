@@ -592,33 +592,56 @@ function VisitCard({ visit }: { visit: Visit }) {
   })()
 
   const getActionButton = () => {
-    // Check if visit is completed in session storage
-    const isCompleted = visitState?.status === 'completed' || visit.status === 'completed'
-    
-    // Check if visit has any outcomes (partial completion)
-    const hasOutcomes = visitState?.outcomes && Object.keys(visitState.outcomes).length > 0
+    // Get the actual visit status from session storage (same logic as StatusBadge)
+    let displayStatus = visit.status // Default to original status
+    if (visitState?.status) {
+      displayStatus = visitState.status
+    }
 
-    if (isCompleted) {
+    // Button logic based on badge status
+    if (displayStatus === 'completed') {
+      // Completed badge → View Summary button (with special styling)
       return (
-        <Button
-          className="rounded-full px-3 sm:px-6 py-2 text-xs sm:text-sm font-medium w-full sm:w-auto sm:min-w-[120px] transition-colors bg-white border border-[#5538A6] text-[#5538A6] hover:bg-gray-50"
-          variant="outline"
+        <button
           onClick={handleVisitClick}
+          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none text-sm leading-7 min-w-16 font-medium transition-all duration-250 ease-out"
+          style={{
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            fontSize: '0.875rem',
+            lineHeight: '1.75',
+            minWidth: '64px',
+            textTransform: 'none',
+            fontWeight: '500',
+            color: 'rgb(85, 56, 166)',
+            backgroundColor: 'transparent',
+            minHeight: '44px',
+            outline: '0px',
+            margin: '0px',
+            textDecoration: 'none',
+            padding: '5px 15px',
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderColor: 'rgb(85, 56, 166)',
+            borderRadius: '12px',
+            transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
         >
           View Summary
-        </Button>
+        </button>
       )
-    } else if (hasOutcomes) {
+    } else if (displayStatus === 'ready-to-save') {
+      // Ready to Save badge → Save button
       return (
         <Button
           className="text-white rounded-full px-3 sm:px-6 py-2 text-xs sm:text-sm font-medium w-full sm:w-auto sm:min-w-[120px] transition-colors hover:bg-[#4A2F95]"
           style={{ backgroundColor: '#5538A6' }}
           onClick={handleVisitClick}
         >
-          Continue Visit
+          Save
         </Button>
       )
     } else {
+      // Not Started / In Progress badge → Log Outcomes button
       return (
         <Button
           className="text-white rounded-full px-3 sm:px-6 py-2 text-xs sm:text-sm font-medium w-full sm:w-auto sm:min-w-[120px] transition-colors hover:bg-[#4A2F95]"
