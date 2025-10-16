@@ -135,7 +135,7 @@ const mockVisitsToday: Visit[] = [
       { name: 'Blood Pressure', completed: true },
       { name: 'Urine Sample' },
     ],
-    healthRiskAssessment: 'in-progress',
+    healthRiskAssessment: 'not-started',
   },
   {
     id: '4',
@@ -367,12 +367,12 @@ const mockVisits14Days: Visit[] = [
 function StatusBadge({ status, visitState }: { status: Visit['status'], visitState?: any }) {
   // Determine the actual status to show
   let displayStatus = status // Default to original status
-  
+
   // Only override if visitState has a status
   if (visitState && visitState.status) {
     displayStatus = visitState.status
   }
-  
+
   const getStatusConfig = () => {
     // Check for completed status first
     if (displayStatus === 'completed') {
@@ -404,7 +404,7 @@ function StatusBadge({ status, visitState }: { status: Visit['status'], visitSta
         showIcon: true
       }
     }
-    
+
     // Check for ready-to-save status
     if (displayStatus === 'ready-to-save') {
       return {
@@ -435,7 +435,7 @@ function StatusBadge({ status, visitState }: { status: Visit['status'], visitSta
         showIcon: false
       }
     }
-    
+
     // Check for in-progress status
     if (displayStatus === 'in-progress') {
       return {
@@ -466,7 +466,7 @@ function StatusBadge({ status, visitState }: { status: Visit['status'], visitSta
         showIcon: false
       }
     }
-    
+
     // Default to not-started
     return {
       style: {
@@ -496,9 +496,9 @@ function StatusBadge({ status, visitState }: { status: Visit['status'], visitSta
       showIcon: false
     }
   }
-  
+
   const config = getStatusConfig()
-  
+
   return (
     <div
       className="inline-flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
@@ -517,7 +517,7 @@ function StatusBadge({ status, visitState }: { status: Visit['status'], visitSta
 function ProcedureBadge({ procedure }: { procedure: VisitProcedure }) {
   if (procedure.completed) {
     return (
-      <div 
+      <div
         className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full"
         style={{
           maxWidth: '100%',
@@ -586,7 +586,7 @@ function VisitCard({ visit }: { visit: Visit }) {
     try {
       const stored = sessionStorage.getItem(`visit-state-${visit.id}`)
       return stored ? JSON.parse(stored) : null
-    } catch { 
+    } catch {
       return null
     }
   })()
@@ -657,16 +657,16 @@ function VisitCard({ visit }: { visit: Visit }) {
   const getHRABadge = () => {
     // Check session storage for HRA completion
     const hraCompleted = visitState?.outcomes?.['hra'] === 'completed'
-    
+
     // Determine HRA status based on session storage and original status
     let hraStatus = visit.healthRiskAssessment
-    
+
     if (hraCompleted) {
       // If HRA is completed in visit details but visit is not saved yet, show in-progress
       const visitCompleted = visitState?.status === 'completed'
       hraStatus = visitCompleted ? 'completed' : 'in-progress'
     }
-    
+
     if (hraStatus === 'completed') {
       return (
         <div
@@ -789,7 +789,7 @@ function VisitCard({ visit }: { visit: Visit }) {
                 </div>
               )}
             </div>
-            
+
             {/* Address - only for in-home visits */}
             {visit.address && visit.visitType !== 'telehealth' && (
               <div className="flex items-center gap-1 min-w-0 max-w-xs">
@@ -797,7 +797,7 @@ function VisitCard({ visit }: { visit: Visit }) {
                 <span className="text-sm truncate">{visit.address}</span>
               </div>
             )}
-            
+
             {/* Insurance */}
             <div className="flex items-center gap-1 flex-shrink-0">
               <Building className="w-4 h-4 flex-shrink-0" />
@@ -840,11 +840,11 @@ function VisitCard({ visit }: { visit: Visit }) {
                   'Blood Pressure': 'blood-pressure',
                   'Urine Sample': 'urine-sample'
                 }
-                
+
                 const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
                 // Only show completed if actually completed in session storage
                 const isCompleted = visitState?.outcomes?.[procedureId] === 'completed'
-                
+
                 return (
                   <div key={i} className="flex-shrink-0">
                     <ProcedureBadge procedure={{ ...p, completed: isCompleted }} />
@@ -917,7 +917,7 @@ export function VisitsDashboard() {
     const handleFocus = () => {
       refreshVisitStates()
     }
-    
+
     window.addEventListener('focus', handleFocus)
     return () => window.removeEventListener('focus', handleFocus)
   }, [refreshVisitStates])
@@ -938,7 +938,7 @@ export function VisitsDashboard() {
     const refreshInterval = setInterval(() => {
       setRefreshTrigger(Date.now())
     }, 500) // Refresh every 0.5 seconds
-    
+
     return () => clearInterval(refreshInterval)
   }, [])
 
@@ -947,7 +947,7 @@ export function VisitsDashboard() {
     const handleFocus = () => {
       setRefreshTrigger(Date.now())
     }
-    
+
     window.addEventListener('focus', handleFocus)
     return () => window.removeEventListener('focus', handleFocus)
   }, [])

@@ -47,6 +47,7 @@ export default function VisitDetailsView() {
   const address = visitFromState?.address || '1234 Main Street, Dayton, OH'
   const time = visitFromState?.time || '10:30AM'
   const insurance = visitFromState?.insurance || 'UHC'
+  const visitType = visitFromState?.visitType || 'in-home'
 
   
   // Load saved data from session storage and set initial visit status
@@ -583,7 +584,7 @@ export default function VisitDetailsView() {
                   <span style={{ 
                     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                     color: '#1B1B1B'
-                  }}>{address}</span>
+                  }}>{visitType === 'telehealth' ? 'Telehealth Visit' : address}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
@@ -659,26 +660,61 @@ export default function VisitDetailsView() {
                 color: '#939090'
               }}>Health Risk Assessment questionnaire</p>
               {outcomes['hra'] === 'completed' ? (
-                <div className="flex items-center gap-2 font-medium" style={{ color: 'rgb(25, 154, 146)' }}>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 16 16" 
-                    fill="none"
-                    style={{
-                      userSelect: 'none',
-                      width: '1em',
-                      height: '1em',
-                      display: 'inline-block',
-                      flexShrink: 0,
-                      fontSize: '1.25rem',
-                      transition: 'fill 200ms cubic-bezier(0.4, 0, 0.2, 1)'
-                    }}
-                  >
-                    <path d="M6.5 11.3L3.5 8.3L4.55 7.25L6.5 9.2L11.45 4.25L12.5 5.3L6.5 11.3Z" fill="white"/>
-                  </svg>
-                  <span>Assessment Complete</span>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 font-medium" style={{ color: 'rgb(25, 154, 146)' }}>
+                    <div 
+                      className="w-4 h-4 rounded-sm flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: 'rgb(25, 154, 146)' }}
+                    >
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="16" 
+                        height="16" 
+                        viewBox="0 0 16 16" 
+                        fill="none"
+                        className="w-3 h-3"
+                      >
+                        <path d="M6.5 11.3L3.5 8.3L4.55 7.25L6.5 9.2L11.45 4.25L12.5 5.3L6.5 11.3Z" fill="white"/>
+                      </svg>
+                    </div>
+                    <span>Assessment Complete</span>
+                  </div>
+                  
+                  {/* Start Telehealth button for telehealth visits */}
+                  {visitType === 'telehealth' && (
+                    <button
+                      onClick={() => {
+                        // Handle telehealth start logic here
+                        console.log('Starting telehealth session...')
+                      }}
+                      className="w-full flex items-center justify-center gap-2 font-semibold transition-all duration-250 ease-out"
+                      style={{
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                        fontSize: '0.875rem',
+                        lineHeight: '1.75',
+                        minWidth: '64px',
+                        minHeight: '44px',
+                        backgroundColor: 'transparent',
+                        color: 'rgb(35, 155, 207)',
+                        textTransform: 'none',
+                        fontWeight: '600',
+                        outline: '0px',
+                        margin: '0px',
+                        textDecoration: 'none',
+                        padding: '12px 15px',
+                        borderWidth: '1px',
+                        borderStyle: 'solid',
+                        borderColor: 'rgb(35, 155, 207)',
+                        borderRadius: '18px',
+                        transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)'
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
+                        <path d="M4.5 20C3.95 20 3.475 19.8083 3.075 19.425C2.69167 19.025 2.5 18.55 2.5 18V6C2.5 5.45 2.69167 4.98333 3.075 4.6C3.475 4.2 3.95 4 4.5 4H16.5C17.05 4 17.5167 4.2 17.9 4.6C18.3 4.98333 18.5 5.45 18.5 6V10.5L22.5 6.5V17.5L18.5 13.5V18C18.5 18.55 18.3 19.025 17.9 19.425C17.5167 19.8083 17.05 20 16.5 20H4.5ZM4.5 18H16.5V6H4.5V18ZM4.5 18V6V18Z" fill="#239BCF"/>
+                      </svg>
+                      <span>Start Telehealth</span>
+                    </button>
+                  )}
                 </div>
               ) : (
                 <button
