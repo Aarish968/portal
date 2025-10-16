@@ -840,6 +840,25 @@ export function VisitsDashboard() {
     return () => clearInterval(timer)
   }, [])
 
+  // Refresh dashboard for real-time updates
+  useEffect(() => {
+    const refreshInterval = setInterval(() => {
+      setRefreshTrigger(Date.now())
+    }, 500) // Refresh every 0.5 seconds
+    
+    return () => clearInterval(refreshInterval)
+  }, [])
+
+  // Refresh on window focus
+  useEffect(() => {
+    const handleFocus = () => {
+      setRefreshTrigger(Date.now())
+    }
+    
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [])
+
   // Scroll detection for making date cards sticky
   const handleScroll = useCallback(() => {
     if (activeTab !== '14days') return

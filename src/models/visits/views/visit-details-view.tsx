@@ -248,14 +248,11 @@ export default function VisitDetailsView() {
   React.useEffect(() => {
     if (isInitialLoad) return // Don't auto-change status during initial load
     
-    if (allOutcomesSet && visitStatus === 'not-started') {
+    // If all outcomes are set, always change to ready-to-save (regardless of editing mode)
+    if (allOutcomesSet && (visitStatus === 'not-started' || visitStatus === 'in-progress')) {
       setVisitStatus('ready-to-save')
     }
-    // Only auto-change from in-progress to ready-to-save if not explicitly editing
-    if (allOutcomesSet && visitStatus === 'in-progress' && !isExplicitlyEditing) {
-      setVisitStatus('ready-to-save')
-    }
-  }, [allOutcomesSet, visitStatus, isExplicitlyEditing, isInitialLoad])
+  }, [allOutcomesSet, visitStatus, isInitialLoad])
 
   // Save to session storage whenever visitStatus changes (but not during initial load)
   React.useEffect(() => {
