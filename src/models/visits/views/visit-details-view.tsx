@@ -302,9 +302,9 @@ export default function VisitDetailsView() {
 
 
   return (
-    <div className="h-full bg-gray-50 overflow-y-auto">
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Header - Full Width */}
-      <div className="w-full">
+      <div className="w-full flex-shrink-0">
         <div className="flex items-center justify-between bg-white border border-gray-300 px-6 py-4">
           <div className="flex items-center gap-4">
             <button onClick={() => {
@@ -409,20 +409,48 @@ export default function VisitDetailsView() {
               </>
             )}
             
+            {/* In Progress Mode - Show when at least one procedure or HRA is done but not all */}
+            {!isReopening && !isSaving && visitStatus === 'in-progress' && !allOutcomesSet && (completedCount > 0 || outcomes['hra']) && (
+              <div 
+                className="inline-flex items-center justify-center px-6"
+                style={{
+                  maxWidth: '100%',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  height: '32px',
+                  lineHeight: '1.5',
+                  cursor: 'unset',
+                  verticalAlign: 'middle',
+                  boxSizing: 'border-box',
+                  fontSize: '0.75rem',
+                  backgroundColor: 'rgb(228, 118, 0)',
+                  color: 'rgb(255, 255, 255)',
+                  fontWeight: '500',
+                  whiteSpace: 'nowrap',
+                  transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                  outline: '0px',
+                  textDecoration: 'none',
+                  border: '0px',
+                  padding: '0px',
+                  borderRadius: '999px',
+                  minWidth: '100px'
+                }}
+              >
+                In Progress
+              </div>
+            )}
+            
             {/* Save Mode - Show appropriate buttons based on state */}
-            {!isReopening && !isSaving && (visitStatus === 'in-progress' || visitStatus === 'ready-to-save' || needsSaving) && (
+            {!isReopening && !isSaving && (visitStatus === 'ready-to-save' || needsSaving) && (
               <>
                 {/* Show Ready to Save button only when ready to save */}
-                {(visitStatus === 'ready-to-save' || needsSaving) && (
-                  <div className="inline-flex items-center justify-center h-8 text-xs font-medium text-gray-900 whitespace-nowrap rounded-full px-3" style={{
-                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                    backgroundColor: 'rgba(35, 155, 207, 0.08)',
-                    lineHeight: '1.5',
-                    transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)'
-                  }}>
-                    Ready to Save
-                  </div>
-                )}
+                <div className="inline-flex items-center justify-center h-8 text-xs font-medium text-gray-900 whitespace-nowrap rounded-full px-3" style={{
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  backgroundColor: 'rgba(35, 155, 207, 0.08)',
+                  lineHeight: '1.5',
+                  transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)'
+                }}>
+                  Ready to Save
+                </div>
                 
                 <button
                   onClick={handleSaveVisit}
@@ -470,9 +498,32 @@ export default function VisitDetailsView() {
               </>
             )}
             
-            {visitStatus === 'not-started' && (
-              <div className="px-4 py-2 bg-gray-100 rounded-2xl">
-                <span className="text-sm font-medium text-gray-700">Not Started</span>
+            {(visitStatus === 'not-started' || (visitStatus === 'in-progress' && completedCount === 0 && !outcomes['hra'])) && (
+              <div 
+                className="inline-flex items-center justify-center px-6"
+                style={{
+                  maxWidth: '100%',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  height: '32px',
+                  lineHeight: '1.5',
+                  color: 'rgb(27, 27, 27)',
+                  backgroundColor: 'rgba(35, 155, 207, 0.08)',
+                  cursor: 'unset',
+                  verticalAlign: 'middle',
+                  boxSizing: 'border-box',
+                  fontSize: '0.75rem',
+                  fontWeight: '500',
+                  whiteSpace: 'nowrap',
+                  transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                  outline: '0px',
+                  textDecoration: 'none',
+                  border: '0px',
+                  padding: '0px',
+                  borderRadius: '999px',
+                  minWidth: '110px'
+                }}
+              >
+                Not Started
               </div>
             )}
             
@@ -482,7 +533,8 @@ export default function VisitDetailsView() {
       </div>
 
       {/* Content Container - Centered with max width */}
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Main Info Card */}
         <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8 mb-6 mt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -842,6 +894,7 @@ export default function VisitDetailsView() {
               )
             })}
           </div>
+        </div>
         </div>
       </div>
 
