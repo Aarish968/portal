@@ -1,5 +1,3 @@
-import React from 'react'
-
 interface OutcomeCardProps {
   title: string
   outcome?: 'completed' | 'not-completed' | undefined
@@ -14,48 +12,38 @@ export function OutcomeCard({
   onNotCompletedClick 
 }: OutcomeCardProps) {
   return (
-    <div 
-      className=":uno: flex w-418px min-w-280px max-w-2000px flex-col justify-center items-center gap-20px flex-shrink-0 rounded-16px bg-white shadow-[0_1px_2px_0_rgba(0,0,0,0.30),0_1px_3px_1px_rgba(0,0,0,0.15)]"
-      style={{ display: 'flex', width: '418px', minWidth: '280px', maxWidth: '2000px', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '20px', flexShrink: '0', borderRadius: '16px', background: '#FFF', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.30), 0 1px 3px 1px rgba(0, 0, 0, 0.15)' }}
-    >
-      <div 
-        className=":uno: flex p-24px flex-col items-center gap-16px self-stretch"
-        style={{ display: 'flex', padding: '24px', flexDirection: 'column', alignItems: 'center', gap: '16px', alignSelf: 'stretch' }}
-      >
-        <div 
-          className=":uno: flex flex-col items-start gap-16px self-stretch"
-          style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '16px', alignSelf: 'stretch' }}
-        >
-          <div 
-            className=":uno: flex justify-center items-center gap-16px self-stretch"
-            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', alignSelf: 'stretch' }}
-          >
-            <div 
-              className=":uno: flex flex-col items-start gap-12px flex-1"
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '12px', flex: '1 0 0' }}
-            >
-              <div 
-                className=":uno: flex items-start gap-12px"
-                style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}
-              >
+    <div className="flex w-full max-w-md flex-col justify-center items-center gap-5 flex-shrink-0 rounded-2xl bg-white shadow-lg">
+      <div className="flex p-6 flex-col items-center gap-4 w-full">
+        <div className="flex flex-col items-start gap-4 w-full">
+          <div className="flex justify-center items-center gap-4 w-full">
+            <div className="flex flex-col items-start gap-3 flex-1">
+              <div className="flex items-start gap-3">
                 <h3 
-                  className=":uno: color-#1B1B1B font-family-Roboto font-size-16px font-weight-500 line-height-24px letter-spacing-0.15px"
-                  style={{ color: '#1B1B1B', fontFamily: 'Roboto', fontSize: '16px', fontWeight: '500', lineHeight: '24px', letterSpacing: '0.15px' }}
+                  className="text-gray-900 font-medium text-base leading-6"
+                  style={{ 
+                    color: '#1B1B1B', 
+                    fontFamily: 'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', 
+                    fontSize: '16px', 
+                    fontWeight: '500', 
+                    lineHeight: '24px', 
+                    letterSpacing: '0.15px' 
+                  }}
                 >
                   {title}
                 </h3>
               </div>
-              <div 
-                className=":uno: flex items-start gap-24px"
-                style={{ display: 'flex', alignItems: 'flex-start', gap: '24px' }}
-              >
-                <div 
-                  className=":uno: flex items-center gap-4px"
-                  style={{ display: 'flex', alignItems: 'center', gap: '4px' }}
-                >
+              <div className="flex items-start gap-6">
+                <div className="flex items-center gap-1">
                   <span 
-                    className=":uno: color-#939090 font-family-Roboto font-size-14px font-weight-500 line-height-20px letter-spacing-0.25px"
-                    style={{ color: '#939090', fontFamily: 'Roboto', fontSize: '14px', fontWeight: '500', lineHeight: '20px', letterSpacing: '0.25px' }}
+                    className="text-gray-500 font-medium text-sm leading-5"
+                    style={{ 
+                      color: '#939090', 
+                      fontFamily: 'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', 
+                      fontSize: '14px', 
+                      fontWeight: '500', 
+                      lineHeight: '20px', 
+                      letterSpacing: '0.25px' 
+                    }}
                   >
                     Outcome:
                   </span>
@@ -64,44 +52,45 @@ export function OutcomeCard({
             </div>
           </div>
           
-          <div 
-            className=":uno: flex items-start gap-24px self-stretch"
-            style={{ display: 'flex', alignItems: 'flex-start', gap: '24px', alignSelf: 'stretch' }}
-          >
+          <div className="flex items-start gap-6 w-full">
             <button
               onClick={onCompletedClick}
-              className=":uno: flex w-154px h-44px justify-center items-center rounded-1000px border-1px border-#939090 bg-white hover:bg-gray-50 transition-colors"
-              style={{ display: 'flex', width: '154px', height: '44px', justifyContent: 'center', alignItems: 'center', borderRadius: '1000px', border: '1px solid #939090', background: '#FFF' }}
+              className={`flex justify-center items-center rounded-full border transition-colors px-6 py-2 ${
+                outcome === 'completed' 
+                  ? 'bg-[#5538A6] text-white border-[#5538A6]' 
+                  : 'bg-white text-gray-900 border-gray-400 hover:bg-gray-50'
+              }`}
+              style={{ 
+                width: '154px', 
+                height: '44px',
+                fontFamily: 'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', 
+                fontSize: '16px', 
+                fontWeight: '500', 
+                lineHeight: '24px', 
+                letterSpacing: '0.15px' 
+              }}
             >
-              <div 
-                className=":uno: flex justify-center items-center gap-8px"
-                style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
-              >
-                <span 
-                  className=":uno: color-#1B1B1B font-family-Roboto font-size-16px font-weight-500 line-height-24px letter-spacing-0.15px"
-                  style={{ color: '#1B1B1B', fontFamily: 'Roboto', fontSize: '16px', fontWeight: '500', lineHeight: '24px', letterSpacing: '0.15px' }}
-                >
-                  Completed
-                </span>
-              </div>
+              Completed
             </button>
             
             <button
               onClick={onNotCompletedClick}
-              className=":uno: flex w-154px h-44px justify-center items-center rounded-1000px border-1px border-#939090 bg-white hover:bg-gray-50 transition-colors"
-              style={{ display: 'flex', width: '154px', height: '44px', justifyContent: 'center', alignItems: 'center', borderRadius: '1000px', border: '1px solid #939090', background: '#FFF' }}
+              className={`flex justify-center items-center rounded-full border transition-colors px-6 py-2 ${
+                outcome === 'not-completed' 
+                  ? 'bg-[#5538A6] text-white border-[#5538A6]' 
+                  : 'bg-white text-gray-900 border-gray-400 hover:bg-gray-50'
+              }`}
+              style={{ 
+                width: '154px', 
+                height: '44px',
+                fontFamily: 'Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', 
+                fontSize: '16px', 
+                fontWeight: '500', 
+                lineHeight: '24px', 
+                letterSpacing: '0.15px' 
+              }}
             >
-              <div 
-                className=":uno: flex justify-center items-center gap-8px"
-                style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}
-              >
-                <span 
-                  className=":uno: color-#1B1B1B font-family-Roboto font-size-16px font-weight-500 line-height-24px letter-spacing-0.15px"
-                  style={{ color: '#1B1B1B', fontFamily: 'Roboto', fontSize: '16px', fontWeight: '500', lineHeight: '24px', letterSpacing: '0.15px' }}
-                >
-                  Not Completed
-                </span>
-              </div>
+              Not Completed
             </button>
           </div>
         </div>

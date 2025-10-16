@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { X } from 'lucide-react'
 
 interface ProcedureIncompleteDialogProps {
@@ -80,8 +80,6 @@ export function ProcedureIncompleteDialog({
     setDescription('')
     onClose()
   }
-
-  const selectedReasonData = incompleteReasons.find(reason => reason.id === selectedReason)
 
   if (!isOpen) return null
 

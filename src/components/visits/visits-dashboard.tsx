@@ -364,32 +364,148 @@ const mockVisits14Days: Visit[] = [
   },
 ]
 
-function StatusBadge({ status }: { status: Visit['status'] }) {
-  const variants = {
-    'not-started': {
-      className: 'bg-white border border-gray-300 hover:bg-gray-50',
-      text: 'Not Started',
-    },
-    'in-progress': {
-      className: 'bg-white border border-gray-300 hover:bg-gray-50',
-      text: 'In Progress',
-    },
-    completed: {
-      className: 'bg-white border border-gray-300 hover:bg-gray-50 flex items-center gap-1',
-      text: 'Completed',
-    },
+function StatusBadge({ status, visitState }: { status: Visit['status'], visitState?: any }) {
+  // Determine the actual status to show
+  let displayStatus = status // Default to original status
+  
+  // Only override if visitState has a status
+  if (visitState && visitState.status) {
+    displayStatus = visitState.status
   }
-  const variant = variants[status]
+  
+  const getStatusConfig = () => {
+    // Check for completed status first
+    if (displayStatus === 'completed') {
+      return {
+        style: {
+          maxWidth: '100%',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          lineHeight: '1.5',
+          cursor: 'unset',
+          verticalAlign: 'middle',
+          boxSizing: 'border-box',
+          height: '24px',
+          fontWeight: '500',
+          fontSize: '0.75rem',
+          backgroundColor: 'rgb(25, 154, 146)',
+          color: 'rgb(255, 255, 255)',
+          whiteSpace: 'nowrap',
+          transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+          outline: '0px',
+          textDecoration: 'none',
+          border: '0px',
+          padding: '0px 12px',
+          borderRadius: '999px'
+        },
+        text: 'Completed',
+        showIcon: true
+      }
+    }
+    
+    // Check for ready-to-save status
+    if (displayStatus === 'ready-to-save') {
+      return {
+        style: {
+          maxWidth: '100%',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          lineHeight: '1.5',
+          cursor: 'unset',
+          verticalAlign: 'middle',
+          boxSizing: 'border-box',
+          height: '24px',
+          fontSize: '0.75rem',
+          backgroundColor: 'rgb(35, 155, 207)',
+          color: 'rgb(255, 255, 255)',
+          fontWeight: '500',
+          whiteSpace: 'nowrap',
+          transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+          outline: '0px',
+          textDecoration: 'none',
+          border: '0px',
+          padding: '0px 12px',
+          borderRadius: '999px'
+        },
+        text: 'Ready to Save',
+        showIcon: false
+      }
+    }
+    
+    // Check for in-progress status
+    if (displayStatus === 'in-progress') {
+      return {
+        style: {
+          maxWidth: '100%',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          lineHeight: '1.5',
+          cursor: 'unset',
+          verticalAlign: 'middle',
+          boxSizing: 'border-box',
+          height: '24px',
+          fontSize: '0.75rem',
+          backgroundColor: 'rgb(228, 118, 0)',
+          color: 'rgb(255, 255, 255)',
+          fontWeight: '500',
+          whiteSpace: 'nowrap',
+          transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+          outline: '0px',
+          textDecoration: 'none',
+          border: '0px',
+          padding: '0px 18px',
+          borderRadius: '999px'
+        },
+        text: 'In Progress',
+        showIcon: false
+      }
+    }
+    
+    // Default to not-started
+    return {
+      style: {
+        maxWidth: '100%',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        lineHeight: '1.5',
+        color: 'rgb(27, 27, 27)',
+        backgroundColor: 'rgba(35, 155, 207, 0.08)',
+        cursor: 'unset',
+        verticalAlign: 'middle',
+        boxSizing: 'border-box',
+        fontSize: '0.75rem',
+        fontWeight: '500',
+        whiteSpace: 'nowrap',
+        transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+        outline: '0px',
+        textDecoration: 'none',
+        border: '0px',
+        padding: '0px 16px',
+        borderRadius: '999px',
+        height: '24px'
+      },
+      text: 'Not Started',
+      showIcon: false
+    }
+  }
+  
+  const config = getStatusConfig()
+  
   return (
     <div
-      className={cn(
-        'px-3 sm:px-4 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap',
-        variant.className
-      )}
-      style={{ color: '#1B1B1B' }}
+      className="inline-flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
+      style={config.style}
     >
-      {status === 'completed' && <Check className="w-3 h-3 flex-shrink-0" />}
-      <span className="text-xs">{variant.text}</span>
+      {config.showIcon && <Check className="w-3 h-3 flex-shrink-0" />}
+      <span className="text-xs">{config.text}</span>
     </div>
   )
 }
@@ -431,17 +547,17 @@ function VisitCard({ visit }: { visit: Visit }) {
     navigate(ROUTES.app.visitDetails.href.replace(':visitId', visit.id), { state: { visit } })
   }
 
-  const getActionButton = () => {
-    // Check session storage for visit state
-    const visitState = (() => {
-      try {
-        const stored = sessionStorage.getItem(`visit-state-${visit.id}`)
-        return stored ? JSON.parse(stored) : null
-      } catch { 
-        return null
-      }
-    })()
+  // Get visit state from session storage
+  const visitState = (() => {
+    try {
+      const stored = sessionStorage.getItem(`visit-state-${visit.id}`)
+      return stored ? JSON.parse(stored) : null
+    } catch { 
+      return null
+    }
+  })()
 
+  const getActionButton = () => {
     // Check if visit is completed in session storage
     const isCompleted = visitState?.status === 'completed' || visit.status === 'completed'
     
@@ -524,7 +640,7 @@ function VisitCard({ visit }: { visit: Visit }) {
                   {visit.patientName}
                 </h3>
                 <div className="flex-shrink-0">
-                  <StatusBadge status={visit.status} />
+                  <StatusBadge status={visit.status} visitState={visitState} />
                 </div>
               </div>
               <div className="w-full sm:w-auto sm:flex-shrink-0">{getActionButton()}</div>
@@ -635,7 +751,7 @@ export function VisitsDashboard() {
   }, {})
 
   // Load persisted state for all visits by id
-  useEffect(() => {
+  const refreshVisitStates = useCallback(() => {
     try {
       setVisitsToday(prev => prev.map(v => {
         const raw = sessionStorage.getItem(`visit-state-${v.id}`)
@@ -651,6 +767,20 @@ export function VisitsDashboard() {
       }))
     } catch { }
   }, [])
+
+  useEffect(() => {
+    refreshVisitStates()
+  }, [refreshVisitStates])
+
+  // Refresh data when window gains focus (user navigates back)
+  useEffect(() => {
+    const handleFocus = () => {
+      refreshVisitStates()
+    }
+    
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [refreshVisitStates])
 
   useEffect(() => {
     const updateTime = () => {

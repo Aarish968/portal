@@ -1,5 +1,5 @@
 import React from 'react'
-import { ArrowLeft, MapPin, Clock, Play, CheckCircle, Check, X, Pencil, FileText, Building } from 'lucide-react'
+import { ArrowLeft, MapPin, Clock, Play, X, Pencil } from 'lucide-react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ProcedureIncompleteDialog } from '../components/ProcedureIncompleteDialog'
 
@@ -46,7 +46,7 @@ export default function VisitDetailsView() {
   const address = visitFromState?.address || '1234 Main Street, Dayton, OH'
   const time = visitFromState?.time || '10:30AM'
   const insurance = visitFromState?.insurance || 'UHC'
-  const statusLabel = visitFromState?.status === 'in-progress' ? 'In Progress' : visitFromState?.status === 'completed' ? 'Completed' : 'Not Started'
+
   
   // Load saved data from session storage and set initial visit status
   React.useEffect(() => {
@@ -70,6 +70,36 @@ export default function VisitDetailsView() {
     // Set initial visit status from navigation state if no saved data
     if (visitFromState?.status && !sessionStorage.getItem(`visit-state-${visitId}`)) {
       setVisitStatus(visitFromState.status)
+      
+      // Save initial state to session storage
+      const initialVisitData = {
+        id: visitId,
+        patientName,
+        address,
+        time,
+        insurance,
+        status: visitFromState.status,
+        outcomes: {},
+        procedureReasons: {}
+      }
+      try {
+        sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(initialVisitData))
+      } catch {}
+    } else if (!sessionStorage.getItem(`visit-state-${visitId}`)) {
+      // If no saved data and no status from navigation, save default not-started status
+      const initialVisitData = {
+        id: visitId,
+        patientName,
+        address,
+        time,
+        insurance,
+        status: 'not-started' as const,
+        outcomes: {},
+        procedureReasons: {}
+      }
+      try {
+        sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(initialVisitData))
+      } catch {}
     }
   }, [visitId, visitFromState?.status])
 
@@ -114,7 +144,7 @@ export default function VisitDetailsView() {
       console.log(`Procedure ${selectedProcedure.title} not completed:`, { reason, description })
       const newOutcomes = {
         ...outcomes,
-        [selectedProcedure.id]: 'not-completed'
+        [selectedProcedure.id]: 'not-completed' as OutcomeValue
       }
       const newReasons = {
         ...procedureReasons,
@@ -220,6 +250,23 @@ export default function VisitDetailsView() {
     }
   }, [allOutcomesSet, visitStatus, isExplicitlyEditing])
 
+  // Save to session storage whenever visitStatus changes
+  React.useEffect(() => {
+    const visitData = {
+      id: visitId,
+      patientName,
+      address,
+      time,
+      insurance,
+      status: visitStatus,
+      outcomes,
+      procedureReasons
+    }
+    try {
+      sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+    } catch {}
+  }, [visitStatus, outcomes, procedureReasons, visitId, patientName, address, time, insurance])
+
   const handleSaveVisit = () => {
     console.log('Saving visit...', { outcomes, procedureReasons })
     setIsSaving(true)
@@ -283,20 +330,7 @@ export default function VisitDetailsView() {
     return false
   }, [visitStatus, allOutcomesSet])
 
-  const handleViewSummary = () => {
-    // Pass visit data to outcomes page
-    const visitData = {
-      id: visitId,
-      patientName,
-      address,
-      time,
-      insurance,
-      status: visitStatus,
-      outcomes,
-      procedureReasons
-    }
-    navigate('/visit-outcomes', { state: { visitData }, replace: true })
-  }
+
 
 
 
