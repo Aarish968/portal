@@ -699,7 +699,7 @@ function VisitCard({ visit }: { visit: Visit }) {
             
             {/* Address - only for in-home visits */}
             {visit.address && visit.visitType !== 'telehealth' && (
-              <div className="flex items-center gap-1 min-w-0 flex-1">
+              <div className="flex items-center gap-1 min-w-0 max-w-xs">
                 <MapPin className="w-4 h-4 flex-shrink-0" />
                 <span className="text-sm truncate">{visit.address}</span>
               </div>
