@@ -513,8 +513,38 @@ function StatusBadge({ status, visitState }: { status: Visit['status'], visitSta
 function ProcedureBadge({ procedure }: { procedure: VisitProcedure }) {
   if (procedure.completed) {
     return (
-      <div className="border border-gray-300 bg-white text-gray-700 px-2 sm:px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 whitespace-nowrap">
-        <Check className="w-3 h-3 flex-shrink-0" />
+      <div 
+        className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full"
+        style={{
+          maxWidth: '100%',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          lineHeight: '1.5',
+          cursor: 'unset',
+          verticalAlign: 'middle',
+          boxSizing: 'border-box',
+          height: '24px',
+          fontWeight: '500',
+          fontSize: '0.75rem',
+          backgroundColor: 'rgb(25, 154, 146)',
+          color: 'rgb(255, 255, 255)',
+          whiteSpace: 'nowrap',
+          transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+          outline: '0px',
+          textDecoration: 'none',
+          borderWidth: '0px',
+          borderStyle: 'initial',
+          borderColor: 'initial',
+          borderImage: 'initial',
+          padding: '0px 8px',
+          borderRadius: '999px'
+        }}
+      >
+        <div className="w-3 h-3 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+          <Check className="w-2 h-2" style={{ color: 'rgb(25, 154, 146)' }} />
+        </div>
         <span className="text-xs">{procedure.name}</span>
       </div>
     )
@@ -647,9 +677,10 @@ function VisitCard({ visit }: { visit: Visit }) {
             </div>
           </div>
 
-          {/* Visit Details */}
-          <div className="flex flex-col gap-2 text-sm">
-            <div className="flex items-center gap-2 min-w-0" style={{ color: '#939090' }}>
+          {/* Visit Details - Single Line */}
+          <div className="flex items-center gap-4 text-sm min-w-0" style={{ color: '#939090' }}>
+            {/* Time */}
+            <div className="flex items-center gap-1 flex-shrink-0">
               <Clock className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm whitespace-nowrap">{visit.time}</span>
               {visit.visitType === 'telehealth' && (
@@ -665,13 +696,17 @@ function VisitCard({ visit }: { visit: Visit }) {
                 </div>
               )}
             </div>
+            
+            {/* Address - only for in-home visits */}
             {visit.address && visit.visitType !== 'telehealth' && (
-              <div className="flex items-center gap-2 min-w-0" style={{ color: '#939090' }}>
+              <div className="flex items-center gap-1 min-w-0 flex-1">
                 <MapPin className="w-4 h-4 flex-shrink-0" />
                 <span className="text-sm truncate">{visit.address}</span>
               </div>
             )}
-            <div className="flex items-center gap-2" style={{ color: '#939090' }}>
+            
+            {/* Insurance */}
+            <div className="flex items-center gap-1 flex-shrink-0">
               <Building className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm whitespace-nowrap">{visit.insurance}</span>
             </div>
@@ -706,11 +741,23 @@ function VisitCard({ visit }: { visit: Visit }) {
               Applied Procedures
             </h4>
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
-              {visit.procedures.map((p, i) => (
-                <div key={i} className="flex-shrink-0">
-                  <ProcedureBadge procedure={p} />
-                </div>
-              ))}
+              {visit.procedures.map((p, i) => {
+                // Map procedure names to IDs used in visit details
+                const procedureIdMap: Record<string, string> = {
+                  'A1C': 'a1c',
+                  'Blood Pressure': 'blood-pressure',
+                  'Urine Sample': 'urine-sample'
+                }
+                
+                const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
+                const isCompleted = visitState?.outcomes?.[procedureId] === 'completed' || p.completed
+                
+                return (
+                  <div key={i} className="flex-shrink-0">
+                    <ProcedureBadge procedure={{ ...p, completed: isCompleted }} />
+                  </div>
+                )
+              })}
             </div>
           </div>
 
