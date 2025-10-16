@@ -880,7 +880,7 @@ export function VisitsDashboard() {
 
   const currentVisits = activeTab === 'today' ? visitsToday : mockVisits14Days
   const currentEquipment = activeTab === 'today' ? equipmentDataToday : equipmentData14Days
-  const equipmentCount = currentEquipment.reduce((t, e) => t + e.visits, 0)
+  const equipmentCount = currentEquipment.length
   const visitCount = currentVisits.length
 
   const groupedVisits = currentVisits.reduce((acc: Record<string, Visit[]>, v) => {
