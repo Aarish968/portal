@@ -812,8 +812,8 @@ function VisitCard({ visit }: { visit: Visit }) {
             </div>
           </div>
 
-          {/* Visit Details - Single Line */}
-          <div className="flex items-center gap-4 text-sm min-w-0" style={{ color: '#939090' }}>
+          {/* Visit Details - Responsive Layout */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 text-sm min-w-0 visit-details-mobile" style={{ color: '#939090' }}>
             {/* Time */}
             <div className="flex items-center gap-1 flex-shrink-0">
               <Clock className="w-4 h-4 flex-shrink-0" />
@@ -822,7 +822,7 @@ function VisitCard({ visit }: { visit: Visit }) {
 
             {/* Address - show for all visits */}
             {visit.address && (
-              <div className="flex items-center gap-1 min-w-0 max-w-xs">
+              <div className="flex items-center gap-1 min-w-0 max-w-full sm:max-w-xs">
                 <MapPin className="w-4 h-4 flex-shrink-0" />
                 <span className="text-sm truncate">{visit.address}</span>
               </div>
@@ -862,7 +862,7 @@ function VisitCard({ visit }: { visit: Visit }) {
             <h4 className="text-xs font-medium text-gray-700 mb-2 sm:mb-3 uppercase tracking-wide">
               Applied Procedures
             </h4>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2 procedures-mobile">
               {visit.procedures.map((p, i) => {
                 // Map procedure names to IDs used in visit details
                 const procedureIdMap: Record<string, string> = {
@@ -905,6 +905,7 @@ export function VisitsDashboard() {
   const [visitsToday, setVisitsToday] = useState<Visit[]>(mockVisitsToday)
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
   const [time, setTime] = useState('')
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
   const dateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   const dateSectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
@@ -1110,27 +1111,78 @@ export function VisitsDashboard() {
     <div className="min-h-screen bg-gray-50 w-full">
       {/* Custom styles for responsive zoom behavior and mobile fixes */}
       <style>{`
-        /* Force mobile header positioning */
+        /* Mobile-first responsive design */
         @media (max-width: 639px) {
           .mobile-header {
-            left: 191px !important;
+            left: 12.3rem !important;
             right: 0 !important;
             z-index: 50 !important;
             position: fixed !important;
+            margin-left: 0 !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
           }
           
           .mobile-content {
-            padding-top: 11rem !important;
+            padding-top: 12rem !important;
             padding-left: 3rem !important;
             padding-right: 1rem !important;
             margin-left: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+          
+          /* Force single column layout on mobile */
+          .visits-grid-14days {
+            display: block !important;
+            grid-template-columns: none !important;
+            width: 100% !important;
+          }
+          
+          .visits-grid-14days > div {
+            width: 100% !important;
+            margin-bottom: 1rem !important;
+            display: block !important;
+          }
+          
+          /* Mobile visit card styling */
+          .visit-card-mobile {
+            width: 100% !important;
+            margin-bottom: 1rem !important;
+            display: block !important;
+          }
+          
+          /* Mobile visit details - stack vertically */
+          .visit-details-mobile {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 0.75rem !important;
+          }
+          
+          /* Mobile procedure badges - wrap properly */
+          .procedures-mobile {
+            flex-wrap: wrap !important;
+            gap: 0.5rem !important;
+          }
+          
+          /* Mobile header adjustments */
+          .mobile-header-content {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 1rem !important;
+          }
+          
+          /* Mobile tabs */
+          .mobile-tabs {
+            width: 100% !important;
+            justify-content: flex-start !important;
           }
         }
         
-        /* Tablet and iPad responsive fixes */
+        /* Tablet responsive fixes */
         @media (min-width: 640px) and (max-width: 1023px) {
           .mobile-header {
-            left: 195px !important;
+            left: 12.3rem !important;
             right: 0 !important;
             z-index: 50 !important;
             position: fixed !important;
@@ -1138,116 +1190,42 @@ export function VisitsDashboard() {
           
           .mobile-content {
             padding-top: 10rem !important;
-            padding-left: 3.5rem !important;
+            padding-left: 3rem !important;
             padding-right: 1.5rem !important;
             margin-left: 0 !important;
           }
-        }
-        
-        /* Small mobile devices */
-        @media (max-width: 480px) {
-          .mobile-content {
-            padding-top: 11rem !important;
+          
+          /* Tablet: single column for 14 days view */
+          .visits-grid-14days {
+            display: block !important;
+            grid-template-columns: none !important;
+            width: 100% !important;
           }
           
-          .visit-card-mobile {
+          .visits-grid-14days > div {
             width: 100% !important;
             margin-bottom: 1rem !important;
             display: block !important;
           }
-          
+        }
+        
+        /* Desktop: maintain current layout */
+        @media (min-width: 1024px) {
           .visits-grid-14days {
-            grid-template-columns: 1fr !important;
-          }
-          
-          /* Force single column on mobile */
-          .single-column-layout {
-            display: block !important;
-            width: 100% !important;
-          }
-        }
-        
-        /* Desktop responsive behavior - ensure cards stay in position */
-        @media (min-width: 640px) {
-          .visit-card-container {
-            width: 100%;
-            max-width: none;
-          }
-          
-          /* Cards stay in position but grow in width on zoom out */
-          .single-column-layout {
-            max-width: 100% !important;
-            width: 100% !important;
-            display: block !important;
-          }
-          
-          /* Force all cards to be full width */
-          .responsive-grid {
-            display: block !important;
-            width: 100% !important;
-          }
-          
-          .responsive-grid > div {
-            width: 100% !important;
-            max-width: 100% !important;
-            margin-bottom: 1rem !important;
-          }
-        }
-        
-        /* Force single column layout for Today's visits */
-        .today-visits-container {
-          display: block !important;
-          width: 100% !important;
-        }
-        
-        .today-visits-container > div {
-          width: 100% !important;
-          margin-bottom: 1rem !important;
-        }
-        
-        /* Next 14 Days styling */
-        .date-card {
-          background-color: rgb(247, 252, 255) !important;
-          border: 1px solid rgb(232, 244, 253) !important;
-          color: #239BCF !important;
-          margin-bottom: 0 !important;
-          backdrop-filter: blur(8px) !important;
-        }
-        
-
-        
-        /* 14-day view: responsive grid layout */
-        .visits-grid-14days {
-          display: grid !important;
-          grid-template-columns: 1fr !important;
-          gap: 1rem !important;
-          width: 100% !important;
-        }
-        
-        @media (min-width: 768px) {
-          .visits-grid-14days {
+            display: grid !important;
             grid-template-columns: repeat(2, 1fr) !important;
+            gap: 1rem !important;
+            width: 100% !important;
+          }
+          
+          .visits-grid-14days > div {
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: 100% !important;
           }
         }
         
-        .visits-grid-14days > div {
-          width: 100% !important;
-          max-width: 100% !important;
-          min-height: 100% !important;
-          overflow: hidden !important;
-        }
-        
-        /* Prevent text wrapping in cards */
-        .visit-card-content {
-          overflow: hidden !important;
-        }
-        
-        .visit-card-content * {
-          word-break: normal !important;
-          overflow-wrap: normal !important;
-        }
-        
-        /* Today view: full width single column */
+        /* Force single column layout for Today's visits on all devices */
         .visits-grid-today {
           display: block !important;
           width: 100% !important;
@@ -1259,12 +1237,61 @@ export function VisitsDashboard() {
           margin-bottom: 1rem !important;
           display: block !important;
         }
+        
+        /* Date card styling */
+        .date-card {
+          background-color: rgb(247, 252, 255) !important;
+          border: 1px solid rgb(232, 244, 253) !important;
+          color: #239BCF !important;
+          margin-bottom: 0 !important;
+          backdrop-filter: blur(8px) !important;
+        }
+        
+        /* Visit card content improvements */
+        .visit-card-content {
+          overflow: hidden !important;
+          word-wrap: break-word !important;
+        }
+        
+        /* Responsive text and spacing */
+        @media (max-width: 639px) {
+          .visit-card-content {
+            padding: 1rem !important;
+          }
+          
+          .visit-card-content h3 {
+            font-size: 1rem !important;
+            line-height: 1.25 !important;
+          }
+          
+          .visit-card-content .text-sm {
+            font-size: 0.875rem !important;
+          }
+          
+          .visit-card-content .text-xs {
+            font-size: 0.75rem !important;
+          }
+        }
+        
+        /* Equipment section mobile fixes */
+        @media (max-width: 639px) {
+          .equipment-header {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 0.75rem !important;
+          }
+          
+          .equipment-stats {
+            width: 100% !important;
+            justify-content: space-between !important;
+          }
+        }
       `}</style>
       {/* Fixed Header - fully responsive */}
       <div className="fixed top-0 left-0 right-0 z-10 bg-white border-b border-gray-200 shadow-sm lg:left-48 xl:left-49 mobile-header">
         <div className="px-4 sm:px-6 py-4 pb-0">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
-            <div className="mb-4 sm:mb-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 mobile-header-content">
+            <div className="mb-3 sm:mb-0">
               <h1 className="font-medium text-base sm:text-lg" style={{ color: '#1b1b1b', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
                 Visit Outcomes
               </h1>
@@ -1288,7 +1315,7 @@ export function VisitsDashboard() {
           </div>
 
           {/* Tabs */}
-          <div className="relative flex gap-4 sm:gap-8 pb-3">
+          <div className="relative flex gap-4 sm:gap-8 pb-3 mobile-tabs">
             <button
               onClick={() => setActiveTab('today')}
               onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
@@ -1357,7 +1384,7 @@ export function VisitsDashboard() {
           style={{ minHeight: '56px' }}
         >
           <CardContent className="p-3 sm:p-4 bg-transparent">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between equipment-header">
               <div className="mb-3 sm:mb-0">
                 <h2
                   className="font-medium text-sm"
@@ -1373,7 +1400,7 @@ export function VisitsDashboard() {
                 </h2>
               </div>
 
-              <div className="flex items-center gap-2 sm:gap-4">
+              <div className="flex items-center gap-2 sm:gap-4 equipment-stats">
                 <p className="text-xs text-gray-500 flex-shrink-0">
                   {visitCount} visits scheduled • {equipmentCount} items
                 </p>
