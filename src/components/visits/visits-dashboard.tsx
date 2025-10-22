@@ -632,24 +632,66 @@ function VisitCard({ visit }: { visit: Visit }) {
     } else if (displayStatus === 'ready-to-save') {
       // Ready to Save badge → Save button
       return (
-        <Button
-          className="text-white rounded-full px-3 sm:px-6 py-2 text-xs sm:text-sm font-medium w-full sm:w-auto sm:min-w-[120px] transition-colors hover:bg-[#4A2F95]"
-          style={{ backgroundColor: '#5538A6' }}
+        <button
           onClick={handleVisitClick}
+          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+          style={{
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            fontSize: '0.875rem',
+            lineHeight: '1.75',
+            minWidth: '64px',
+            textTransform: 'none',
+            fontWeight: '500',
+            boxShadow: 'none',
+            minHeight: '44px',
+            backgroundColor: 'rgb(85, 56, 166)',
+            color: 'rgb(255, 255, 255)',
+            outline: '0px',
+            margin: '0px',
+            textDecoration: 'none',
+            padding: '6px 16px',
+            borderWidth: '0px',
+            borderStyle: 'initial',
+            borderColor: 'initial',
+            borderImage: 'initial',
+            transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+            borderRadius: '18px'
+          }}
         >
           Save
-        </Button>
+        </button>
       )
     } else {
       // Not Started / In Progress badge → Log Outcomes button
       return (
-        <Button
-          className="text-white rounded-full px-3 sm:px-6 py-2 text-xs sm:text-sm font-medium w-full sm:w-auto sm:min-w-[120px] transition-colors hover:bg-[#4A2F95]"
-          style={{ backgroundColor: '#5538A6' }}
+        <button
           onClick={handleVisitClick}
+          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+          style={{
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            fontSize: '0.875rem',
+            lineHeight: '1.75',
+            minWidth: '64px',
+            textTransform: 'none',
+            fontWeight: '500',
+            boxShadow: 'none',
+            backgroundColor: 'rgb(85, 56, 166)',
+            color: 'rgb(255, 255, 255)',
+            minHeight: '44px',
+            outline: '0px',
+            margin: '0px',
+            textDecoration: 'none',
+            padding: '6px 16px',
+            borderWidth: '0px',
+            borderStyle: 'initial',
+            borderColor: 'initial',
+            borderImage: 'initial',
+            transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+            borderRadius: '12px'
+          }}
         >
           Log Outcomes
-        </Button>
+        </button>
       )
     }
   }
@@ -776,22 +818,10 @@ function VisitCard({ visit }: { visit: Visit }) {
             <div className="flex items-center gap-1 flex-shrink-0">
               <Clock className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm whitespace-nowrap">{visit.time}</span>
-              {visit.visitType === 'telehealth' && (
-                <div
-                  className="ml-1 px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 border flex-shrink-0"
-                  style={{
-                    color: '#239BCF',
-                    borderColor: '#239BCF',
-                  }}
-                >
-                  <VideocamIcon className="w-3 h-3" />
-                  <span className="hidden sm:inline">Telehealth</span>
-                </div>
-              )}
             </div>
 
-            {/* Address - only for in-home visits */}
-            {visit.address && visit.visitType !== 'telehealth' && (
+            {/* Address - show for all visits */}
+            {visit.address && (
               <div className="flex items-center gap-1 min-w-0 max-w-xs">
                 <MapPin className="w-4 h-4 flex-shrink-0" />
                 <span className="text-sm truncate">{visit.address}</span>
@@ -1090,7 +1120,7 @@ export function VisitsDashboard() {
           }
           
           .mobile-content {
-            padding-top: 10rem !important;
+            padding-top: 9rem !important;
             padding-left: 2.5rem !important;
             padding-right: 1rem !important;
             margin-left: 0 !important;

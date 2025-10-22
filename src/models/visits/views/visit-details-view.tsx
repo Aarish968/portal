@@ -222,9 +222,11 @@ export default function VisitDetailsView() {
   }
 
   const completedCount = Object.values(outcomes).filter(o => o === 'completed').length
+  // Count all outcomes (completed + not-completed) for progress bar
+  const totalOutcomesSet = Object.values(outcomes).filter(o => o === 'completed' || o === 'not-completed').length
   // Total outcomes include procedures plus HRA start action
   const totalOutcomes = procedures.length + 1
-  const progressPercent = Math.min(100, Math.round((completedCount / totalOutcomes) * 100))
+  const progressPercent = Math.min(100, Math.round((totalOutcomesSet / totalOutcomes) * 100))
 
   // Check if all procedures and HRA have outcomes (completed or not-completed)
   const allProceduresHaveOutcomes = procedures.every(proc => outcomes[proc.id])
@@ -584,7 +586,7 @@ export default function VisitDetailsView() {
                   <span style={{ 
                     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                     color: '#1B1B1B'
-                  }}>{visitType === 'telehealth' ? 'Telehealth Visit' : address}</span>
+                  }}>{address}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
@@ -618,7 +620,7 @@ export default function VisitDetailsView() {
                 <span className="text-base font-semibold" style={{ 
                   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                   color: '#1B1B1B'
-                }}>{completedCount}/{totalOutcomes}</span>
+                }}>{totalOutcomesSet}/{totalOutcomes}</span>
               </div>
               
               <div className="mt-6">
