@@ -989,12 +989,26 @@ export function VisitsDashboard() {
 
     try {
       const scrollTop = window.scrollY
-      const headerHeight = 135
+      const headerHeight = 135 // Increased to ensure date card stays below header
       const sidebarWidth = 200
 
-      Object.entries(groupedVisits).forEach(([date, visits]) => {
-        const dateElement = dateRefs.current[date]
-        const dateSectionElement = dateSectionRefs.current[date]
+      // Get all sections sorted by position for collision detection
+      const allSections = Object.entries(groupedVisits).map(([date, visits]) => ({
+        date,
+        visits,
+        element: dateSectionRefs.current[date],
+        dateElement: dateRefs.current[date]
+      })).filter(section => section.element && section.dateElement)
+
+      // Sort sections by their vertical position
+      allSections.sort((a, b) => {
+        const rectA = a.element!.getBoundingClientRect()
+        const rectB = b.element!.getBoundingClientRect()
+        return rectA.top - rectB.top
+      })
+
+      allSections.forEach((section, index) => {
+        const { date, dateElement, element: dateSectionElement } = section
 
         if (!dateElement || !dateSectionElement) return
 
@@ -1008,58 +1022,57 @@ export function VisitsDashboard() {
           dateElement.dataset.originalWidth = dateElement.offsetWidth.toString()
           dateElement.dataset.originalHeight = dateElement.offsetHeight.toString()
         }
-        const originalWidth = parseInt(dateElement.dataset.originalWidth)
-        const originalHeight = parseInt(dateElement.dataset.originalHeight)
+        const originalWidth = parseInt(dateElement.dataset.originalWidth || '0')
+        const originalHeight = parseInt(dateElement.dataset.originalHeight || '0')
 
         const sectionRect = dateSectionElement.getBoundingClientRect()
         const containerRect = whiteContainer.getBoundingClientRect()
         const sectionTop = sectionRect.top
         const containerBottom = containerRect.bottom
 
-        // Date card should be fixed when:
-        // 1. Section has started (sectionTop <= headerHeight)
-        // 2. White container bottom hasn't reached the date card bottom position
-        const dateCardBottom = headerHeight + originalHeight
+        // Check for next section to avoid overlap
+        const nextSection = allSections[index + 1]
+        const nextSectionTop = nextSection ? nextSection.element!.getBoundingClientRect().top : Infinity
 
-        if (sectionTop <= headerHeight && containerBottom > dateCardBottom) {
-          // Fixed state - date card is sticky
+        // Calculate key positions
+        const stickyPosition = headerHeight
+        const containerEndPosition = containerBottom - originalHeight
+        const maxAllowedPosition = Math.min(containerEndPosition, nextSectionTop - originalHeight - 10)
+
+        if (sectionTop <= headerHeight && containerBottom > headerHeight + originalHeight) {
+          // Phase 1: Sticky under header
           dateElement.style.position = 'fixed'
-          dateElement.style.top = `${headerHeight}px`
+          dateElement.style.top = `${stickyPosition}px`
           dateElement.style.left = `${sidebarWidth + 20}px`
           dateElement.style.width = `${originalWidth}px`
           dateElement.style.zIndex = '5'
-          dateElement.style.marginBottom = '0'
-          // Remove mb-4 class to prevent bottom margin
-          dateElement.classList.remove('mb-4')
-          // Set wrapper height to maintain space (no extra margin)
+          dateElement.style.visibility = 'visible'
+          dateElement.style.opacity = '1'
+          dateElement.style.transform = 'none'
           if (wrapper) wrapper.style.height = `${originalHeight}px`
-        } else if (containerBottom <= dateCardBottom && containerBottom > headerHeight) {
-          // Stopped state - date card moves down with container bottom
-          // Keep it fixed but move it down as container scrolls up
+        } else if (sectionTop <= headerHeight && containerBottom <= headerHeight + originalHeight) {
+          // Phase 2: Stop at container bottom (key fix here)
+          const stopPosition = Math.max(maxAllowedPosition, headerHeight)
           dateElement.style.position = 'fixed'
-          dateElement.style.top = `${containerBottom - originalHeight}px`
+          dateElement.style.top = `${stopPosition}px`
           dateElement.style.left = `${sidebarWidth + 20}px`
           dateElement.style.width = `${originalWidth}px`
           dateElement.style.zIndex = '5'
-          dateElement.style.marginBottom = '0'
-          // Remove mb-4 class to prevent bottom margin
-          dateElement.classList.remove('mb-0')
-          // Keep wrapper height (no extra margin)
+          dateElement.style.visibility = 'visible'
+          dateElement.style.opacity = '1'
+          dateElement.style.transform = 'none'
           if (wrapper) wrapper.style.height = `${originalHeight}px`
         } else {
-          // Normal state - before section starts or after section ends
-          dateElement.style.position = ''
-          dateElement.style.top = ''
-          dateElement.style.left = ''
-          dateElement.style.width = ''
-          dateElement.style.zIndex = ''
-          dateElement.style.marginBottom = ''
-          // Restore mb-4 class
-          if (!dateElement.classList.contains('mb-0')) {
-            dateElement.classList.add('mb-0')
-          }
-          // Reset wrapper height
-          if (wrapper) wrapper.style.height = ''
+          // Phase 3: Normal position
+          dateElement.style.position = 'relative'
+          dateElement.style.top = 'auto'
+          dateElement.style.left = 'auto'
+          dateElement.style.width = 'auto'
+          dateElement.style.zIndex = 'auto'
+          dateElement.style.visibility = 'visible'
+          dateElement.style.opacity = '1'
+          dateElement.style.transform = 'none'
+          if (wrapper) wrapper.style.height = 'auto'
         }
       })
     } catch (error) {
@@ -1069,21 +1082,36 @@ export function VisitsDashboard() {
 
   useEffect(() => {
     if (activeTab === '14days') {
+      // Initial call to set correct positions
+      handleScroll()
+
+      // Add scroll listener
       window.addEventListener('scroll', handleScroll, { passive: true })
+      window.addEventListener('resize', handleScroll, { passive: true })
+
       return () => {
         window.removeEventListener('scroll', handleScroll)
+        window.removeEventListener('resize', handleScroll)
         // Reset all date card styles when switching tabs
         Object.values(dateRefs.current).forEach(element => {
           if (element) {
-            element.style.position = 'sticky'
+            element.style.position = 'relative'
             element.style.top = 'auto'
-            element.style.zIndex = 'auto'
-            element.style.width = 'auto'
             element.style.left = 'auto'
-            element.style.right = 'auto'
-            element.style.maxWidth = 'auto'
-            element.style.margin = 'auto'
-            element.style.transition = 'none'
+            element.style.width = 'auto'
+            element.style.zIndex = 'auto'
+            element.style.marginBottom = '1rem'
+            element.style.visibility = 'visible'
+            element.style.opacity = '1'
+          }
+        })
+        // Reset wrapper heights
+        Object.values(dateSectionRefs.current).forEach(section => {
+          if (section) {
+            const wrapper = section.querySelector('.date-card-wrapper')
+            if (wrapper) {
+              wrapper.style.height = 'auto'
+            }
           }
         })
       }
@@ -1091,15 +1119,14 @@ export function VisitsDashboard() {
       // Reset all date card styles when not on 14days tab
       Object.values(dateRefs.current).forEach(element => {
         if (element) {
-          element.style.position = 'sticky'
+          element.style.position = 'relative'
           element.style.top = 'auto'
-          element.style.zIndex = 'auto'
-          element.style.width = 'auto'
           element.style.left = 'auto'
-          element.style.right = 'auto'
-          element.style.maxWidth = 'auto'
-          element.style.margin = 'auto'
-          element.style.transition = 'none'
+          element.style.width = 'auto'
+          element.style.zIndex = 'auto'
+          element.style.marginBottom = '1rem'
+          element.style.visibility = 'visible'
+          element.style.opacity = '1'
         }
       })
     }
@@ -1243,8 +1270,18 @@ export function VisitsDashboard() {
           background-color: rgb(247, 252, 255) !important;
           border: 1px solid rgb(232, 244, 253) !important;
           color: #239BCF !important;
-          margin-bottom: 0 !important;
+          margin-bottom: 1rem !important;
           backdrop-filter: blur(8px) !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          transition: all 0.2s ease-in-out !important;
+        }
+        
+        /* Date card wrapper */
+        .date-card-wrapper {
+          position: relative !important;
+          width: 100% !important;
+          min-height: fit-content !important;
         }
         
         /* Visit card content improvements */
@@ -1288,7 +1325,7 @@ export function VisitsDashboard() {
         }
       `}</style>
       {/* Fixed Header - fully responsive */}
-      <div className="fixed top-0 left-0 right-0 z-10 bg-white border-b border-gray-200 shadow-sm lg:left-48 xl:left-49 mobile-header">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm lg:left-48 xl:left-49 mobile-header">
         <div className="px-4 sm:px-6 py-4 pb-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 mobile-header-content">
             <div className="mb-3 sm:mb-0">
