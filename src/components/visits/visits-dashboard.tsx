@@ -1120,10 +1120,34 @@ export function VisitsDashboard() {
           }
           
           .mobile-content {
-            padding-top: 9rem !important;
+            padding-top: 11rem !important;
             padding-left: 2.5rem !important;
             padding-right: 1rem !important;
             margin-left: 0 !important;
+          }
+        }
+        
+        /* Tablet and iPad responsive fixes */
+        @media (min-width: 640px) and (max-width: 1023px) {
+          .mobile-header {
+            left: 195px !important;
+            right: 0 !important;
+            z-index: 50 !important;
+            position: fixed !important;
+          }
+          
+          .mobile-content {
+            padding-top: 10rem !important;
+            padding-left: 3.5rem !important;
+            padding-right: 1.5rem !important;
+            margin-left: 0 !important;
+          }
+        }
+        
+        /* Small mobile devices */
+        @media (max-width: 480px) {
+          .mobile-content {
+            padding-top: 12rem !important;
           }
           
           .visit-card-mobile {
@@ -1237,7 +1261,7 @@ export function VisitsDashboard() {
         }
       `}</style>
       {/* Fixed Header - fully responsive */}
-      <div className="fixed top-0 left-0 right-0 z-10 bg-white border-b border-gray-200 shadow-sm lg:left-49 mobile-header">
+      <div className="fixed top-0 left-0 right-0 z-10 bg-white border-b border-gray-200 shadow-sm lg:left-48 xl:left-49 mobile-header">
         <div className="px-4 sm:px-6 py-4 pb-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
             <div className="mb-4 sm:mb-0">
@@ -1325,7 +1349,7 @@ export function VisitsDashboard() {
 
 
       {/* Main Content Area - fully responsive layout */}
-      <div className="pt-35 px-4 sm:px-6 pb-6 flex-1 overflow-y-auto lg:ml-10 max-w-full mobile-content">
+      <div className="pt-40 sm:pt-36 md:pt-35 px-4 sm:px-6 pb-6 flex-1 overflow-y-auto lg:ml-10 max-w-full mobile-content">
         {/* Equipment Section */}
         <Card
           onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
