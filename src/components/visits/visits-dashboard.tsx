@@ -1121,7 +1121,7 @@ export function VisitsDashboard() {
           
           .mobile-content {
             padding-top: 11rem !important;
-            padding-left: 2.5rem !important;
+            padding-left: 3rem !important;
             padding-right: 1rem !important;
             margin-left: 0 !important;
           }
@@ -1147,7 +1147,7 @@ export function VisitsDashboard() {
         /* Small mobile devices */
         @media (max-width: 480px) {
           .mobile-content {
-            padding-top: 12rem !important;
+            padding-top: 11rem !important;
           }
           
           .visit-card-mobile {
