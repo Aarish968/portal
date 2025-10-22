@@ -1034,44 +1034,57 @@ export function VisitsDashboard() {
         const nextSection = allSections[index + 1]
         const nextSectionTop = nextSection ? nextSection.element!.getBoundingClientRect().top : Infinity
 
-        // Calculate key positions
-        const stickyPosition = headerHeight
-        const containerEndPosition = containerBottom - originalHeight
-        const maxAllowedPosition = Math.min(containerEndPosition, nextSectionTop - originalHeight - 10)
+        // Calculate positions with proper collision detection
+        const shouldStick = sectionTop <= headerHeight
+        const stickyThreshold = headerHeight + originalHeight
+        const containerBottomPosition = containerBottom - originalHeight
 
-        if (sectionTop <= headerHeight && containerBottom > headerHeight + originalHeight) {
-          // Phase 1: Sticky under header
-          dateElement.style.position = 'fixed'
-          dateElement.style.top = `${stickyPosition}px`
-          dateElement.style.left = `${sidebarWidth + 20}px`
-          dateElement.style.width = `${originalWidth}px`
-          dateElement.style.zIndex = '5'
-          dateElement.style.visibility = 'visible'
-          dateElement.style.opacity = '1'
-          dateElement.style.transform = 'none'
-          if (wrapper) wrapper.style.height = `${originalHeight}px`
-        } else if (sectionTop <= headerHeight && containerBottom <= headerHeight + originalHeight) {
-          // Phase 2: Stop at container bottom (key fix here)
-          const stopPosition = Math.max(maxAllowedPosition, headerHeight)
-          dateElement.style.position = 'fixed'
-          dateElement.style.top = `${stopPosition}px`
-          dateElement.style.left = `${sidebarWidth + 20}px`
-          dateElement.style.width = `${originalWidth}px`
-          dateElement.style.zIndex = '5'
-          dateElement.style.visibility = 'visible'
-          dateElement.style.opacity = '1'
-          dateElement.style.transform = 'none'
-          if (wrapper) wrapper.style.height = `${originalHeight}px`
+        // Check collision with next section - prevent overlap
+        const nextSectionBuffer = 20 // Gap between sections
+        const maxAllowedPosition = nextSectionTop - originalHeight - nextSectionBuffer
+        const finalPosition = Math.min(containerBottomPosition, maxAllowedPosition)
+
+        if (shouldStick) {
+          if (containerBottom >= stickyThreshold) {
+            // Phase 1: Stick under header (enough space in container)
+            dateElement.style.position = 'fixed'
+            dateElement.style.top = `${headerHeight}px`
+            dateElement.style.left = `${sidebarWidth + 20}px`
+            dateElement.style.width = `${originalWidth}px`
+            dateElement.style.zIndex = '5'
+            dateElement.style.transform = 'none'
+            dateElement.style.opacity = '1'
+            if (wrapper) wrapper.style.height = `${originalHeight}px`
+          } else if (finalPosition >= headerHeight) {
+            // Phase 2: Stop at container bottom (but respect next section)
+            dateElement.style.position = 'fixed'
+            dateElement.style.top = `${finalPosition}px`
+            dateElement.style.left = `${sidebarWidth + 20}px`
+            dateElement.style.width = `${originalWidth}px`
+            dateElement.style.zIndex = '5'
+            dateElement.style.transform = 'none'
+            dateElement.style.opacity = '1'
+            if (wrapper) wrapper.style.height = `${originalHeight}px`
+          } else {
+            // Phase 3: Container scrolled past, hide date card
+            dateElement.style.position = 'fixed'
+            dateElement.style.top = `${headerHeight}px`
+            dateElement.style.left = `${sidebarWidth + 20}px`
+            dateElement.style.width = `${originalWidth}px`
+            dateElement.style.zIndex = '5'
+            dateElement.style.transform = 'translateY(-120%)'
+            dateElement.style.opacity = '0'
+            if (wrapper) wrapper.style.height = `${originalHeight}px`
+          }
         } else {
-          // Phase 3: Normal position
+          // Phase 4: Normal position (section not started)
           dateElement.style.position = 'relative'
           dateElement.style.top = 'auto'
           dateElement.style.left = 'auto'
           dateElement.style.width = 'auto'
           dateElement.style.zIndex = 'auto'
-          dateElement.style.visibility = 'visible'
-          dateElement.style.opacity = '1'
           dateElement.style.transform = 'none'
+          dateElement.style.opacity = '1'
           if (wrapper) wrapper.style.height = 'auto'
         }
       })
