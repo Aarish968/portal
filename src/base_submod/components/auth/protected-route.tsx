@@ -14,6 +14,13 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
 
+  // Skip authentication in development mode
+  const isDevelopment = import.meta.env.DEV || import.meta.env.VITE_SKIP_AUTH === 'true'
+  
+  if (isDevelopment) {
+    return <>{children}</>
+  }
+
   useEffect(() => {
     const handleAuth = async () => {
       if (!isAuthenticated && inProgress === InteractionStatus.None) {

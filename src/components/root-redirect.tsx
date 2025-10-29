@@ -5,6 +5,13 @@ import { useAuthStore } from '@/models/auth/stores/auth-store'
 import ROUTES from '@/data/routing/routes'
 
 export function RootRedirect() {
+  // Skip authentication in development mode - go directly to main app
+  const isDevelopment = import.meta.env.DEV || import.meta.env.VITE_SKIP_AUTH === 'true'
+  
+  if (isDevelopment) {
+    return <Navigate to={ROUTES.app.hraActivity.href} replace />
+  }
+
   const { instance, inProgress } = useMsal()
   const { isAuthenticated } = useAuthStore()
 

@@ -58,6 +58,13 @@ export const protectedRoutes: RouteObject[] = [
 ]
 
 function ProtectedWrapper() {
+  // Skip authentication in development mode
+  const isDevelopment = import.meta.env.DEV || import.meta.env.VITE_SKIP_AUTH === 'true'
+  
+  if (isDevelopment) {
+    return <Outlet />
+  }
+
   return (
     <ProtectedRoute>
       <Outlet />
