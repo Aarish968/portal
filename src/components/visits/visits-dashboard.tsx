@@ -1025,16 +1025,18 @@ export function VisitsDashboard() {
         const dateCardHeight = originalHeight
 
         // Check if section is in view and should have sticky behavior
-        if (sectionTop <= stickyThreshold && sectionBottom > stickyThreshold + dateCardHeight) {
+        if (sectionTop <= stickyThreshold && sectionBottom > stickyThreshold) {
           // Section is active - date card should be sticky
 
-          // Calculate how much space is available for the date card
-          const availableSpace = containerBottom - stickyThreshold
-
-          if (availableSpace >= dateCardHeight) {
-            // Enough space - stick to top
+          // Calculate the ideal position for the date card
+          const idealStickyPosition = stickyThreshold
+          const containerBottomPosition = containerBottom - dateCardHeight
+          
+          // Determine the actual position based on available space
+          if (containerBottom >= stickyThreshold + dateCardHeight) {
+            // Enough space - stick to top (normal sticky behavior)
             dateElement.style.position = 'fixed'
-            dateElement.style.top = `${stickyThreshold}px`
+            dateElement.style.top = `${idealStickyPosition}px`
             dateElement.style.left = `${sidebarWidth + 20}px`
             dateElement.style.width = `${originalWidth}px`
             dateElement.style.height = `${originalHeight}px`
@@ -1050,12 +1052,11 @@ export function VisitsDashboard() {
               wrapper.style.height = `${originalHeight}px`
               wrapper.style.visibility = 'hidden'
             }
-          } else if (availableSpace > 0) {
-            // Limited space - move with container bottom
-            const topPosition = Math.max(containerBottom - dateCardHeight, stickyThreshold)
-
+          } else if (containerBottom > stickyThreshold) {
+            // Limited space - date card should stop at container bottom and move up with it
+            // This creates the "stopping at bottom and moving up" behavior you want
             dateElement.style.position = 'fixed'
-            dateElement.style.top = `${topPosition}px`
+            dateElement.style.top = `${containerBottomPosition}px`
             dateElement.style.left = `${sidebarWidth + 20}px`
             dateElement.style.width = `${originalWidth}px`
             dateElement.style.height = `${originalHeight}px`
@@ -1072,9 +1073,15 @@ export function VisitsDashboard() {
               wrapper.style.visibility = 'hidden'
             }
           } else {
-            // No space - hide the date card
+            // Container has moved completely above the header - hide date card
             dateElement.style.opacity = '0'
             dateElement.style.visibility = 'hidden'
+            
+            // Reset wrapper
+            if (wrapper) {
+              wrapper.style.height = 'auto'
+              wrapper.style.visibility = 'visible'
+            }
           }
         } else {
           // Section is not active - show date card in normal position
