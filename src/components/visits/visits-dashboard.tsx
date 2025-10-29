@@ -988,7 +988,6 @@ export function VisitsDashboard() {
     if (activeTab !== '14days') return
 
     try {
-      const scrollTop = window.scrollY
       const headerHeight = 135
       const sidebarWidth = 200
 
@@ -1005,60 +1004,97 @@ export function VisitsDashboard() {
 
         // Store original dimensions once
         if (!dateElement.dataset.originalWidth) {
-          dateElement.dataset.originalWidth = dateElement.offsetWidth.toString()
-          dateElement.dataset.originalHeight = dateElement.offsetHeight.toString()
+          const rect = dateElement.getBoundingClientRect()
+          dateElement.dataset.originalWidth = rect.width.toString()
+          dateElement.dataset.originalHeight = rect.height.toString()
         }
-        const originalWidth = parseInt(dateElement.dataset.originalWidth || '0')
-        const originalHeight = parseInt(dateElement.dataset.originalHeight || '0')
+        const originalWidth = parseFloat(dateElement.dataset.originalWidth || '0')
+        const originalHeight = parseFloat(dateElement.dataset.originalHeight || '0')
 
         const sectionRect = dateSectionElement.getBoundingClientRect()
         const containerRect = whiteContainer.getBoundingClientRect()
+
+        // Calculate positions more precisely
         const sectionTop = sectionRect.top
+        const sectionBottom = sectionRect.bottom
+        const containerTop = containerRect.top
         const containerBottom = containerRect.bottom
 
-        // Date card should be fixed when:
-        // 1. Section has started (sectionTop <= headerHeight)
-        // 2. White container bottom hasn't reached the date card bottom position
-        const dateCardBottom = headerHeight + originalHeight
-        const buffer = 5 // Small buffer to prevent flickering
+        // Determine the state based on section position
+        const stickyThreshold = headerHeight
+        const dateCardHeight = originalHeight
 
-        if (sectionTop <= headerHeight + buffer && containerBottom > dateCardBottom + buffer) {
-          // Fixed state - date card is sticky
-          dateElement.style.position = 'fixed'
-          dateElement.style.top = `${headerHeight}px`
-          dateElement.style.left = `${sidebarWidth + 20}px`
-          dateElement.style.width = `${originalWidth}px`
-          dateElement.style.zIndex = '5'
-          dateElement.style.opacity = '1'
-          dateElement.style.visibility = 'visible'
-          dateElement.style.transform = 'none'
-          // Set wrapper height to maintain space
-          if (wrapper) wrapper.style.height = `${originalHeight}px`
-        } else if (containerBottom <= dateCardBottom + buffer && containerBottom > headerHeight) {
-          // Stopped state - date card moves down with container bottom
-          // Keep it fixed but move it down as container scrolls up
-          dateElement.style.position = 'fixed'
-          dateElement.style.top = `${containerBottom - originalHeight}px`
-          dateElement.style.left = `${sidebarWidth + 20}px`
-          dateElement.style.width = `${originalWidth}px`
-          dateElement.style.zIndex = '5'
-          dateElement.style.opacity = '1'
-          dateElement.style.visibility = 'visible'
-          dateElement.style.transform = 'none'
-          // Keep wrapper height
-          if (wrapper) wrapper.style.height = `${originalHeight}px`
+        // Check if section is in view and should have sticky behavior
+        if (sectionTop <= stickyThreshold && sectionBottom > stickyThreshold + dateCardHeight) {
+          // Section is active - date card should be sticky
+
+          // Calculate how much space is available for the date card
+          const availableSpace = containerBottom - stickyThreshold
+
+          if (availableSpace >= dateCardHeight) {
+            // Enough space - stick to top
+            dateElement.style.position = 'fixed'
+            dateElement.style.top = `${stickyThreshold}px`
+            dateElement.style.left = `${sidebarWidth + 20}px`
+            dateElement.style.width = `${originalWidth}px`
+            dateElement.style.height = `${originalHeight}px`
+            dateElement.style.zIndex = '10'
+            dateElement.style.opacity = '1'
+            dateElement.style.visibility = 'visible'
+            dateElement.style.backgroundColor = 'rgb(247, 252, 255)'
+            dateElement.style.backdropFilter = 'blur(8px)'
+            dateElement.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'
+
+            // Maintain space in layout
+            if (wrapper) {
+              wrapper.style.height = `${originalHeight}px`
+              wrapper.style.visibility = 'hidden'
+            }
+          } else if (availableSpace > 0) {
+            // Limited space - move with container bottom
+            const topPosition = Math.max(containerBottom - dateCardHeight, stickyThreshold)
+
+            dateElement.style.position = 'fixed'
+            dateElement.style.top = `${topPosition}px`
+            dateElement.style.left = `${sidebarWidth + 20}px`
+            dateElement.style.width = `${originalWidth}px`
+            dateElement.style.height = `${originalHeight}px`
+            dateElement.style.zIndex = '10'
+            dateElement.style.opacity = '1'
+            dateElement.style.visibility = 'visible'
+            dateElement.style.backgroundColor = 'rgb(247, 252, 255)'
+            dateElement.style.backdropFilter = 'blur(8px)'
+            dateElement.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'
+
+            // Maintain space in layout
+            if (wrapper) {
+              wrapper.style.height = `${originalHeight}px`
+              wrapper.style.visibility = 'hidden'
+            }
+          } else {
+            // No space - hide the date card
+            dateElement.style.opacity = '0'
+            dateElement.style.visibility = 'hidden'
+          }
         } else {
-          // Normal state - before section starts or after section ends
+          // Section is not active - show date card in normal position
           dateElement.style.position = 'relative'
           dateElement.style.top = 'auto'
           dateElement.style.left = 'auto'
           dateElement.style.width = 'auto'
+          dateElement.style.height = 'auto'
           dateElement.style.zIndex = 'auto'
           dateElement.style.opacity = '1'
           dateElement.style.visibility = 'visible'
-          dateElement.style.transform = 'none'
-          // Reset wrapper height
-          if (wrapper) wrapper.style.height = 'auto'
+          dateElement.style.backgroundColor = 'rgb(247, 252, 255)'
+          dateElement.style.backdropFilter = 'blur(8px)'
+          dateElement.style.boxShadow = 'none'
+
+          // Reset wrapper
+          if (wrapper) {
+            wrapper.style.height = 'auto'
+            wrapper.style.visibility = 'visible'
+          }
         }
       })
     } catch (error) {
@@ -1067,22 +1103,52 @@ export function VisitsDashboard() {
   }, [activeTab, groupedVisits])
 
   useEffect(() => {
+    let ticking = false
+
+    const optimizedHandleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          handleScroll()
+          ticking = false
+        })
+        ticking = true
+      }
+    }
+
     if (activeTab === '14days') {
-      window.addEventListener('scroll', handleScroll, { passive: true })
+      // Initial call to set up positions
+      handleScroll()
+
+      window.addEventListener('scroll', optimizedHandleScroll, { passive: true })
+      window.addEventListener('resize', optimizedHandleScroll, { passive: true })
+
       return () => {
-        window.removeEventListener('scroll', handleScroll)
+        window.removeEventListener('scroll', optimizedHandleScroll)
+        window.removeEventListener('resize', optimizedHandleScroll)
+
         // Reset all date card styles when switching tabs
         Object.values(dateRefs.current).forEach(element => {
           if (element) {
+            const wrapper = element.parentElement
+
+            // Reset date element
             element.style.position = 'relative'
             element.style.top = 'auto'
-            element.style.zIndex = 'auto'
-            element.style.width = 'auto'
             element.style.left = 'auto'
-            element.style.right = 'auto'
-            element.style.maxWidth = 'auto'
-            element.style.margin = 'auto'
-            element.style.transition = 'none'
+            element.style.width = 'auto'
+            element.style.height = 'auto'
+            element.style.zIndex = 'auto'
+            element.style.opacity = '1'
+            element.style.visibility = 'visible'
+            element.style.backgroundColor = 'rgb(247, 252, 255)'
+            element.style.backdropFilter = 'blur(8px)'
+            element.style.boxShadow = 'none'
+
+            // Reset wrapper
+            if (wrapper) {
+              wrapper.style.height = 'auto'
+              wrapper.style.visibility = 'visible'
+            }
           }
         })
       }
@@ -1090,15 +1156,26 @@ export function VisitsDashboard() {
       // Reset all date card styles when not on 14days tab
       Object.values(dateRefs.current).forEach(element => {
         if (element) {
+          const wrapper = element.parentElement
+
+          // Reset date element
           element.style.position = 'relative'
           element.style.top = 'auto'
-          element.style.zIndex = 'auto'
-          element.style.width = 'auto'
           element.style.left = 'auto'
-          element.style.right = 'auto'
-          element.style.maxWidth = 'auto'
-          element.style.margin = 'auto'
-          element.style.transition = 'none'
+          element.style.width = 'auto'
+          element.style.height = 'auto'
+          element.style.zIndex = 'auto'
+          element.style.opacity = '1'
+          element.style.visibility = 'visible'
+          element.style.backgroundColor = 'rgb(247, 252, 255)'
+          element.style.backdropFilter = 'blur(8px)'
+          element.style.boxShadow = 'none'
+
+          // Reset wrapper
+          if (wrapper) {
+            wrapper.style.height = 'auto'
+            wrapper.style.visibility = 'visible'
+          }
         }
       })
     }
