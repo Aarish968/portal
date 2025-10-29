@@ -988,8 +988,14 @@ export function VisitsDashboard() {
     if (activeTab !== '14days') return
 
     try {
-      const headerHeight = 135
-      const sidebarWidth = '12.4rem'
+      // Responsive header heights and positioning
+      const isMobile = window.innerWidth < 640
+      const isTablet = window.innerWidth >= 640 && window.innerWidth < 1024
+      
+      // Adjust header height for mobile (more space needed)
+      const headerHeight = isMobile ? 200 : 135
+      const sidebarWidth = isMobile ? '0px' : '200px'
+      const leftPadding = isMobile ? '1rem' : '0px'
 
       Object.entries(groupedVisits).forEach(([date, visits]) => {
         const dateElement = dateRefs.current[date]
@@ -1014,62 +1020,79 @@ export function VisitsDashboard() {
         const sectionRect = dateSectionElement.getBoundingClientRect()
         const containerRect = whiteContainer.getBoundingClientRect()
 
-        // Calculate positions more precisely
         const sectionTop = sectionRect.top
-        const sectionBottom = sectionRect.bottom
-        const containerTop = containerRect.top
         const containerBottom = containerRect.bottom
-
-        // Determine the state based on section position
         const stickyThreshold = headerHeight
-        const dateCardHeight = originalHeight
 
-        // Check if section is in view and should have sticky behavior
-        if (sectionTop <= stickyThreshold && sectionBottom > stickyThreshold) {
-          // Section is active - date card should be sticky
-
-          // Simple position calculation to prevent bouncing
-          const stickyPosition = stickyThreshold
-          const containerBottomPosition = containerBottom - dateCardHeight
-
-          // Use Math.min to ensure date card never goes below container bottom
-          // This creates smooth behavior without bouncing
-          const finalPosition = Math.min(stickyPosition, containerBottomPosition)
-
-          // Apply position without any transitions to prevent bouncing
+        // Simple three-state logic without bouncing
+        if (sectionTop <= stickyThreshold && containerBottom >= (stickyThreshold + originalHeight)) {
+          // State 1: Section is active and container has enough space - stick to header
           dateElement.style.position = 'fixed'
-          dateElement.style.top = `${finalPosition}px`
-          dateElement.style.left = `${sidebarWidth}px`
-          dateElement.style.width = `${originalWidth}px`
+          dateElement.style.top = `${stickyThreshold}px`
+          
+          // Responsive positioning and width
+          if (isMobile || isTablet) {
+            const containerWidth = whiteContainer.getBoundingClientRect().width
+            const containerLeft = whiteContainer.getBoundingClientRect().left
+            dateElement.style.width = `${containerWidth - 0}px` // 48px for padding
+            dateElement.style.left = `${containerLeft + 0}px` // 24px padding from container edge
+          } else {
+            dateElement.style.left = `calc(${sidebarWidth} + ${leftPadding})`
+            dateElement.style.width = '250px'
+          }
+          
           dateElement.style.height = `${originalHeight}px`
           dateElement.style.zIndex = '10'
-          dateElement.style.opacity = '1'
-          dateElement.style.visibility = 'visible'
+          dateElement.style.transition = 'none'
           dateElement.style.backgroundColor = 'rgb(247, 252, 255)'
           dateElement.style.backdropFilter = 'blur(8px)'
           dateElement.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'
-          dateElement.style.transition = 'none'
 
-          // Maintain space in layout
+          if (wrapper) {
+            wrapper.style.height = `${originalHeight}px`
+            wrapper.style.visibility = 'hidden'
+          }
+        } else if (sectionTop <= stickyThreshold && containerBottom < (stickyThreshold + originalHeight)) {
+          // State 2: Section is active but container is running out of space - move with container
+          const topPosition = containerBottom - originalHeight
+          dateElement.style.position = 'fixed'
+          dateElement.style.top = `${topPosition}px`
+          
+          // Responsive positioning and width for moving state
+          if (isMobile || isTablet) {
+            const containerWidth = whiteContainer.getBoundingClientRect().width
+            const containerLeft = whiteContainer.getBoundingClientRect().left
+            dateElement.style.width = `${containerWidth - 48}px`
+            dateElement.style.left = `${containerLeft + 24}px`
+          } else {
+            dateElement.style.left = `calc(${sidebarWidth} + ${leftPadding})`
+            dateElement.style.width = '250px'
+          }
+          
+          dateElement.style.height = `${originalHeight}px`
+          dateElement.style.zIndex = '10'
+          dateElement.style.transition = 'none'
+          dateElement.style.backgroundColor = 'rgb(247, 252, 255)'
+          dateElement.style.backdropFilter = 'blur(8px)'
+          dateElement.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'
+
           if (wrapper) {
             wrapper.style.height = `${originalHeight}px`
             wrapper.style.visibility = 'hidden'
           }
         } else {
-          // Section is not active - show date card in normal position
+          // State 3: Section is not active - normal position
           dateElement.style.position = 'relative'
           dateElement.style.top = 'auto'
           dateElement.style.left = 'auto'
           dateElement.style.width = 'auto'
           dateElement.style.height = 'auto'
           dateElement.style.zIndex = 'auto'
-          dateElement.style.opacity = '1'
-          dateElement.style.visibility = 'visible'
+          dateElement.style.transition = 'none'
           dateElement.style.backgroundColor = 'rgb(247, 252, 255)'
           dateElement.style.backdropFilter = 'blur(8px)'
           dateElement.style.boxShadow = 'none'
 
-          // Reset wrapper
           if (wrapper) {
             wrapper.style.height = 'auto'
             wrapper.style.visibility = 'visible'
@@ -1081,31 +1104,58 @@ export function VisitsDashboard() {
     }
   }, [activeTab, groupedVisits])
 
-useEffect(() => {
-  let ticking = false
+  useEffect(() => {
+    let ticking = false
 
-  const optimizedHandleScroll = () => {
-    if (!ticking) {
-      requestAnimationFrame(() => {
-        handleScroll()
-        ticking = false
-      })
-      ticking = true
+    const optimizedHandleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          handleScroll()
+          ticking = false
+        })
+        ticking = true
+      }
     }
-  }
 
-  if (activeTab === '14days') {
-    // Initial call to set up positions
-    handleScroll()
+    if (activeTab === '14days') {
+      // Initial call to set up positions
+      handleScroll()
 
-    window.addEventListener('scroll', optimizedHandleScroll, { passive: true })
-    window.addEventListener('resize', optimizedHandleScroll, { passive: true })
+      window.addEventListener('scroll', optimizedHandleScroll, { passive: true })
+      window.addEventListener('resize', optimizedHandleScroll, { passive: true })
 
-    return () => {
-      window.removeEventListener('scroll', optimizedHandleScroll)
-      window.removeEventListener('resize', optimizedHandleScroll)
+      return () => {
+        window.removeEventListener('scroll', optimizedHandleScroll)
+        window.removeEventListener('resize', optimizedHandleScroll)
 
-      // Reset all date card styles when switching tabs
+        // Reset all date card styles when switching tabs
+        Object.values(dateRefs.current).forEach(element => {
+          if (element) {
+            const wrapper = element.parentElement
+
+            // Reset date element
+            element.style.position = 'relative'
+            element.style.top = 'auto'
+            element.style.left = 'auto'
+            element.style.width = 'auto'
+            element.style.height = 'auto'
+            element.style.zIndex = 'auto'
+            element.style.opacity = '1'
+            element.style.visibility = 'visible'
+            element.style.backgroundColor = 'rgb(247, 252, 255)'
+            element.style.backdropFilter = 'blur(8px)'
+            element.style.boxShadow = 'none'
+
+            // Reset wrapper
+            if (wrapper) {
+              wrapper.style.height = 'auto'
+              wrapper.style.visibility = 'visible'
+            }
+          }
+        })
+      }
+    } else {
+      // Reset all date card styles when not on 14days tab
       Object.values(dateRefs.current).forEach(element => {
         if (element) {
           const wrapper = element.parentElement
@@ -1131,41 +1181,14 @@ useEffect(() => {
         }
       })
     }
-  } else {
-    // Reset all date card styles when not on 14days tab
-    Object.values(dateRefs.current).forEach(element => {
-      if (element) {
-        const wrapper = element.parentElement
-
-        // Reset date element
-        element.style.position = 'relative'
-        element.style.top = 'auto'
-        element.style.left = 'auto'
-        element.style.width = 'auto'
-        element.style.height = 'auto'
-        element.style.zIndex = 'auto'
-        element.style.opacity = '1'
-        element.style.visibility = 'visible'
-        element.style.backgroundColor = 'rgb(247, 252, 255)'
-        element.style.backdropFilter = 'blur(8px)'
-        element.style.boxShadow = 'none'
-
-        // Reset wrapper
-        if (wrapper) {
-          wrapper.style.height = 'auto'
-          wrapper.style.visibility = 'visible'
-        }
-      }
-    })
-  }
-}, [activeTab, handleScroll])
+  }, [activeTab, handleScroll])
 
 
 
-return (
-  <div className="min-h-screen bg-gray-50 w-full">
-    {/* Custom styles for responsive zoom behavior and mobile fixes */}
-    <style>{`
+  return (
+    <div className="min-h-screen bg-gray-50 w-full">
+      {/* Custom styles for responsive zoom behavior and mobile fixes */}
+      <style>{`
         /* Mobile-first responsive design */
         @media (max-width: 639px) {
           .mobile-header {
@@ -1352,219 +1375,219 @@ return (
           }
         }
       `}</style>
-    {/* Fixed Header - fully responsive */}
-    <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm lg:left-48 xl:left-49 mobile-header">
-      <div className="px-4 sm:px-6 py-4 pb-0">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 mobile-header-content">
-          <div className="mb-3 sm:mb-0">
-            <h1 className="font-medium text-base sm:text-lg" style={{ color: '#1b1b1b', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
-              Visit Outcomes
-            </h1>
-            <p className="mt-1 text-sm" style={{ color: '#939090' }}>
-              Friday, October 10, 2025
-            </p>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="flex flex-col items-end">
-              <span className="text-gray-400 text-xs">Current Time</span>
-              <span className="font-semibold text-black text-sm">{time}</span>
-            </div>
-            <button
-              className="p-1.5 sm:p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 active:bg-blue-100"
-              style={{ backgroundColor: '#F5F5F5' }}
-              aria-label="Notifications"
-            >
-              <Bell className="w-4 h-4 text-gray-600" />
-            </button>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="relative flex gap-4 sm:gap-8 pb-3 mobile-tabs">
-          <button
-            onClick={() => setActiveTab('today')}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
-            onMouseLeave={(e) => e.currentTarget.style.color = activeTab === 'today' ? '#239BCF' : '#1b1b1b'}
-            className="relative font-medium transition-all duration-300 text-sm sm:text-base"
-            style={{
-              color: activeTab === 'today' ? '#239BCF' : '#1b1b1b'
-            }}
-          >
-            {activeTab === 'today' && (
-              <span
-                className="absolute inset-0 -z-10 rounded"
-                style={{
-                  backgroundColor: 'rgba(35, 155, 207, 0.1)',
-                  boxShadow: '0 0 15px rgba(35, 155, 207, 0.3)'
-                }}
-              />
-            )}
-            Today
-          </button>
-          <button
-            onClick={() => setActiveTab('14days')}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
-            onMouseLeave={(e) => e.currentTarget.style.color = activeTab === '14days' ? '#239BCF' : '#1b1b1b'}
-            className="relative font-medium transition-all duration-300 text-sm sm:text-base"
-            style={{
-              color: activeTab === '14days' ? '#239BCF' : '#1b1b1b'
-            }}
-          >
-            {activeTab === '14days' && (
-              <span
-                className="absolute inset-0 -z-10 rounded"
-                style={{
-                  backgroundColor: 'rgba(35, 155, 207, 0.1)',
-                  boxShadow: '0 0 15px rgba(35, 155, 207, 0.3)'
-                }}
-              />
-            )}
-            Next 14 Days
-          </button>
-
-          {/* Animated underline - positioned above the grey border */}
-          <div
-            className="absolute bottom-0 h-0.5 transition-all duration-500 ease-in-out z-10"
-            style={{
-              backgroundColor: '#239BCF',
-              width: activeTab === 'today' ? '48px' : '105px',
-              transform: activeTab === 'today' ? 'translateX(0)' : 'translateX(calc(48px + 1rem))',
-              boxShadow: '0 0 10px rgba(35, 155, 207, 0.5)'
-            }}
-          />
-        </div>
-
-        {/* Full-width grey underline */}
-        <div className="h-px bg-gray-300 w-full"></div>
-      </div>
-    </div>
-
-
-    {/* Main Content Area - fully responsive layout */}
-    <div className="pt-40 sm:pt-36 md:pt-35 px-4 sm:px-6 pb-6 flex-1 overflow-y-auto lg:ml-10 max-w-full mobile-content">
-      {/* Equipment Section */}
-      <Card
-        onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
-        className="mb-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer transition-all select-none outline-none w-full"
-        style={{ minHeight: '56px' }}
-      >
-        <CardContent className="p-3 sm:p-4 bg-transparent">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between equipment-header">
+      {/* Fixed Header - fully responsive */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm lg:left-48 xl:left-49 mobile-header">
+        <div className="px-4 sm:px-6 py-4 pb-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 mobile-header-content">
             <div className="mb-3 sm:mb-0">
-              <h2
-                className="font-medium text-sm"
-                style={{
-                  color: '#1b1b1b',
-                  fontFamily:
-                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                }}
-              >
-                {activeTab === 'today'
-                  ? 'Equipment Needed Today'
-                  : 'Equipment Needed - Next 14 Days'}
-              </h2>
-            </div>
-
-            <div className="flex items-center gap-2 sm:gap-4 equipment-stats">
-              <p className="text-xs text-gray-500 flex-shrink-0">
-                {visitCount} visits scheduled • {equipmentCount} items
+              <h1 className="font-medium text-base sm:text-lg" style={{ color: '#1b1b1b', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
+                Visit Outcomes
+              </h1>
+              <p className="mt-1 text-sm" style={{ color: '#939090' }}>
+                Friday, October 10, 2025
               </p>
-
-              {/* Chevron Button */}
+            </div>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex flex-col items-end">
+                <span className="text-gray-400 text-xs">Current Time</span>
+                <span className="font-semibold text-black text-sm">{time}</span>
+              </div>
               <button
-                onClick={(e) => {
-                  e.stopPropagation() // ⛔ Stop bubbling
-                  setIsEquipmentExpanded(!isEquipmentExpanded)
-                }}
-                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+                className="p-1.5 sm:p-2 rounded-full transition-colors duration-200 hover:bg-gray-200 active:bg-blue-100"
+                style={{ backgroundColor: '#F5F5F5' }}
+                aria-label="Notifications"
               >
-                <ChevronDown
-                  className={cn(
-                    'w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform duration-300',
-                    isEquipmentExpanded ? 'rotate-180' : ''
-                  )}
-                />
+                <Bell className="w-4 h-4 text-gray-600" />
               </button>
             </div>
           </div>
 
-          {/* Expandable Content */}
-          <div
-            className={cn(
-              'overflow-hidden transition-all duration-500 ease-in-out',
-              isEquipmentExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
-            )}
-          >
-            <div className="mt-1 pt-2">
-              <div className="flex flex-wrap gap-2 sm:gap-3">
-                {currentEquipment.map((eq, i) => (
-                  <div
-                    key={i}
-                    className="bg-white px-2 sm:px-3 py-1 rounded-full text-xs border inline-flex items-center gap-1"
-                    style={{ color: '#239BCF', borderColor: '#239BCF' }}
-                  >
-                    <span className="text-xs">{eq.name}</span>
-                    <span className="font-normal text-xs">({eq.visits})</span>
-                  </div>
-                ))}
+          {/* Tabs */}
+          <div className="relative flex gap-4 sm:gap-8 pb-3 mobile-tabs">
+            <button
+              onClick={() => setActiveTab('today')}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
+              onMouseLeave={(e) => e.currentTarget.style.color = activeTab === 'today' ? '#239BCF' : '#1b1b1b'}
+              className="relative font-medium transition-all duration-300 text-sm sm:text-base"
+              style={{
+                color: activeTab === 'today' ? '#239BCF' : '#1b1b1b'
+              }}
+            >
+              {activeTab === 'today' && (
+                <span
+                  className="absolute inset-0 -z-10 rounded"
+                  style={{
+                    backgroundColor: 'rgba(35, 155, 207, 0.1)',
+                    boxShadow: '0 0 15px rgba(35, 155, 207, 0.3)'
+                  }}
+                />
+              )}
+              Today
+            </button>
+            <button
+              onClick={() => setActiveTab('14days')}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
+              onMouseLeave={(e) => e.currentTarget.style.color = activeTab === '14days' ? '#239BCF' : '#1b1b1b'}
+              className="relative font-medium transition-all duration-300 text-sm sm:text-base"
+              style={{
+                color: activeTab === '14days' ? '#239BCF' : '#1b1b1b'
+              }}
+            >
+              {activeTab === '14days' && (
+                <span
+                  className="absolute inset-0 -z-10 rounded"
+                  style={{
+                    backgroundColor: 'rgba(35, 155, 207, 0.1)',
+                    boxShadow: '0 0 15px rgba(35, 155, 207, 0.3)'
+                  }}
+                />
+              )}
+              Next 14 Days
+            </button>
+
+            {/* Animated underline - positioned above the grey border */}
+            <div
+              className="absolute bottom-0 h-0.5 transition-all duration-500 ease-in-out z-10"
+              style={{
+                backgroundColor: '#239BCF',
+                width: activeTab === 'today' ? '48px' : '105px',
+                transform: activeTab === 'today' ? 'translateX(0)' : 'translateX(calc(48px + 1rem))',
+                boxShadow: '0 0 10px rgba(35, 155, 207, 0.5)'
+              }}
+            />
+          </div>
+
+          {/* Full-width grey underline */}
+          <div className="h-px bg-gray-300 w-full"></div>
+        </div>
+      </div>
+
+
+      {/* Main Content Area - fully responsive layout */}
+      <div className="pt-40 sm:pt-36 md:pt-35 px-4 sm:px-6 pb-6 flex-1 overflow-y-auto lg:ml-10 max-w-full mobile-content">
+        {/* Equipment Section */}
+        <Card
+          onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
+          className="mb-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer transition-all select-none outline-none w-full"
+          style={{ minHeight: '56px' }}
+        >
+          <CardContent className="p-3 sm:p-4 bg-transparent">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between equipment-header">
+              <div className="mb-3 sm:mb-0">
+                <h2
+                  className="font-medium text-sm"
+                  style={{
+                    color: '#1b1b1b',
+                    fontFamily:
+                      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  }}
+                >
+                  {activeTab === 'today'
+                    ? 'Equipment Needed Today'
+                    : 'Equipment Needed - Next 14 Days'}
+                </h2>
+              </div>
+
+              <div className="flex items-center gap-2 sm:gap-4 equipment-stats">
+                <p className="text-xs text-gray-500 flex-shrink-0">
+                  {visitCount} visits scheduled • {equipmentCount} items
+                </p>
+
+                {/* Chevron Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation() // ⛔ Stop bubbling
+                    setIsEquipmentExpanded(!isEquipmentExpanded)
+                  }}
+                  className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-full transition-colors flex-shrink-0"
+                >
+                  <ChevronDown
+                    className={cn(
+                      'w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform duration-300',
+                      isEquipmentExpanded ? 'rotate-180' : ''
+                    )}
+                  />
+                </button>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Today's Visits Section */}
-      <div className="mb-4 sm:mb-6">
-        <h3 className="text-lg sm:text-xl font-medium mb-0" style={{ color: '#1b1b1b' }}>
-          {activeTab === 'today' ? "Today's Visits" : "Upcoming Visits"}
-        </h3>
-      </div>
-
-      {/* Visit Cards Layout */}
-      <div className="space-y-4 sm:space-y-6 w-full">
-        {activeTab === '14days' ? (
-          <>
-            {Object.entries(groupedVisits).map(([date, visits]) => (
-              <div key={date} className="w-full" ref={el => dateSectionRefs.current[date] = el}>
-                {/* Date Header Wrapper - maintains space when date card is fixed */}
-                <div className="date-card-wrapper" style={{ minHeight: 'fit-content' }}>
-                  <div
-                    ref={el => dateRefs.current[date] = el}
-                    className="date-card rounded-lg px-3 sm:px-4 py-3 w-full mb-4"
-                  >
-                    <h4 className="text-sm font-medium mb-1">{date}</h4>
-                    <span className="text-xs font-medium" style={{ color: '#939090' }}>
-                      {visits.length} {visits.length === 1 ? 'Visit' : 'Visits'} Scheduled
-                    </span>
-                  </div>
-                </div>
-
-                {/* Responsive layout for 14 days view - fully responsive */}
-                <div className="w-full bg-white rounded-lg p-4 sm:p-6 shadow-sm">
-                  {/* Unified responsive grid - works on both mobile and desktop */}
-                  <div className="visits-grid-14days">
-                    {visits.map(v => (
-                      <div key={v.id}>
-                        <VisitCard visit={v} />
-                      </div>
-                    ))}
-                  </div>
+            {/* Expandable Content */}
+            <div
+              className={cn(
+                'overflow-hidden transition-all duration-500 ease-in-out',
+                isEquipmentExpanded ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'
+              )}
+            >
+              <div className="mt-1 pt-2">
+                <div className="flex flex-wrap gap-2 sm:gap-3">
+                  {currentEquipment.map((eq, i) => (
+                    <div
+                      key={i}
+                      className="bg-white px-2 sm:px-3 py-1 rounded-full text-xs border inline-flex items-center gap-1"
+                      style={{ color: '#239BCF', borderColor: '#239BCF' }}
+                    >
+                      <span className="text-xs">{eq.name}</span>
+                      <span className="font-normal text-xs">({eq.visits})</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
-          </>
-        ) : (
-          /* Single column layout for today's visits - one card per line */
-          <div className="visits-grid-today">
-            {currentVisits.map((visit) => (
-              <div key={visit.id}>
-                <VisitCard visit={visit} />
-              </div>
-            ))}
-          </div>
-        )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Today's Visits Section */}
+        <div className="mb-4 sm:mb-6">
+          <h3 className="text-lg sm:text-xl font-medium mb-0" style={{ color: '#1b1b1b' }}>
+            {activeTab === 'today' ? "Today's Visits" : "Upcoming Visits"}
+          </h3>
+        </div>
+
+        {/* Visit Cards Layout */}
+        <div className="space-y-4 sm:space-y-6 w-full">
+          {activeTab === '14days' ? (
+            <>
+              {Object.entries(groupedVisits).map(([date, visits]) => (
+                <div key={date} className="w-full" ref={el => dateSectionRefs.current[date] = el}>
+                  {/* Date Header Wrapper - maintains space when date card is fixed */}
+                  <div className="date-card-wrapper" style={{ minHeight: 'fit-content' }}>
+                    <div
+                      ref={el => dateRefs.current[date] = el}
+                      className="date-card rounded-lg px-3 sm:px-4 py-3 w-full mb-4"
+                    >
+                      <h4 className="text-sm font-medium mb-1">{date}</h4>
+                      <span className="text-xs font-medium" style={{ color: '#939090' }}>
+                        {visits.length} {visits.length === 1 ? 'Visit' : 'Visits'} Scheduled
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Responsive layout for 14 days view - fully responsive */}
+                  <div className="w-full bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+                    {/* Unified responsive grid - works on both mobile and desktop */}
+                    <div className="visits-grid-14days">
+                      {visits.map(v => (
+                        <div key={v.id}>
+                          <VisitCard visit={v} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </>
+          ) : (
+            /* Single column layout for today's visits - one card per line */
+            <div className="visits-grid-today">
+              {currentVisits.map((visit) => (
+                <div key={visit.id}>
+                  <VisitCard visit={visit} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
-  </div>
-)
+  )
 }
