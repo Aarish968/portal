@@ -113,7 +113,7 @@ const mockVisitsToday: Visit[] = [
     time: '11:00AM',
     address: '5678 Oak Avenue, Dayton, OH',
     insurance: 'Aetna',
-    status: 'in-progress',
+    status: 'not-started',
     visitType: 'telehealth',
     procedures: [
       { name: 'A1C', completed: true },
@@ -128,7 +128,7 @@ const mockVisitsToday: Visit[] = [
     time: '11:00AM',
     address: '5678 Oak Avenue, Dayton, OH',
     insurance: 'Aetna',
-    status: 'in-progress',
+    status: 'not-started',
     visitType: 'telehealth',
     procedures: [
       { name: 'A1C', completed: true },
@@ -143,7 +143,7 @@ const mockVisitsToday: Visit[] = [
     time: '11:00AM',
     address: '5678 Oak Avenue, Dayton, OH',
     insurance: 'Aetna',
-    status: 'in-progress',
+    status: 'not-started',
     visitType: 'telehealth',
     procedures: [
       { name: 'A1C', completed: true },
@@ -994,23 +994,50 @@ export function VisitsDashboard() {
 
       const sidebarWidth = isMobile ? 0 : 200
 
-      Object.entries(groupedVisits).forEach(([date, visits]) => {
+      // Get all date entries and sort them by their position in the DOM
+      const sortedEntries = Object.entries(groupedVisits).sort((a, b) => {
+        const aElement = dateSectionRefs.current[a[0]]
+        const bElement = dateSectionRefs.current[b[0]]
+        if (!aElement || !bElement) return 0
+        return aElement.getBoundingClientRect().top - bElement.getBoundingClientRect().top
+      })
+
+      // First pass: reset all date cards to normal state
+      sortedEntries.forEach(([date, visits]) => {
         const dateElement = dateRefs.current[date]
         const dateSectionElement = dateSectionRefs.current[date]
 
         if (!dateElement || !dateSectionElement) return
 
         const wrapper = dateElement.parentElement
+
+        // Reset to normal state
+        dateElement.style.position = ''
+        dateElement.style.top = ''
+        dateElement.style.left = ''
+        dateElement.style.width = ''
+        dateElement.style.zIndex = ''
+        dateElement.style.marginBottom = ''
+        if (wrapper) wrapper.style.height = ''
+      })
+
+      // Find the topmost section that should have a sticky date card
+      let activeDateCard = null
+
+      for (let i = 0; i < sortedEntries.length; i++) {
+        const [date, visits] = sortedEntries[i]
+        const dateElement = dateRefs.current[date]
+        const dateSectionElement = dateSectionRefs.current[date]
+
+        if (!dateElement || !dateSectionElement) continue
+
         const whiteContainer = dateSectionElement.querySelector('.bg-white.rounded-lg')
+        if (!whiteContainer) continue
 
-        if (!whiteContainer) return
-
-        // Store original dimensions once (like old code)
-        if (!dateElement.dataset.originalWidth) {
-          dateElement.dataset.originalWidth = dateElement.offsetWidth.toString()
+        // Store original dimensions once
+        if (!dateElement.dataset.originalHeight) {
           dateElement.dataset.originalHeight = dateElement.offsetHeight.toString()
         }
-        const originalWidth = parseInt(dateElement.dataset.originalWidth)
         const originalHeight = parseInt(dateElement.dataset.originalHeight)
 
         const sectionRect = dateSectionElement.getBoundingClientRect()
@@ -1019,73 +1046,77 @@ export function VisitsDashboard() {
         const sectionTop = sectionRect.top
         const containerBottom = containerRect.bottom
 
-        // Date card should be fixed when:
-        // 1. Section has started (sectionTop <= headerHeight)
-        // 2. White container bottom hasn't reached the date card bottom position
+        // Check if this section is in the "active zone"
+        // Active zone: section has started (sectionTop <= headerHeight) 
+        // AND container hasn't completely passed (containerBottom > headerHeight)
+        if (sectionTop <= headerHeight && containerBottom > headerHeight) {
+          activeDateCard = { date, dateElement, dateSectionElement, whiteContainer, originalHeight, index: i }
+          break // Take the first (topmost) active section
+        }
+      }
+
+      // Apply sticky behavior only to the active date card
+      if (activeDateCard) {
+        const { date, dateElement, dateSectionElement, whiteContainer, originalHeight, index } = activeDateCard
+        const wrapper = dateElement.parentElement
+
+        const containerRect = whiteContainer.getBoundingClientRect()
+        const containerBottom = containerRect.bottom
+        const zIndex = 10 + index
         const dateCardBottom = headerHeight + originalHeight
-        if (sectionTop <= headerHeight && containerBottom > dateCardBottom) {
-          // Fixed state - date card is sticky
+
+        if (containerBottom > dateCardBottom) {
+          // Fixed state - date card is sticky at header
           dateElement.style.position = 'fixed'
           dateElement.style.top = `${headerHeight}px`
-
-          // Responsive positioning - always match the white container width regardless of zoom
-          const containerRect = whiteContainer.getBoundingClientRect()
-          if (isMobile) {
-            dateElement.style.width = `${containerRect.width}px`
-            dateElement.style.left = `${containerRect.left}px`
-          } else {
-            // For desktop, match the white container's width and position exactly
-            dateElement.style.left = `${containerRect.left}px`
-            dateElement.style.width = `${containerRect.width}px`
-          }
-
-          dateElement.style.zIndex = '10'
-          dateElement.style.marginBottom = '0'
-          // Set wrapper height to maintain space (no extra margin)
-          if (wrapper) wrapper.style.height = `${originalHeight}px`
-        } else if (containerBottom <= dateCardBottom && containerBottom > headerHeight) {
-          // Stopped state - date card moves down with container bottom
-          // Keep it fixed but move it down as container scrolls up
+        } else {
+          // Stopped state - date card moves with container bottom
           dateElement.style.position = 'fixed'
           dateElement.style.top = `${containerBottom - originalHeight}px`
-
-          // Responsive positioning for stopped state - always match the white container width regardless of zoom
-          const containerRect = whiteContainer.getBoundingClientRect()
-          if (isMobile) {
-            dateElement.style.width = `${containerRect.width}px`
-            dateElement.style.left = `${containerRect.left}px`
-          } else {
-            // For desktop, match the white container's width and position exactly
-            dateElement.style.left = `${containerRect.left}px`
-            dateElement.style.width = `${containerRect.width}px`
-          }
-
-          dateElement.style.zIndex = '10'
-          dateElement.style.marginBottom = '0'
-          // Keep wrapper height (no extra margin)
-          if (wrapper) wrapper.style.height = `${originalHeight}px`
-        } else {
-          // Normal state - before section starts or after section ends
-          dateElement.style.position = ''
-          dateElement.style.top = ''
-          dateElement.style.left = ''
-          dateElement.style.width = ''
-          dateElement.style.zIndex = ''
-          dateElement.style.marginBottom = ''
-          // Reset wrapper height
-          if (wrapper) wrapper.style.height = ''
         }
-      })
+
+        // Set positioning and size
+        if (isMobile) {
+          dateElement.style.width = `${containerRect.width}px`
+          dateElement.style.left = `${containerRect.left}px`
+        } else {
+          dateElement.style.left = `${containerRect.left}px`
+          dateElement.style.width = `${containerRect.width}px`
+        }
+
+        dateElement.style.zIndex = zIndex.toString()
+        dateElement.style.marginBottom = '0'
+        if (wrapper) wrapper.style.height = `${originalHeight}px`
+      }
     } catch (error) {
       console.error('Scroll error:', error)
     }
   }, [activeTab, groupedVisits])
 
   useEffect(() => {
+    let ticking = false
+
+    const throttledHandleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          handleScroll()
+          ticking = false
+        })
+        ticking = true
+      }
+    }
+
     if (activeTab === '14days') {
-      window.addEventListener('scroll', handleScroll, { passive: true })
+      // Initial call to set positions
+      handleScroll()
+
+      window.addEventListener('scroll', throttledHandleScroll, { passive: true })
+      window.addEventListener('resize', throttledHandleScroll, { passive: true })
+
       return () => {
-        window.removeEventListener('scroll', handleScroll)
+        window.removeEventListener('scroll', throttledHandleScroll)
+        window.removeEventListener('resize', throttledHandleScroll)
+
         // Reset all date card styles when switching tabs (like old code)
         Object.values(dateRefs.current).forEach(element => {
           if (element) {
