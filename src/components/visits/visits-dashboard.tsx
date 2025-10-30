@@ -981,7 +981,17 @@ export function VisitsDashboard() {
     try {
       // Responsive header heights and positioning
       const isMobile = window.innerWidth < 640
-      const headerHeight = isMobile ? 200 : 135
+      const isVerySmallMobile = window.innerWidth <= 389
+      const isSmallMobile = window.innerWidth >= 390 && window.innerWidth <= 638
+
+      // Adjust header height based on screen size
+      let headerHeight = 135 // Default desktop
+      if (isVerySmallMobile) {
+        headerHeight = 200 // Very small mobile (389px and below)
+      } else if (isSmallMobile) {
+        headerHeight = 180 // Small mobile (390px - 638px) - reduced spacing
+      }
+
       const sidebarWidth = isMobile ? 0 : 200
 
       Object.entries(groupedVisits).forEach(([date, visits]) => {
@@ -1126,7 +1136,7 @@ export function VisitsDashboard() {
       {/* Custom styles for responsive zoom behavior and mobile fixes */}
       <style>{`
         /* Mobile-first responsive design */
-        @media (max-width: 639px) {
+        @media (max-width: 389px) {
           .mobile-header {
             left: 12.3rem !important;
             right: 0 !important;
@@ -1145,7 +1155,34 @@ export function VisitsDashboard() {
             width: 100% !important;
             max-width: 100% !important;
           }
+        }
+        
+        /* Small mobile (390px - 638px) */
+        @media (min-width: 390px) and (max-width: 639px) {
+          .mobile-header {
+            left: 12.3rem !important;
+            right: 0 !important;
+            z-index: 50 !important;
+            position: fixed !important;
+            margin-left: 0 !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+          }
           
+          .mobile-content {
+            padding-top: 11rem !important;
+            padding-left: 3rem !important;
+            padding-right: 1rem !important;
+            margin-left: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+        }
+          
+        }
+        
+        /* Shared mobile styles for both breakpoints */
+        @media (max-width: 639px) {
           /* Force single column layout on mobile */
           .visits-grid-14days {
             display: block !important;
@@ -1194,7 +1231,7 @@ export function VisitsDashboard() {
         }
         
         /* Tablet responsive fixes */
-        @media (min-width: 640px) and (max-width: 1023px) {
+        @media (min-width: 639px) and (max-width: 1023px) {
           .mobile-header {
             left: 12.3rem !important;
             right: 0 !important;
