@@ -964,16 +964,7 @@ export function VisitsDashboard() {
     return () => clearInterval(timer)
   }, [])
 
-  // Refresh dashboard for real-time updates
-  useEffect(() => {
-    const refreshInterval = setInterval(() => {
-      setRefreshTrigger(Date.now())
-    }, 500) // Refresh every 0.5 seconds
-
-    return () => clearInterval(refreshInterval)
-  }, [])
-
-  // Refresh on window focus
+  // Refresh on window focus only (remove the 500ms interval that causes flickering)
   useEffect(() => {
     const handleFocus = () => {
       setRefreshTrigger(Date.now())
@@ -983,19 +974,15 @@ export function VisitsDashboard() {
     return () => window.removeEventListener('focus', handleFocus)
   }, [])
 
-  // Scroll detection for making date cards sticky
+  // Scroll detection for making date cards sticky (restored from working old code)
   const handleScroll = useCallback(() => {
     if (activeTab !== '14days') return
 
     try {
       // Responsive header heights and positioning
       const isMobile = window.innerWidth < 640
-      const isTablet = window.innerWidth >= 640 && window.innerWidth < 1024
-      
-      // Adjust header height for mobile (more space needed)
       const headerHeight = isMobile ? 200 : 135
-      const sidebarWidth = isMobile ? '0px' : '200px'
-      const leftPadding = isMobile ? '1rem' : '0px'
+      const sidebarWidth = isMobile ? 0 : 200
 
       Object.entries(groupedVisits).forEach(([date, visits]) => {
         const dateElement = dateRefs.current[date]
@@ -1008,95 +995,83 @@ export function VisitsDashboard() {
 
         if (!whiteContainer) return
 
-        // Store original dimensions once
+        // Store original dimensions once (like old code)
         if (!dateElement.dataset.originalWidth) {
-          const rect = dateElement.getBoundingClientRect()
-          dateElement.dataset.originalWidth = rect.width.toString()
-          dateElement.dataset.originalHeight = rect.height.toString()
+          dateElement.dataset.originalWidth = dateElement.offsetWidth.toString()
+          dateElement.dataset.originalHeight = dateElement.offsetHeight.toString()
         }
-        const originalWidth = parseFloat(dateElement.dataset.originalWidth || '0')
-        const originalHeight = parseFloat(dateElement.dataset.originalHeight || '0')
+        const originalWidth = parseInt(dateElement.dataset.originalWidth)
+        const originalHeight = parseInt(dateElement.dataset.originalHeight)
 
         const sectionRect = dateSectionElement.getBoundingClientRect()
         const containerRect = whiteContainer.getBoundingClientRect()
 
         const sectionTop = sectionRect.top
         const containerBottom = containerRect.bottom
-        const stickyThreshold = headerHeight
 
-        // Simple three-state logic without bouncing
-        if (sectionTop <= stickyThreshold && containerBottom >= (stickyThreshold + originalHeight)) {
-          // State 1: Section is active and container has enough space - stick to header
+        // Date card should be fixed when:
+        // 1. Section has started (sectionTop <= headerHeight)
+        // 2. White container bottom hasn't reached the date card bottom position
+        const dateCardBottom = headerHeight + originalHeight
+        if (sectionTop <= headerHeight && containerBottom > dateCardBottom) {
+          // Fixed state - date card is sticky
           dateElement.style.position = 'fixed'
-          dateElement.style.top = `${stickyThreshold}px`
-          
-          // Responsive positioning and width
-          if (isMobile || isTablet) {
+          dateElement.style.top = `${headerHeight}px`
+
+          // Responsive positioning
+          if (isMobile) {
             const containerWidth = whiteContainer.getBoundingClientRect().width
             const containerLeft = whiteContainer.getBoundingClientRect().left
-            dateElement.style.width = `${containerWidth - 0}px` // 48px for padding
-            dateElement.style.left = `${containerLeft + 0}px` // 24px padding from container edge
+            dateElement.style.width = `${containerWidth}px`
+            dateElement.style.left = `${containerLeft}px`
           } else {
-            dateElement.style.left = `calc(${sidebarWidth} + ${leftPadding})`
-            dateElement.style.width = '250px'
+            dateElement.style.left = `${sidebarWidth + 20}px`
+            dateElement.style.width = `${originalWidth}px`
           }
-          
-          dateElement.style.height = `${originalHeight}px`
-          dateElement.style.zIndex = '10'
-          dateElement.style.transition = 'none'
-          dateElement.style.backgroundColor = 'rgb(247, 252, 255)'
-          dateElement.style.backdropFilter = 'blur(8px)'
-          dateElement.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'
 
-          if (wrapper) {
-            wrapper.style.height = `${originalHeight}px`
-            wrapper.style.visibility = 'hidden'
-          }
-        } else if (sectionTop <= stickyThreshold && containerBottom < (stickyThreshold + originalHeight)) {
-          // State 2: Section is active but container is running out of space - move with container
-          const topPosition = containerBottom - originalHeight
+          dateElement.style.zIndex = '10'
+          dateElement.style.marginBottom = '0'
+          // Remove mb-4 class to prevent bottom margin
+          dateElement.classList.remove('mb-4')
+          // Set wrapper height to maintain space (no extra margin)
+          if (wrapper) wrapper.style.height = `${originalHeight}px`
+        } else if (containerBottom <= dateCardBottom && containerBottom > headerHeight) {
+          // Stopped state - date card moves down with container bottom
+          // Keep it fixed but move it down as container scrolls up
           dateElement.style.position = 'fixed'
-          dateElement.style.top = `${topPosition}px`
-          
-          // Responsive positioning and width for moving state
-          if (isMobile || isTablet) {
+          dateElement.style.top = `${containerBottom - originalHeight}px`
+
+          // Responsive positioning for stopped state
+          if (isMobile) {
             const containerWidth = whiteContainer.getBoundingClientRect().width
             const containerLeft = whiteContainer.getBoundingClientRect().left
-            dateElement.style.width = `${containerWidth - 48}px`
-            dateElement.style.left = `${containerLeft + 24}px`
+            dateElement.style.width = `${containerWidth}px`
+            dateElement.style.left = `${containerLeft}px`
           } else {
-            dateElement.style.left = `calc(${sidebarWidth} + ${leftPadding})`
-            dateElement.style.width = '250px'
+            dateElement.style.left = `${sidebarWidth + 20}px`
+            dateElement.style.width = `${originalWidth}px`
           }
-          
-          dateElement.style.height = `${originalHeight}px`
-          dateElement.style.zIndex = '10'
-          dateElement.style.transition = 'none'
-          dateElement.style.backgroundColor = 'rgb(247, 252, 255)'
-          dateElement.style.backdropFilter = 'blur(8px)'
-          dateElement.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'
 
-          if (wrapper) {
-            wrapper.style.height = `${originalHeight}px`
-            wrapper.style.visibility = 'hidden'
-          }
+          dateElement.style.zIndex = '10'
+          dateElement.style.marginBottom = '0'
+          // Remove mb-4 class to prevent bottom margin
+          dateElement.classList.remove('mb-4')
+          // Keep wrapper height (no extra margin)
+          if (wrapper) wrapper.style.height = `${originalHeight}px`
         } else {
-          // State 3: Section is not active - normal position
-          dateElement.style.position = 'relative'
-          dateElement.style.top = 'auto'
-          dateElement.style.left = 'auto'
-          dateElement.style.width = 'auto'
-          dateElement.style.height = 'auto'
-          dateElement.style.zIndex = 'auto'
-          dateElement.style.transition = 'none'
-          dateElement.style.backgroundColor = 'rgb(247, 252, 255)'
-          dateElement.style.backdropFilter = 'blur(8px)'
-          dateElement.style.boxShadow = 'none'
-
-          if (wrapper) {
-            wrapper.style.height = 'auto'
-            wrapper.style.visibility = 'visible'
+          // Normal state - before section starts or after section ends
+          dateElement.style.position = ''
+          dateElement.style.top = ''
+          dateElement.style.left = ''
+          dateElement.style.width = ''
+          dateElement.style.zIndex = ''
+          dateElement.style.marginBottom = ''
+          // Restore mb-4 class
+          if (!dateElement.classList.contains('mb-4')) {
+            dateElement.classList.add('mb-4')
           }
+          // Reset wrapper height
+          if (wrapper) wrapper.style.height = ''
         }
       })
     } catch (error) {
@@ -1105,79 +1080,58 @@ export function VisitsDashboard() {
   }, [activeTab, groupedVisits])
 
   useEffect(() => {
-    let ticking = false
-
-    const optimizedHandleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          handleScroll()
-          ticking = false
-        })
-        ticking = true
-      }
-    }
-
     if (activeTab === '14days') {
-      // Initial call to set up positions
-      handleScroll()
-
-      window.addEventListener('scroll', optimizedHandleScroll, { passive: true })
-      window.addEventListener('resize', optimizedHandleScroll, { passive: true })
-
+      window.addEventListener('scroll', handleScroll, { passive: true })
       return () => {
-        window.removeEventListener('scroll', optimizedHandleScroll)
-        window.removeEventListener('resize', optimizedHandleScroll)
-
-        // Reset all date card styles when switching tabs
+        window.removeEventListener('scroll', handleScroll)
+        // Reset all date card styles when switching tabs (like old code)
         Object.values(dateRefs.current).forEach(element => {
           if (element) {
             const wrapper = element.parentElement
 
-            // Reset date element
-            element.style.position = 'relative'
-            element.style.top = 'auto'
-            element.style.left = 'auto'
-            element.style.width = 'auto'
-            element.style.height = 'auto'
-            element.style.zIndex = 'auto'
-            element.style.opacity = '1'
-            element.style.visibility = 'visible'
-            element.style.backgroundColor = 'rgb(247, 252, 255)'
-            element.style.backdropFilter = 'blur(8px)'
-            element.style.boxShadow = 'none'
+            element.style.position = ''
+            element.style.top = ''
+            element.style.zIndex = ''
+            element.style.width = ''
+            element.style.left = ''
+            element.style.right = ''
+            element.style.maxWidth = ''
+            element.style.margin = ''
+            element.style.marginBottom = ''
+            element.style.transition = 'none'
 
-            // Reset wrapper
-            if (wrapper) {
-              wrapper.style.height = 'auto'
-              wrapper.style.visibility = 'visible'
+            // Restore mb-4 class
+            if (!element.classList.contains('mb-4')) {
+              element.classList.add('mb-4')
             }
+
+            if (wrapper) wrapper.style.height = ''
           }
         })
       }
     } else {
-      // Reset all date card styles when not on 14days tab
+      // Reset all date card styles when not on 14days tab (like old code)
       Object.values(dateRefs.current).forEach(element => {
         if (element) {
           const wrapper = element.parentElement
 
-          // Reset date element
-          element.style.position = 'relative'
-          element.style.top = 'auto'
-          element.style.left = 'auto'
-          element.style.width = 'auto'
-          element.style.height = 'auto'
-          element.style.zIndex = 'auto'
-          element.style.opacity = '1'
-          element.style.visibility = 'visible'
-          element.style.backgroundColor = 'rgb(247, 252, 255)'
-          element.style.backdropFilter = 'blur(8px)'
-          element.style.boxShadow = 'none'
+          element.style.position = ''
+          element.style.top = ''
+          element.style.zIndex = ''
+          element.style.width = ''
+          element.style.left = ''
+          element.style.right = ''
+          element.style.maxWidth = ''
+          element.style.margin = ''
+          element.style.marginBottom = ''
+          element.style.transition = 'none'
 
-          // Reset wrapper
-          if (wrapper) {
-            wrapper.style.height = 'auto'
-            wrapper.style.visibility = 'visible'
+          // Restore mb-4 class
+          if (!element.classList.contains('mb-4')) {
+            element.classList.add('mb-4')
           }
+
+          if (wrapper) wrapper.style.height = ''
         }
       })
     }
@@ -1316,16 +1270,13 @@ export function VisitsDashboard() {
           display: block !important;
         }
         
-        /* Date card styling */
+        /* Date card styling - simplified like old code */
         .date-card {
           background-color: rgb(247, 252, 255) !important;
           border: 1px solid rgb(232, 244, 253) !important;
           color: #239BCF !important;
           margin-bottom: 1rem !important;
           backdrop-filter: blur(8px) !important;
-          visibility: visible !important;
-          // opacity: 1 !important;
-          transition: all 0.1s ease-in-out !important;
         }
         
         /* Date card wrapper */
