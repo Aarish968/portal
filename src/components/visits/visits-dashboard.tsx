@@ -1031,8 +1031,6 @@ export function VisitsDashboard() {
 
           dateElement.style.zIndex = '10'
           dateElement.style.marginBottom = '0'
-          // Remove mb-4 class to prevent bottom margin
-          dateElement.classList.remove('mb-4')
           // Set wrapper height to maintain space (no extra margin)
           if (wrapper) wrapper.style.height = `${originalHeight}px`
         } else if (containerBottom <= dateCardBottom && containerBottom > headerHeight) {
@@ -1054,8 +1052,6 @@ export function VisitsDashboard() {
 
           dateElement.style.zIndex = '10'
           dateElement.style.marginBottom = '0'
-          // Remove mb-4 class to prevent bottom margin
-          dateElement.classList.remove('mb-4')
           // Keep wrapper height (no extra margin)
           if (wrapper) wrapper.style.height = `${originalHeight}px`
         } else {
@@ -1066,10 +1062,6 @@ export function VisitsDashboard() {
           dateElement.style.width = ''
           dateElement.style.zIndex = ''
           dateElement.style.marginBottom = ''
-          // Restore mb-4 class
-          if (!dateElement.classList.contains('mb-4')) {
-            dateElement.classList.add('mb-4')
-          }
           // Reset wrapper height
           if (wrapper) wrapper.style.height = ''
         }
@@ -1100,11 +1092,6 @@ export function VisitsDashboard() {
             element.style.marginBottom = ''
             element.style.transition = 'none'
 
-            // Restore mb-4 class
-            if (!element.classList.contains('mb-4')) {
-              element.classList.add('mb-4')
-            }
-
             if (wrapper) wrapper.style.height = ''
           }
         })
@@ -1125,11 +1112,6 @@ export function VisitsDashboard() {
           element.style.margin = ''
           element.style.marginBottom = ''
           element.style.transition = 'none'
-
-          // Restore mb-4 class
-          if (!element.classList.contains('mb-4')) {
-            element.classList.add('mb-4')
-          }
 
           if (wrapper) wrapper.style.height = ''
         }
@@ -1275,7 +1257,7 @@ export function VisitsDashboard() {
           background-color: rgb(247, 252, 255) !important;
           border: 1px solid rgb(232, 244, 253) !important;
           color: #239BCF !important;
-          margin-bottom: 1rem !important;
+          margin-bottom: 0 !important;
           backdrop-filter: blur(8px) !important;
         }
         
@@ -1504,7 +1486,7 @@ export function VisitsDashboard() {
                   <div className="date-card-wrapper" style={{ minHeight: 'fit-content' }}>
                     <div
                       ref={el => dateRefs.current[date] = el}
-                      className="date-card rounded-lg px-3 sm:px-4 py-3 w-full mb-4"
+                      className="date-card rounded-lg px-3 sm:px-4 py-3 w-full"
                     >
                       <h4 className="text-sm font-medium mb-1">{date}</h4>
                       <span className="text-xs font-medium" style={{ color: '#939090' }}>
