@@ -37,7 +37,7 @@ export default function VisitDetailsView() {
   const [editingProcedure, setEditingProcedure] = React.useState<{id: string, title: string} | null>(null)
   const [isReopening, setIsReopening] = React.useState(false)
   const [isSaving, setIsSaving] = React.useState(false)
-  const [cardEditingId, setCardEditingId] = React.useState<string | null>(null)
+  const [editingCardIds, setEditingCardIds] = React.useState<string[]>([])
   const [isInitialLoad, setIsInitialLoad] = React.useState(true)
 
   // Extract visit either from navigation state or fallback to param id
@@ -172,12 +172,12 @@ export default function VisitDetailsView() {
   }
 
   const handleEditClick = (procedureId: string) => {
-    // Toggle card editing mode
-    if (cardEditingId === procedureId) {
-      setCardEditingId(null) // Close editing if already editing this card
-    } else {
-      setCardEditingId(procedureId) // Start editing this card
-    }
+    // Toggle editing mode per card (allow multiple)
+    setEditingCardIds(prev =>
+      prev.includes(procedureId)
+        ? prev.filter(id => id !== procedureId)
+        : [...prev, procedureId]
+    )
   }
 
   const handleEditDialogSave = (outcome: OutcomeValue, reason?: string) => {
@@ -689,7 +689,7 @@ export default function VisitDetailsView() {
                         // Handle telehealth start logic here
                         console.log('Starting telehealth session...')
                       }}
-                      className="w-full flex items-center justify-center gap-2 font-semibold transition-all duration-250 ease-out"
+                      className="w-full flex items-center justify-center gap-2 font-semibold transition-all duration-250 ease-out mt-4"
                       style={{
                         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                         fontSize: '0.875rem',
@@ -701,7 +701,7 @@ export default function VisitDetailsView() {
                         textTransform: 'none',
                         fontWeight: '600',
                         outline: '0px',
-                        margin: '0px',
+                        margin: '12px 0 0 0',
                         textDecoration: 'none',
                         padding: '12px 15px',
                         borderWidth: '1px',
@@ -719,14 +719,51 @@ export default function VisitDetailsView() {
                   )}
                 </div>
               ) : (
-                <button
-                  onClick={() => handleOutcomeClick('hra', 'completed')}
-                  className="w-full bg-[#5538A6] hover:bg-[#4A2F95] text-white font-medium py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-sm active:scale-[0.99]"
-                  aria-pressed={false}
-                >
-                  <Play className="w-5 h-5 fill-white" />
-                  <span>Start HRA</span>
-                </button>
+                <div className="space-y-4">
+                  <button
+                    onClick={() => handleOutcomeClick('hra', 'completed')}
+                    className="w-full bg-[#5538A6] hover:bg-[#4A2F95] text-white font-medium py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-sm active:scale-[0.99]"
+                    aria-pressed={false}
+                  >
+                    <Play className="w-5 h-5 fill-white" />
+                    <span>Start HRA</span>
+                  </button>
+
+                  {/* Also show Start Telehealth alongside HRA for telehealth visits */}
+                  {visitType === 'telehealth' && (
+                    <button
+                      onClick={() => {
+                        console.log('Starting telehealth session...')
+                      }}
+                      className="w-full flex items-center justify-center gap-2 font-semibold transition-all duration-250 ease-out mt-4"
+                      style={{
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                        fontSize: '0.875rem',
+                        lineHeight: '1.75',
+                        minWidth: '64px',
+                        minHeight: '44px',
+                        backgroundColor: 'transparent',
+                        color: 'rgb(35, 155, 207)',
+                        textTransform: 'none',
+                        fontWeight: '600',
+                        outline: '0px',
+                        margin: '12px 0 0 0',
+                        textDecoration: 'none',
+                        padding: '12px 15px',
+                        borderWidth: '1px',
+                        borderStyle: 'solid',
+                        borderColor: 'rgb(35, 155, 207)',
+                        borderRadius: '18px',
+                        transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)'
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
+                        <path d="M4.5 20C3.95 20 3.475 19.8083 3.075 19.425C2.69167 19.025 2.5 18.55 2.5 18V6C2.5 5.45 2.69167 4.98333 3.075 4.6C3.475 4.2 3.95 4 4.5 4H16.5C17.05 4 17.5167 4.2 17.9 4.6C18.3 4.98333 18.5 5.45 18.5 6V10.5L22.5 6.5V17.5L18.5 13.5V18C18.5 18.55 18.3 19.025 17.9 19.425C17.5167 19.8083 17.05 20 16.5 20H4.5ZM4.5 18H16.5V6H4.5V18ZM4.5 18V6V18Z" fill="#239BCF"/>
+                      </svg>
+                      <span>Start Telehealth</span>
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -741,12 +778,12 @@ export default function VisitDetailsView() {
               const reason = procedureReasons[procedure.id]
               
               return (
-                <div key={procedure.id} className={`bg-white rounded-2xl shadow-sm p-6 transition-shadow duration-300 hover:shadow-md ${cardEditingId === procedure.id ? 'flex flex-col' : ''}`}>
+                <div key={procedure.id} className={`bg-white rounded-2xl shadow-sm p-6 transition-shadow duration-300 hover:shadow-md ${editingCardIds.includes(procedure.id) ? 'flex flex-col' : ''}`}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-base font-semibold text-gray-900">{procedure.title}</h3>
                     <div className="flex items-center gap-2">
                       {/* Status Badge - show when outcome exists */}
-                      {outcome && cardEditingId !== procedure.id && (
+                      {outcome && !editingCardIds.includes(procedure.id) && (
                         <div 
                           className="inline-flex items-center justify-center gap-2 px-4"
                           style={{
@@ -796,7 +833,7 @@ export default function VisitDetailsView() {
                       )}
                       
                       {/* Editing Badge - show when this card is being edited */}
-                      {cardEditingId === procedure.id && (
+                      {editingCardIds.includes(procedure.id) && (
                         <div 
                           className="inline-flex items-center justify-center text-xs font-medium whitespace-nowrap px-4"
                           style={{
@@ -830,13 +867,13 @@ export default function VisitDetailsView() {
                         <button
                           onClick={() => handleEditClick(procedure.id)}
                           className={`p-1.5 transition-colors ${
-                            cardEditingId === procedure.id 
+                            editingCardIds.includes(procedure.id) 
                               ? '' 
                               : 'hover:bg-gray-100 rounded-2xl'
                           }`}
-                          title={cardEditingId === procedure.id ? "Close editing" : "Edit status"}
+                          title={editingCardIds.includes(procedure.id) ? "Close editing" : "Edit status"}
                         >
-                          {cardEditingId === procedure.id ? (
+                          {editingCardIds.includes(procedure.id) ? (
                             <X className="w-4 h-4 text-gray-500 hover:text-red-700 transition-colors" />
                           ) : (
                             <Pencil className="w-4 h-4 text-gray-500" />
@@ -847,7 +884,7 @@ export default function VisitDetailsView() {
                   </div>
                   
                   {/* Edit Mode Message - only show when this specific card is being edited */}
-                  {cardEditingId === procedure.id && (
+                  {editingCardIds.includes(procedure.id) && (
                     <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-2xl flex items-center gap-2">
                       <svg 
                         xmlns="http://www.w3.org/2000/svg" 
@@ -872,7 +909,7 @@ export default function VisitDetailsView() {
                   )}
                   
                   {/* Action buttons - show when this card is being edited or when no outcome set */}
-                  {(cardEditingId === procedure.id || !outcome) && (
+                  {(editingCardIds.includes(procedure.id) || !outcome) && (
                     <div>
                       <div>
                         <p className="text-sm text-gray-600 mb-3">Outcome:</p>
@@ -880,8 +917,8 @@ export default function VisitDetailsView() {
                           <button
                             onClick={() => {
                               handleOutcomeClick(procedure.id, 'completed')
-                              if (cardEditingId === procedure.id) {
-                                setCardEditingId(null) // Close editing after selection
+                              if (editingCardIds.includes(procedure.id)) {
+                                setEditingCardIds(prev => prev.filter(id => id !== procedure.id)) // Close editing after selection
                               }
                             }}
                             className="flex-1"
@@ -918,8 +955,8 @@ export default function VisitDetailsView() {
                           <button
                             onClick={() => {
                               handleOutcomeClick(procedure.id, 'not-completed')
-                              if (cardEditingId === procedure.id) {
-                                setCardEditingId(null) // Close editing after selection
+                              if (editingCardIds.includes(procedure.id)) {
+                                setEditingCardIds(prev => prev.filter(id => id !== procedure.id)) // Close editing after selection
                               }
                             }}
                             className="flex-1"
