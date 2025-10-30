@@ -1018,15 +1018,15 @@ export function VisitsDashboard() {
           dateElement.style.position = 'fixed'
           dateElement.style.top = `${headerHeight}px`
 
-          // Responsive positioning
+          // Responsive positioning - always match the white container width regardless of zoom
+          const containerRect = whiteContainer.getBoundingClientRect()
           if (isMobile) {
-            const containerWidth = whiteContainer.getBoundingClientRect().width
-            const containerLeft = whiteContainer.getBoundingClientRect().left
-            dateElement.style.width = `${containerWidth}px`
-            dateElement.style.left = `${containerLeft}px`
+            dateElement.style.width = `${containerRect.width}px`
+            dateElement.style.left = `${containerRect.left}px`
           } else {
-            dateElement.style.left = `${sidebarWidth + 20}px`
-            dateElement.style.width = `${originalWidth}px`
+            // For desktop, match the white container's width and position exactly
+            dateElement.style.left = `${containerRect.left}px`
+            dateElement.style.width = `${containerRect.width}px`
           }
 
           dateElement.style.zIndex = '10'
@@ -1039,15 +1039,15 @@ export function VisitsDashboard() {
           dateElement.style.position = 'fixed'
           dateElement.style.top = `${containerBottom - originalHeight}px`
 
-          // Responsive positioning for stopped state
+          // Responsive positioning for stopped state - always match the white container width regardless of zoom
+          const containerRect = whiteContainer.getBoundingClientRect()
           if (isMobile) {
-            const containerWidth = whiteContainer.getBoundingClientRect().width
-            const containerLeft = whiteContainer.getBoundingClientRect().left
-            dateElement.style.width = `${containerWidth}px`
-            dateElement.style.left = `${containerLeft}px`
+            dateElement.style.width = `${containerRect.width}px`
+            dateElement.style.left = `${containerRect.left}px`
           } else {
-            dateElement.style.left = `${sidebarWidth + 20}px`
-            dateElement.style.width = `${originalWidth}px`
+            // For desktop, match the white container's width and position exactly
+            dateElement.style.left = `${containerRect.left}px`
+            dateElement.style.width = `${containerRect.width}px`
           }
 
           dateElement.style.zIndex = '10'
