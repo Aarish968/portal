@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { Clock, MapPin, Building, Check, ChevronDown, Bell } from 'lucide-react'
+import { Clock, MapPin, Building, Check, ChevronDown, Bell, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
 
@@ -798,7 +798,11 @@ function VisitCard({ visit }: { visit: Visit }) {
       // Not Started / In Progress badge → Collect Consent button
       return (
         <button
-          onClick={() => window.open(ROUTES.app.consentForms.href, '_blank')}
+          onClick={() => {
+            sessionStorage.setItem('fromConsentPage', 'true')
+            sessionStorage.setItem('currentVisitId', visit.id)
+            window.open(ROUTES.app.consentForms.href, '_blank')
+          }}
           className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
           style={{
             display: 'inline-flex',
@@ -1004,36 +1008,67 @@ function VisitCard({ visit }: { visit: Visit }) {
           {/* Consent Forms */}
           <div>
             <h4 className="text-xs font-medium text-gray-700 mb-2 sm:mb-3 tracking-wide">
-              consent forms
+              Consent Forms:
             </h4>
-            <div className="text-sm" style={{
-              margin: '0px',
-              fontSize: '0.875rem',
-              lineHeight: '1.4',
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-              color: 'rgb(228, 118, 0)',
-              fontWeight: '500'
-            }}>
+            <div className="flex flex-wrap gap-2 items-center">
               {visit.consentForms.map((cf, i) => {
-                // Map consent form names to IDs used in visit details
-                const consentFormIdMap: Record<string, string> = {
-                  'HIPAA Authorization': 'hipaa-authorization',
-                  'Notice of Privacy Practices': 'notice-privacy-practices',
-                  'Treatment Consent': 'treatment-consent'
+                // Get consent status from sessionStorage for this specific visit
+                let isCompleted = false
+                try {
+                  const consentData = sessionStorage.getItem(`consentFormsStatus-${visit.id}`)
+                  if (consentData) {
+                    const consent = JSON.parse(consentData)
+                    // Map form names to consent keys
+                    if (cf.name === 'HIPAA Authorization' && consent.hipaa) {
+                      isCompleted = true
+                    } else if (cf.name === 'Notice of Privacy Practices' && consent.privacy) {
+                      isCompleted = true
+                    } else if (cf.name === 'Treatment Consent' && consent.treatment) {
+                      isCompleted = true
+                    }
+                  }
+                } catch {
+                  // Keep isCompleted as false
                 }
 
-                const consentFormId = consentFormIdMap[cf.name] || cf.name.toLowerCase().replace(/\s+/g, '-')
-                // Only show completed if actually completed in session storage
-                const isCompleted = visitState?.outcomes?.[consentFormId] === 'completed'
-
                 return (
-                  <span key={i} style={{
-                    color: isCompleted ? 'rgb(25, 154, 146)' : 'rgb(228, 118, 0)',
-                    textDecoration: isCompleted ? 'line-through' : 'none',
-                    marginRight: i < visit.consentForms.length - 1 ? '8px' : '0px'
-                  }}>
-                    {cf.name.charAt(0).toUpperCase() + cf.name.slice(1).toLowerCase()}
-                  </span>
+                  <div key={i} className="inline-flex items-center gap-1.5">
+                    {isCompleted ? (
+                      <>
+                        <div style={{
+                          width: '16px',
+                          height: '16px',
+                          borderRadius: '50%',
+                          backgroundColor: 'rgb(25, 154, 146)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          <Check size={10} color="white" strokeWidth={3} />
+                        </div>
+                        <span style={{
+                          fontSize: '0.875rem',
+                          lineHeight: '1.4',
+                          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                          color: 'rgb(25, 154, 146)',
+                          fontWeight: '500'
+                        }}>
+                          {cf.name}
+                        </span>
+                      </>
+                    ) : (
+                      <span style={{
+                        fontSize: '0.875rem',
+                        lineHeight: '1.4',
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                        color: 'rgb(228, 118, 0)',
+                        fontWeight: '500'
+                      }}>
+                        {cf.name}
+                      </span>
+                    )}
+                  </div>
                 )
               })}
             </div>
@@ -1045,7 +1080,7 @@ function VisitCard({ visit }: { visit: Visit }) {
           {/* Procedures */}
           <div>
             <h4 className="text-xs font-medium text-gray-700 mb-2 sm:mb-3 tracking-wide">
-              applied procedures
+              Required Procedures
             </h4>
             <div className="text-sm text-gray-700">
               {visit.procedures.map((p, i) => {
@@ -1090,10 +1125,12 @@ function VisitCard({ visit }: { visit: Visit }) {
 }
 
 export function VisitsDashboard() {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('today')
   const [visitsToday, setVisitsToday] = useState<Visit[]>(mockVisitsToday)
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
   const [time, setTime] = useState('')
+  const [showConsentModal, setShowConsentModal] = useState(false)
   // Removed unused refreshTrigger state
   const dateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   const dateSectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
@@ -1132,10 +1169,62 @@ export function VisitsDashboard() {
     refreshVisitStates()
   }, [refreshVisitStates])
 
+  // Check consent status and show modal if needed
+  const checkConsentStatus = useCallback(() => {
+    try {
+      // Get visit ID from sessionStorage
+      const visitId = sessionStorage.getItem('currentVisitId')
+      if (!visitId) {
+        // If no visit ID, check general consent status
+        const consentData = sessionStorage.getItem('consentFormsStatus')
+        if (consentData) {
+          const consent = JSON.parse(consentData)
+          if (!consent.hipaa || !consent.privacy || !consent.treatment || !consent.submitted) {
+            setShowConsentModal(true)
+          }
+        } else {
+          setShowConsentModal(true)
+        }
+      } else {
+        // Check consent status for specific visit
+        const consentData = sessionStorage.getItem(`consentFormsStatus-${visitId}`)
+        if (consentData) {
+          const consent = JSON.parse(consentData)
+          // Check if any form is missing or not submitted
+          if (!consent.hipaa || !consent.privacy || !consent.treatment || !consent.submitted) {
+            setShowConsentModal(true)
+          }
+        } else {
+          // No consent data found, show modal
+          setShowConsentModal(true)
+        }
+      }
+    } catch {
+      // Error parsing, show modal
+      setShowConsentModal(true)
+    }
+  }, [])
+
+  // Check consent status on mount and when window gains focus
+  useEffect(() => {
+    // Only check if user came from consent forms page (check sessionStorage flag)
+    const fromConsentPage = sessionStorage.getItem('fromConsentPage')
+    if (fromConsentPage === 'true') {
+      sessionStorage.removeItem('fromConsentPage')
+      checkConsentStatus()
+    }
+  }, [checkConsentStatus])
+
   // Refresh data when window gains focus (user navigates back)
   useEffect(() => {
     const handleFocus = () => {
       refreshVisitStates()
+      // Check consent when window gains focus (user might have navigated back)
+      const fromConsentPage = sessionStorage.getItem('fromConsentPage')
+      if (fromConsentPage === 'true') {
+        sessionStorage.removeItem('fromConsentPage')
+        checkConsentStatus()
+      }
     }
 
     window.addEventListener('focus', handleFocus)
@@ -1777,6 +1866,130 @@ export function VisitsDashboard() {
             </div>
           )}
         </div>
+
+        {/* Consent Modal */}
+        {showConsentModal && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+              padding: '16px'
+            }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowConsentModal(false)
+              }
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                padding: '24px',
+                maxWidth: '500px',
+                width: '100%',
+                boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Title */}
+              <h2 style={{
+                fontSize: '20px',
+                fontWeight: '600',
+                color: '#DC2626',
+                marginBottom: '12px'
+              }}>
+                Consent Document Not Found.
+              </h2>
+              
+              {/* Description */}
+              <p style={{
+                fontSize: '14px',
+                color: '#4B5563',
+                lineHeight: '1.6',
+                marginBottom: '24px'
+              }}>
+                We weren't able to confirm the patient's consent. This may be due to a delay in data syncing, or the document may not have been uploaded yet.
+              </p>
+
+              {/* Action Buttons */}
+              <div style={{
+                display: 'flex',
+                gap: '12px',
+                justifyContent: 'flex-end',
+                width: '100%',
+                flexWrap: 'wrap'
+              }}>
+                <button
+                  onClick={() => {
+                    // Just close modal and stay on Visit Outcomes page
+                    setShowConsentModal(false)
+                  }}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: 'white',
+                    color: '#5538A6',
+                    border: '1px solid #5538A6',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    minWidth: '120px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#F3F4F6'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'white'
+                  }}
+                >
+                  Collect Consent
+                </button>
+                <button
+                  onClick={() => {
+                    setShowConsentModal(false)
+                    // Get visit ID from current context or first visit
+                    const firstVisit = currentVisits[0]
+                    if (firstVisit) {
+                      sessionStorage.setItem('currentVisitId', firstVisit.id)
+                    }
+                    // Navigate to consent forms page
+                    navigate(ROUTES.app.consentForms.href)
+                  }}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: '#5538A6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    minWidth: '120px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#462D8A'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#5538A6'
+                  }}
+                >
+                  Retry Check
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
