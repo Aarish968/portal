@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Clock, MapPin, ChevronDown, Check, Video } from 'lucide-react'
-import { Card, CardContent, CardHeader } from '@/base_submod/components/ui/card'
+import { Card, CardContent } from '@/base_submod/components/ui/card'
 import { Button } from '@/base_submod/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/base_submod/components/ui/tabs'
 import { cn } from '@/base_submod/lib/utils'

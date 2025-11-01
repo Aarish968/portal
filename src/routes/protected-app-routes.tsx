@@ -11,11 +11,18 @@ import VisitDetailsPage from '@/models/visits/pages/visit-details-page'
 import VisitOutcomesPage from '@/models/visits/pages/visit-outcomes-page'
 import TestPage from '@/models/test/pages/test-page'
 import ProtectedRoute from '@/base_submod/components/auth/protected-route'
+import { ConsentFormsPage } from '@/components/consent/consent-forms-page'
 
 export const protectedRoutes: RouteObject[] = [
   {
     element: <ProtectedWrapper />,
     children: [
+      // Consent Forms - Standalone page without sidebar
+      {
+        path: ROUTES.app.consentForms.href,
+        element: <ConsentFormsPage />,
+      },
+      // Main app routes with sidebar layout
       {
         element: <RootLayout children={<Outlet />} />,
         children: [

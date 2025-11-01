@@ -6,6 +6,7 @@ export interface AppRoutes {
   visits: SiteLink
   visitDetails: SiteLink
   visitOutcomes: SiteLink
+  consentForms: SiteLink
   support: SiteLink
   settings: SiteLink
   test: SiteLink
@@ -46,6 +47,13 @@ export const APP_ROUTES: AppRoutes = {
     metaDescription: 'View visit outcomes',
     menuDescription: 'View visit outcomes',
     icon: 'ph:chart-line',
+  },
+  consentForms: {
+    title: 'Consent Forms',
+    href: '/consent-forms',
+    metaDescription: 'Patient consent forms',
+    menuDescription: 'Patient consent forms',
+    icon: 'ph:file-text',
   },
   support: {
     title: 'Support',

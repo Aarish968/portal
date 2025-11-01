@@ -235,7 +235,7 @@ export default function VisitDetailsView() {
 
   // Update visit status based on completion - only set to ready-to-save, not completed
   // Don't auto-change status if user explicitly clicked edit
-  const [isExplicitlyEditing, setIsExplicitlyEditing] = React.useState(false)
+  // Removed unused isExplicitlyEditing state
   
   React.useEffect(() => {
     if (isInitialLoad) return // Don't auto-change status during initial load
@@ -273,7 +273,7 @@ export default function VisitDetailsView() {
     setTimeout(() => {
       setIsSaving(false)
       setVisitStatus('completed')
-      setIsExplicitlyEditing(false)
+      // Removed setIsExplicitlyEditing call
       
       // After saving, stay on visit details page with completed status
       const visitData = {
@@ -300,7 +300,7 @@ export default function VisitDetailsView() {
     setTimeout(() => {
       setIsReopening(false)
       setVisitStatus('in-progress')
-      setIsExplicitlyEditing(true)
+      // Removed setIsExplicitlyEditing call
       
       // Update session storage immediately when editing
       const visitData = {

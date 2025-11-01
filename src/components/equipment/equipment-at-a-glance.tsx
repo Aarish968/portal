@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { Card, CardContent } from '@/base_submod/components/ui/card'
 import { cn } from '@/base_submod/lib/utils'

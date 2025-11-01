@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { GenerateCodeChallenge, GenerateRandomString } from '../../../assets/base_submod/utils/Generate'
-import { CODE_VERIFIER_STORAGE_KEY, IsValidToken, MapAndStoreTokens, PrepareTokenRequestData, RequestTokens } from '../../../assets/base_submod/utils/JWT'
+import { GenerateCodeChallenge, GenerateRandomString } from '../../../base_submod/utils/Generate'
+import { CODE_VERIFIER_STORAGE_KEY, IsValidToken, MapAndStoreTokens, PrepareTokenRequestData, RequestTokens } from '../../../base_submod/utils/JWT'
 import ROUTES from '../../../data/routing/routes'
 
 function useAuthentication() {

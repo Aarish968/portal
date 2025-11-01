@@ -1,4 +1,4 @@
-import React from 'react'
+// React import removed as it's not needed in modern React
 import { EquipmentAtAGlance } from './equipment-at-a-glance'
 
 // Sample equipment data for demonstration

@@ -13,23 +13,7 @@ const CardContent = ({ children, className = '' }: SimpleProps) => (
   <div className={className}>{children}</div>
 )
 
-type ButtonProps = { children: React.ReactNode, className?: string, style?: React.CSSProperties, onClick?: () => void, variant?: 'default' | 'outline' }
-const Button = ({ children, className = '', style, onClick, variant = 'default' }: ButtonProps) => {
-  const baseClass = 'rounded-full px-6 py-2 text-sm font-medium transition-colors'
-  const variantClass =
-    variant === 'outline'
-      ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-      : ''
-  return (
-    <button
-      className={`${baseClass} ${variantClass} ${className}`}
-      style={style}
-      onClick={onClick}
-    >
-      {children}
-    </button>
-  )
-}
+// Removed unused ButtonProps type
 
 const cn = (...classes: (string | false | null | undefined)[]) => classes.filter(Boolean).join(' ')
 
@@ -49,16 +33,22 @@ interface VisitProcedure {
   completed?: boolean
 }
 
+interface ConsentForm {
+  name: string
+  completed?: boolean
+}
+
 interface Visit {
   id: string
   patientName: string
   time: string
   address: string
   insurance: string
-  status: 'not-started' | 'in-progress' | 'completed'
+  status: 'not-started' | 'in-progress' | 'completed' | 'ready-to-save'
   visitType: 'in-home' | 'telehealth'
   procedures: VisitProcedure[]
   healthRiskAssessment: 'not-started' | 'in-progress' | 'completed'
+  consentForms: ConsentForm[]
   date?: string
 }
 
@@ -106,6 +96,11 @@ const mockVisitsToday: Visit[] = [
       { name: 'Urine Sample' },
     ],
     healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
   },
   {
     id: '2',
@@ -121,6 +116,11 @@ const mockVisitsToday: Visit[] = [
       { name: 'Urine Sample' },
     ],
     healthRiskAssessment: 'in-progress',
+    consentForms: [
+      { name: 'HIPAA Authorization', completed: true },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
   },
   {
     id: '3',
@@ -136,6 +136,11 @@ const mockVisitsToday: Visit[] = [
       { name: 'Urine Sample' },
     ],
     healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
   },
   {
     id: '4',
@@ -151,6 +156,11 @@ const mockVisitsToday: Visit[] = [
       { name: 'Urine Sample' },
     ],
     healthRiskAssessment: 'in-progress',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices', completed: true },
+      { name: 'Treatment Consent' },
+    ],
   },
 ]
 
@@ -171,6 +181,11 @@ const mockVisits14Days: Visit[] = [
       { name: 'Spirometry Test' },
     ],
     healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
   },
   {
     id: '2',
@@ -188,6 +203,11 @@ const mockVisits14Days: Visit[] = [
       { name: 'FIT/FOBT Test' },
     ],
     healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
   },
   {
     id: '3',
@@ -204,6 +224,11 @@ const mockVisits14Days: Visit[] = [
       { name: 'Retinal Screening' },
     ],
     healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
   },
   {
     id: '4',
@@ -220,6 +245,11 @@ const mockVisits14Days: Visit[] = [
       { name: 'Vaccine' },
     ],
     healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
   },
   {
     id: '5',
@@ -236,6 +266,11 @@ const mockVisits14Days: Visit[] = [
       { name: 'HIV Test' },
     ],
     healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
   },
   {
     id: '6',
@@ -252,6 +287,11 @@ const mockVisits14Days: Visit[] = [
       { name: 'FIT/FOBT Test' },
     ],
     healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
   },
   {
     id: '7',
@@ -268,6 +308,11 @@ const mockVisits14Days: Visit[] = [
       { name: 'Vaccine' },
     ],
     healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
   },
   {
     id: '8',
@@ -284,6 +329,11 @@ const mockVisits14Days: Visit[] = [
       { name: 'Portable Ultrasound' },
     ],
     healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
   },
   {
     id: '9',
@@ -300,6 +350,11 @@ const mockVisits14Days: Visit[] = [
       { name: 'Blood Pressure' },
     ],
     healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
   },
   {
     id: '10',
@@ -316,6 +371,11 @@ const mockVisits14Days: Visit[] = [
       { name: 'Hepatitis C Test' },
     ],
     healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
   },
   {
     id: '11',
@@ -331,6 +391,11 @@ const mockVisits14Days: Visit[] = [
       { name: 'Vaccine' },
     ],
     healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
   },
   {
     id: '12',
@@ -346,6 +411,11 @@ const mockVisits14Days: Visit[] = [
       { name: 'HbA1c Test' },
     ],
     healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
   },
   {
     id: '13',
@@ -361,6 +431,11 @@ const mockVisits14Days: Visit[] = [
       { name: 'HbA1c Test' },
     ],
     healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
   },
 ]
 
@@ -502,7 +577,7 @@ function StatusBadge({ status, visitState }: { status: Visit['status'], visitSta
   return (
     <div
       className="inline-flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
-      style={config.style}
+      style={config.style as React.CSSProperties}
     >
       {config.showIcon && (
         <div className="w-3 h-3 rounded-full bg-white flex items-center justify-center flex-shrink-0">
@@ -556,6 +631,64 @@ function ProcedureBadge({ procedure }: { procedure: VisitProcedure }) {
   return (
     <div className="border border-gray-300 rounded-full bg-white text-gray-700 px-2 sm:px-3 py-1 text-xs font-medium whitespace-nowrap">
       {procedure.name}
+    </div>
+  )
+}
+
+function ConsentFormBadge({ consentForm }: { consentForm: ConsentForm }) {
+  if (consentForm.completed) {
+    return (
+      <div
+        className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full"
+        style={{
+          maxWidth: '100%',
+          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          lineHeight: '1.5',
+          cursor: 'unset',
+          verticalAlign: 'middle',
+          boxSizing: 'border-box',
+          height: '24px',
+          fontWeight: '500',
+          fontSize: '0.75rem',
+          backgroundColor: 'rgb(25, 154, 146)',
+          color: 'rgb(255, 255, 255)',
+          whiteSpace: 'nowrap',
+          transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+          outline: '0px',
+          textDecoration: 'none',
+          borderWidth: '0px',
+          borderStyle: 'initial',
+          borderColor: 'initial',
+          borderImage: 'initial',
+          padding: '0px 8px',
+          borderRadius: '999px'
+        }}
+      >
+        <div className="w-3 h-3 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+          <Check className="w-2 h-2" style={{ color: 'rgb(25, 154, 146)' }} />
+        </div>
+        <span className="text-xs">{consentForm.name}</span>
+      </div>
+    )
+  }
+  return (
+    <div
+      className="px-2 sm:px-3 py-1 text-xs font-medium whitespace-nowrap rounded-full"
+      style={{
+        margin: '0px',
+        fontSize: '0.875rem',
+        lineHeight: '1.4',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        color: 'rgb(228, 118, 0)',
+        fontWeight: '500',
+        backgroundColor: 'rgba(228, 118, 0, 0.1)',
+        border: '1px solid rgba(228, 118, 0, 0.3)'
+      }}
+    >
+      {consentForm.name}
     </div>
   )
 }
@@ -662,12 +795,21 @@ function VisitCard({ visit }: { visit: Visit }) {
         </button>
       )
     } else {
-      // Not Started / In Progress badge → Log Outcomes button
+      // Not Started / In Progress badge → Collect Consent button
       return (
         <button
-          onClick={handleVisitClick}
+          onClick={() => window.open(ROUTES.app.consentForms.href, '_blank')}
           className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
           style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            boxSizing: 'border-box',
+            cursor: 'pointer',
+            userSelect: 'none',
+            verticalAlign: 'middle',
+            appearance: 'none',
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
             fontSize: '0.875rem',
             lineHeight: '1.75',
@@ -675,9 +817,9 @@ function VisitCard({ visit }: { visit: Visit }) {
             textTransform: 'none',
             fontWeight: '500',
             boxShadow: 'none',
-            backgroundColor: 'rgb(85, 56, 166)',
-            color: 'rgb(255, 255, 255)',
             minHeight: '44px',
+            backgroundColor: 'rgb(228, 118, 0)',
+            color: 'rgb(255, 255, 255)',
             outline: '0px',
             margin: '0px',
             textDecoration: 'none',
@@ -690,7 +832,7 @@ function VisitCard({ visit }: { visit: Visit }) {
             borderRadius: '12px'
           }}
         >
-          Log Outcomes
+          Collect Consent
         </button>
       )
     }
@@ -812,6 +954,8 @@ function VisitCard({ visit }: { visit: Visit }) {
             </div>
           </div>
 
+
+
           {/* Visit Details - Responsive Layout */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 text-sm min-w-0 visit-details-mobile" style={{ color: '#939090' }}>
             {/* Time */}
@@ -857,12 +1001,53 @@ function VisitCard({ visit }: { visit: Visit }) {
           {/* First Separator Line */}
           <div className="border-t border-gray-200"></div>
 
+          {/* Consent Forms */}
+          <div>
+            <h4 className="text-xs font-medium text-gray-700 mb-2 sm:mb-3 tracking-wide">
+              consent forms
+            </h4>
+            <div className="text-sm" style={{
+              margin: '0px',
+              fontSize: '0.875rem',
+              lineHeight: '1.4',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+              color: 'rgb(228, 118, 0)',
+              fontWeight: '500'
+            }}>
+              {visit.consentForms.map((cf, i) => {
+                // Map consent form names to IDs used in visit details
+                const consentFormIdMap: Record<string, string> = {
+                  'HIPAA Authorization': 'hipaa-authorization',
+                  'Notice of Privacy Practices': 'notice-privacy-practices',
+                  'Treatment Consent': 'treatment-consent'
+                }
+
+                const consentFormId = consentFormIdMap[cf.name] || cf.name.toLowerCase().replace(/\s+/g, '-')
+                // Only show completed if actually completed in session storage
+                const isCompleted = visitState?.outcomes?.[consentFormId] === 'completed'
+
+                return (
+                  <span key={i} style={{
+                    color: isCompleted ? 'rgb(25, 154, 146)' : 'rgb(228, 118, 0)',
+                    textDecoration: isCompleted ? 'line-through' : 'none',
+                    marginRight: i < visit.consentForms.length - 1 ? '8px' : '0px'
+                  }}>
+                    {cf.name.charAt(0).toUpperCase() + cf.name.slice(1).toLowerCase()}
+                  </span>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Second Separator Line */}
+          <div className="border-t border-gray-200"></div>
+
           {/* Procedures */}
           <div>
-            <h4 className="text-xs font-medium text-gray-700 mb-2 sm:mb-3 uppercase tracking-wide">
-              Applied Procedures
+            <h4 className="text-xs font-medium text-gray-700 mb-2 sm:mb-3 tracking-wide">
+              applied procedures
             </h4>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2 procedures-mobile">
+            <div className="text-sm text-gray-700">
               {visit.procedures.map((p, i) => {
                 // Map procedure names to IDs used in visit details
                 const procedureIdMap: Record<string, string> = {
@@ -876,15 +1061,19 @@ function VisitCard({ visit }: { visit: Visit }) {
                 const isCompleted = visitState?.outcomes?.[procedureId] === 'completed'
 
                 return (
-                  <div key={i} className="flex-shrink-0">
-                    <ProcedureBadge procedure={{ ...p, completed: isCompleted }} />
-                  </div>
+                  <span key={i} style={{
+                    color: isCompleted ? 'rgb(25, 154, 146)' : 'rgb(107, 114, 128)',
+                    textDecoration: isCompleted ? 'line-through' : 'none',
+                    marginRight: i < visit.procedures.length - 1 ? '8px' : '0px'
+                  }}>
+                    {p.name.charAt(0).toUpperCase() + p.name.slice(1).toLowerCase()}
+                  </span>
                 )
               })}
             </div>
           </div>
 
-          {/* Second Separator Line */}
+          {/* Third Separator Line */}
           <div className="border-t border-gray-200"></div>
 
           {/* Health Risk Assessment */}
@@ -905,7 +1094,7 @@ export function VisitsDashboard() {
   const [visitsToday, setVisitsToday] = useState<Visit[]>(mockVisitsToday)
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
   const [time, setTime] = useState('')
-  const [refreshTrigger, setRefreshTrigger] = useState(0)
+  // Removed unused refreshTrigger state
   const dateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
   const dateSectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
@@ -967,7 +1156,7 @@ export function VisitsDashboard() {
   // Refresh on window focus only (remove the 500ms interval that causes flickering)
   useEffect(() => {
     const handleFocus = () => {
-      setRefreshTrigger(Date.now())
+      // Removed setRefreshTrigger call
     }
 
     window.addEventListener('focus', handleFocus)
@@ -992,7 +1181,7 @@ export function VisitsDashboard() {
         headerHeight = 180 // Small mobile (390px - 638px) - reduced spacing
       }
 
-      const sidebarWidth = isMobile ? 0 : 200
+      // Removed unused sidebarWidth variable
 
       // Get all date entries and sort them by their position in the DOM
       const sortedEntries = Object.entries(groupedVisits).sort((a, b) => {
@@ -1003,7 +1192,7 @@ export function VisitsDashboard() {
       })
 
       // First pass: reset all date cards to normal state
-      sortedEntries.forEach(([date, visits]) => {
+      sortedEntries.forEach(([date]) => {
         const dateElement = dateRefs.current[date]
         const dateSectionElement = dateSectionRefs.current[date]
 
@@ -1025,7 +1214,7 @@ export function VisitsDashboard() {
       let activeDateCard = null
 
       for (let i = 0; i < sortedEntries.length; i++) {
-        const [date, visits] = sortedEntries[i]
+        const [date] = sortedEntries[i]
         const dateElement = dateRefs.current[date]
         const dateSectionElement = dateSectionRefs.current[date]
 
@@ -1057,7 +1246,7 @@ export function VisitsDashboard() {
 
       // Apply sticky behavior only to the active date card
       if (activeDateCard) {
-        const { date, dateElement, dateSectionElement, whiteContainer, originalHeight, index } = activeDateCard
+        const { dateElement, whiteContainer, originalHeight, index } = activeDateCard
         const wrapper = dateElement.parentElement
 
         const containerRect = whiteContainer.getBoundingClientRect()

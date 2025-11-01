@@ -24,25 +24,25 @@ const completedVisits = [
 export default function VisitOutcomesView() {
   const navigate = useNavigate()
   const location = useLocation()
-  
+
   // Get visit data from navigation state
   const visitDataFromState = (location.state as any)?.visitData
-  
+
   // Force re-render when location state changes
   React.useEffect(() => {
     // This will trigger re-render when coming back from visit details
   }, [location.state])
-  
-  const currentTime = new Date().toLocaleTimeString('en-US', { 
-    hour: 'numeric', 
+
+  const currentTime = new Date().toLocaleTimeString('en-US', {
+    hour: 'numeric',
     minute: '2-digit',
-    hour12: true 
+    hour12: true
   })
-  const currentDate = new Date().toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  const currentDate = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   })
 
   // Merge persisted session state for the same visit id if present
@@ -59,7 +59,7 @@ export default function VisitOutcomesView() {
   const getAllVisits = () => {
     // Get all possible visit IDs from session storage
     const visitIds = ['1', '2', '3', '4'] // Add more IDs as needed
-    
+
     return visitIds.map(id => {
       try {
         const stored = sessionStorage.getItem(`visit-state-${id}`)
@@ -81,11 +81,11 @@ export default function VisitOutcomesView() {
             hraStatus: data.outcomes?.hra === 'completed' ? 'completed' : 'not-started'
           }
         }
-      } catch {}
+      } catch { }
       return null
     }).filter(Boolean)
   }
-  
+
   const source = visitDataFromState || persisted
   const visits = source ? [{
     id: source.id,
@@ -104,11 +104,11 @@ export default function VisitOutcomesView() {
   }] : getAllVisits().length > 0 ? getAllVisits() : completedVisits
 
   const handleViewSummary = (visitId: string) => {
-    const visit = visits.find(v => v.id === visitId)
+    const visit = visits.find(v => v?.id === visitId)
     if (visit) {
       // Navigate to visit details with proper state
-      navigate(`/visit-details/${visitId}`, { 
-        state: { 
+      navigate(`/visit-details/${visitId}`, {
+        state: {
           visit: {
             id: visit.id,
             patientName: visit.patientName,
@@ -124,7 +124,7 @@ export default function VisitOutcomesView() {
   }
 
   const handleLogOutcomes = (visitId: string) => {
-    const visit = visits.find(v => v.id === visitId)
+    const visit = visits.find(v => v?.id === visitId)
     if (visit) {
       navigate(`/visit-details/${visitId}`, {
         state: {
@@ -178,7 +178,7 @@ export default function VisitOutcomesView() {
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-6">Today's Visits</h2>
           <div className="space-y-6">
-            {visits.map((visit) => (
+            {visits.filter(visit => visit != null).map((visit) => (
               <div key={visit.id} className="bg-white rounded-2xl shadow-sm p-6">
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex-1">
@@ -231,11 +231,10 @@ export default function VisitOutcomesView() {
                         {visit.completedProcedures.map((procedure, index) => {
                           const isCompleted = procedure.status === 'completed'
                           return (
-                            <div key={index} className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium ${
-                              isCompleted 
-                                ? 'bg-green-100 text-green-700' 
-                                : 'bg-red-100 text-red-700'
-                            }`}>
+                            <div key={index} className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium ${isCompleted
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-red-100 text-red-700'
+                              }`}>
                               {isCompleted ? (
                                 <CheckCircle className="w-4 h-4" />
                               ) : (
@@ -275,11 +274,11 @@ export default function VisitOutcomesView() {
                           return stored ? JSON.parse(stored) : null
                         } catch { return null }
                       }
-                      
+
                       const visitData = getVisitData()
                       const hasOutcomes = visitData?.outcomes && Object.keys(visitData.outcomes).length > 0
                       const sessionStatus = visitData?.status
-                      
+
                       if (sessionStatus === 'completed') {
                         return (
                           <button
