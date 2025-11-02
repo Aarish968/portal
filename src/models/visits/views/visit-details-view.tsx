@@ -330,9 +330,6 @@ export default function VisitDetailsView() {
 
 
 
-
-
-
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
       {/* Header - Full Width */}
@@ -531,32 +528,34 @@ export default function VisitDetailsView() {
             )}
             
             {(visitStatus === 'not-started' || (visitStatus === 'in-progress' && completedCount === 0 && !outcomes['hra'])) && (
-              <div 
-                className="inline-flex items-center justify-center px-6"
-                style={{
-                  maxWidth: '100%',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                  height: '32px',
-                  lineHeight: '1.5',
-                  color: 'rgb(27, 27, 27)',
-                  backgroundColor: 'rgba(35, 155, 207, 0.08)',
-                  cursor: 'unset',
-                  verticalAlign: 'middle',
-                  boxSizing: 'border-box',
-                  fontSize: '0.75rem',
-                  fontWeight: '500',
-                  whiteSpace: 'nowrap',
-                  transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
-                  outline: '0px',
-                  textDecoration: 'none',
-                  border: '0px',
-                  padding: '0px',
-                  borderRadius: '999px',
-                  minWidth: '110px'
-                }}
-              >
-                Not Started
-              </div>
+              <>
+                <div 
+                  className="inline-flex items-center justify-center px-6"
+                  style={{
+                    maxWidth: '100%',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                    height: '32px',
+                    lineHeight: '1.5',
+                    color: 'rgb(27, 27, 27)',
+                    backgroundColor: 'rgba(35, 155, 207, 0.08)',
+                    cursor: 'unset',
+                    verticalAlign: 'middle',
+                    boxSizing: 'border-box',
+                    fontSize: '0.75rem',
+                    fontWeight: '500',
+                    whiteSpace: 'nowrap',
+                    transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                    outline: '0px',
+                    textDecoration: 'none',
+                    border: '0px',
+                    padding: '0px',
+                    borderRadius: '999px',
+                    minWidth: '110px'
+                  }}
+                >
+                  Not Started
+                </div>
+              </>
             )}
             
 
@@ -770,7 +769,7 @@ export default function VisitDetailsView() {
         </div>
 
         {/* Procedures */}
-        <div>
+        <div data-procedures-section>
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Visit Procedures</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {procedures.map((procedure) => {

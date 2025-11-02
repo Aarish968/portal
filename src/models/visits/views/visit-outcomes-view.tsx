@@ -1,5 +1,5 @@
 import React from 'react'
-import { ArrowLeft, Clock, MapPin, Building, CheckCircle, FileText, Bell } from 'lucide-react'
+import { ArrowLeft, Clock, MapPin, Building, CheckCircle, FileText, Bell, X, Link, Check } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 
 // Seed data for today's visits (starts as not-started and updates via navigation state)
@@ -19,6 +19,12 @@ const completedVisits = [
     ],
     hraStatus: 'in-progress'
   }
+]
+
+const consentForms = [
+  { id: 'hipaa', name: 'HIPAA Authorization', key: 'hipaa' },
+  { id: 'privacy', name: 'Notice of Privacy Practices', key: 'privacy' },
+  { id: 'treatment', name: 'Treatment Consent', key: 'treatment' },
 ]
 
 export default function VisitOutcomesView() {
@@ -231,16 +237,48 @@ export default function VisitOutcomesView() {
                         {visit.completedProcedures.map((procedure, index) => {
                           const isCompleted = procedure.status === 'completed'
                           return (
-                            <div key={index} className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium ${isCompleted
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-red-100 text-red-700'
-                              }`}>
+                            <div
+                              key={index}
+                              className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full"
+                              style={{
+                                maxWidth: '100%',
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                lineHeight: '1.5',
+                                cursor: 'unset',
+                                verticalAlign: 'middle',
+                                boxSizing: 'border-box',
+                                height: '32px',
+                                fontWeight: '500',
+                                fontSize: '0.75rem',
+                                backgroundColor: isCompleted ? 'rgb(25, 154, 146)' : 'rgb(207, 35, 35)',
+                                color: 'rgb(255, 255, 255)',
+                                whiteSpace: 'nowrap',
+                                transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                                outline: '0px',
+                                textDecoration: 'none',
+                                border: '0px',
+                                padding: '0px 12px',
+                                borderRadius: '999px'
+                              }}
+                            >
                               {isCompleted ? (
-                                <CheckCircle className="w-4 h-4" />
+                                <>
+                                  <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+                                    <CheckCircle className="w-3 h-3" style={{ color: 'rgb(25, 154, 146)' }} />
+                                  </div>
+                                  <span>{procedure.name}</span>
+                                </>
                               ) : (
-                                <span className="w-4 h-4 text-center">✗</span>
+                                <>
+                                  <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+                                    <X className="w-3 h-3" style={{ color: 'rgb(207, 35, 35)' }} />
+                                  </div>
+                                  <span>{procedure.name}</span>
+                                </>
                               )}
-                              <span>{procedure.name} - {isCompleted ? 'Completed' : 'Not Completed'}</span>
                             </div>
                           )
                         })}
@@ -262,10 +300,79 @@ export default function VisitOutcomesView() {
                         </div>
                       )}
                     </div>
+
+                    {/* Consent Forms Section */}
+                    <div className="mb-4">
+                      <h4 className="text-sm text-gray-500 mb-3">Consent forms</h4>
+                      <div className="space-y-3">
+                        {consentForms.map((form) => {
+                          // Get consent status from sessionStorage
+                          let isCompleted = false
+                          try {
+                            const consentData = sessionStorage.getItem(`consentFormsStatus-${visit.id}`)
+                            if (consentData) {
+                              const consent = JSON.parse(consentData)
+                              isCompleted = consent[form.key] === true
+                            }
+                          } catch {}
+                          
+                          return (
+                            <div key={form.id} className="flex flex-col gap-1">
+                              {isCompleted ? (
+                                <div className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full w-fit mb-1" style={{
+                                  maxWidth: '100%',
+                                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  lineHeight: '1.5',
+                                  cursor: 'unset',
+                                  verticalAlign: 'middle',
+                                  boxSizing: 'border-box',
+                                  height: '24px',
+                                  fontWeight: '500',
+                                  fontSize: '0.75rem',
+                                  backgroundColor: 'rgb(25, 154, 146)',
+                                  color: 'rgb(255, 255, 255)',
+                                  whiteSpace: 'nowrap',
+                                  transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                                  outline: '0px',
+                                  textDecoration: 'none',
+                                  border: '0px',
+                                  padding: '0px 12px',
+                                  borderRadius: '999px'
+                                }}>
+                                  <div className="w-3 h-3 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+                                    <Check className="w-2 h-2" style={{ color: 'rgb(25, 154, 146)' }} />
+                                  </div>
+                                  <span>Collected</span>
+                                </div>
+                              ) : (
+                                <span className="text-xs font-medium mb-1" style={{
+                                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                                  fontSize: '0.75rem',
+                                  fontWeight: '500',
+                                  color: 'rgb(207, 35, 35)'
+                                }}>
+                                  Missing
+                                </span>
+                              )}
+                              <p className="text-sm text-gray-900" style={{
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                                fontSize: '0.875rem',
+                                color: '#1B1B1B'
+                              }}>
+                                {form.name}
+                              </p>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Action Button */}
-                  <div className="ml-6">
+                  {/* Action Buttons */}
+                  <div className="ml-6 flex flex-col gap-3">
                     {(() => {
                       // Get individual visit session storage data
                       const getVisitData = () => {
@@ -273,6 +380,38 @@ export default function VisitOutcomesView() {
                           const stored = sessionStorage.getItem(`visit-state-${visit.id}`)
                           return stored ? JSON.parse(stored) : null
                         } catch { return null }
+                      }
+
+                      // Check consent status
+                      const consentStatus = (() => {
+                        try {
+                          const consentData = sessionStorage.getItem(`consentFormsStatus-${visit.id}`)
+                          if (consentData) {
+                            const consent = JSON.parse(consentData)
+                            return {
+                              hipaa: consent.hipaa === true,
+                              privacy: consent.privacy === true,
+                              treatment: consent.treatment === true
+                            }
+                          }
+                        } catch {}
+                        return {
+                          hipaa: false,
+                          privacy: false,
+                          treatment: false
+                        }
+                      })()
+                      
+                      const completedCount = Object.values(consentStatus).filter(Boolean).length
+                      const hasAnyConsentCompleted = completedCount > 0
+                      const allConsentsCompleted = completedCount === 3
+
+                      // Function to copy consent link
+                      const handleCopyConsentLink = () => {
+                        const consentLink = `${window.location.origin}/consent-forms?visitId=${visit.id}`
+                        navigator.clipboard.writeText(consentLink).then(() => {
+                          console.log('Consent link copied to clipboard')
+                        })
                       }
 
                       const visitData = getVisitData()
@@ -299,14 +438,66 @@ export default function VisitOutcomesView() {
                           </button>
                         )
                       } else {
-                        return (
-                          <button
-                            onClick={() => handleLogOutcomes(visit.id)}
-                            className="px-4 py-2 bg-[#5538A6] hover:bg-[#4A2F95] text-white rounded-lg font-medium transition-colors"
-                          >
-                            Log Outcomes
-                          </button>
-                        )
+                        // Show buttons based on consent completion status
+                        if (allConsentsCompleted) {
+                          // All 3 consents completed - show only Log Outcomes
+                          return (
+                            <button
+                              onClick={() => handleLogOutcomes(visit.id)}
+                              className="px-4 py-2 bg-[#5538A6] hover:bg-[#4A2F95] text-white rounded-lg font-medium transition-colors"
+                              style={{
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                                borderRadius: '12px'
+                              }}
+                            >
+                              Log Outcomes
+                            </button>
+                          )
+                        } else if (hasAnyConsentCompleted) {
+                          // 1 or 2 consents completed - show Log Outcomes and Copy Consent Link
+                          return (
+                            <>
+                              <button
+                                onClick={() => handleLogOutcomes(visit.id)}
+                                className="px-4 py-2 bg-[#5538A6] hover:bg-[#4A2F95] text-white rounded-lg font-medium transition-colors"
+                                style={{
+                                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                                  borderRadius: '12px'
+                                }}
+                              >
+                                Log Outcomes
+                              </button>
+                              <button
+                                onClick={handleCopyConsentLink}
+                                className="px-4 py-2 bg-[#5538A6] hover:bg-[#4A2F95] text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                                style={{
+                                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                                  borderRadius: '12px'
+                                }}
+                              >
+                                Copy Consent Link
+                                <Link className="w-4 h-4" />
+                              </button>
+                              <p className="text-xs text-gray-500 mt-1" style={{ 
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                                fontSize: '0.75rem',
+                                marginTop: '4px'
+                              }}>
+                                Copies link to paste in Telehealth chat
+                              </p>
+                            </>
+                          )
+                        } else {
+                          // No consents completed - show only Log Outcomes
+                          return (
+                            <button
+                              onClick={() => handleLogOutcomes(visit.id)}
+                              className="px-4 py-2 bg-[#5538A6] hover:bg-[#4A2F95] text-white rounded-lg font-medium transition-colors"
+                            >
+                              Log Outcomes
+                            </button>
+                          )
+                        }
                       }
                     })()}
                   </div>

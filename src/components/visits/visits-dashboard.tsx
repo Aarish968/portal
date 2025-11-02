@@ -629,8 +629,39 @@ function ProcedureBadge({ procedure }: { procedure: VisitProcedure }) {
     )
   }
   return (
-    <div className="border border-gray-300 rounded-full bg-white text-gray-700 px-2 sm:px-3 py-1 text-xs font-medium whitespace-nowrap">
-      {procedure.name}
+    <div
+      className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full"
+      style={{
+        maxWidth: '100%',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        lineHeight: '1.5',
+        cursor: 'unset',
+        verticalAlign: 'middle',
+        boxSizing: 'border-box',
+        height: '24px',
+        fontWeight: '500',
+        fontSize: '0.75rem',
+        backgroundColor: 'rgb(207, 35, 35)',
+        color: 'rgb(255, 255, 255)',
+        whiteSpace: 'nowrap',
+        transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+        outline: '0px',
+        textDecoration: 'none',
+        borderWidth: '0px',
+        borderStyle: 'initial',
+        borderColor: 'initial',
+        borderImage: 'initial',
+        padding: '0px 8px',
+        borderRadius: '999px'
+      }}
+    >
+      <div className="w-3 h-3 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+        <X className="w-2 h-2" style={{ color: 'rgb(207, 35, 35)' }} />
+      </div>
+      <span className="text-xs">{procedure.name}</span>
     </div>
   )
 }
@@ -731,6 +762,21 @@ function VisitCard({ visit }: { visit: Visit }) {
       displayStatus = visitState.status
     }
 
+    // Check if all consent forms are completed
+    const areAllConsentFormsCompleted = (() => {
+      try {
+        const consentData = sessionStorage.getItem(`consentFormsStatus-${visit.id}`)
+        if (consentData) {
+          const consent = JSON.parse(consentData)
+          // Check if all three consent forms are completed
+          return consent.hipaa === true && consent.privacy === true && consent.treatment === true
+        }
+      } catch {
+        return false
+      }
+      return false
+    })()
+
     // Button logic based on badge status
     if (displayStatus === 'completed') {
       // Completed badge → View Summary button (with special styling)
@@ -792,6 +838,47 @@ function VisitCard({ visit }: { visit: Visit }) {
           }}
         >
           Save
+        </button>
+      )
+    } else if (areAllConsentFormsCompleted) {
+      // All consent forms completed → Log Outcomes button
+      return (
+        <button
+          onClick={handleVisitClick}
+          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            boxSizing: 'border-box',
+            cursor: 'pointer',
+            userSelect: 'none',
+            verticalAlign: 'middle',
+            appearance: 'none',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            fontSize: '0.875rem',
+            lineHeight: '1.75',
+            minWidth: '64px',
+            textTransform: 'none',
+            fontWeight: '500',
+            boxShadow: 'none',
+            minHeight: '44px',
+            backgroundColor: 'rgb(85, 56, 166)',
+            color: 'rgb(255, 255, 255)',
+            outline: '0px',
+            margin: '0px',
+            textDecoration: 'none',
+            padding: '6px 16px',
+            borderWidth: '0px',
+            borderStyle: 'initial',
+            borderColor: 'initial',
+            borderImage: 'initial',
+            transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+            borderRadius: '12px'
+          }}
+        >
+          Log Outcomes
         </button>
       )
     } else {
@@ -1082,7 +1169,7 @@ function VisitCard({ visit }: { visit: Visit }) {
             <h4 className="text-xs font-medium text-gray-700 mb-2 sm:mb-3 tracking-wide">
               Required Procedures
             </h4>
-            <div className="text-sm text-gray-700">
+            <div className="flex flex-wrap gap-2">
               {visit.procedures.map((p, i) => {
                 // Map procedure names to IDs used in visit details
                 const procedureIdMap: Record<string, string> = {
@@ -1096,13 +1183,49 @@ function VisitCard({ visit }: { visit: Visit }) {
                 const isCompleted = visitState?.outcomes?.[procedureId] === 'completed'
 
                 return (
-                  <span key={i} style={{
-                    color: isCompleted ? 'rgb(25, 154, 146)' : 'rgb(107, 114, 128)',
-                    textDecoration: isCompleted ? 'line-through' : 'none',
-                    marginRight: i < visit.procedures.length - 1 ? '8px' : '0px'
-                  }}>
-                    {p.name.charAt(0).toUpperCase() + p.name.slice(1).toLowerCase()}
-                  </span>
+                  <div
+                    key={i}
+                    className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full"
+                    style={{
+                      maxWidth: '100%',
+                      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      lineHeight: '1.5',
+                      cursor: 'unset',
+                      verticalAlign: 'middle',
+                      boxSizing: 'border-box',
+                      height: '32px',
+                      fontWeight: '500',
+                      fontSize: '0.75rem',
+                      backgroundColor: isCompleted ? 'rgb(25, 154, 146)' : 'rgb(207, 35, 35)',
+                      color: 'rgb(255, 255, 255)',
+                      whiteSpace: 'nowrap',
+                      transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                      outline: '0px',
+                      textDecoration: 'none',
+                      border: '0px',
+                      padding: '0px 12px',
+                      borderRadius: '999px'
+                    }}
+                  >
+                    {isCompleted ? (
+                      <>
+                        <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+                          <Check className="w-3 h-3" style={{ color: 'rgb(25, 154, 146)' }} />
+                        </div>
+                        <span>{p.name}</span>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+                          <X className="w-3 h-3" style={{ color: 'rgb(207, 35, 35)' }} />
+                        </div>
+                        <span>{p.name}</span>
+                      </>
+                    )}
+                  </div>
                 )
               })}
             </div>
