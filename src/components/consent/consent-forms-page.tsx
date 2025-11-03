@@ -14,7 +14,7 @@ export function ConsentFormsPage() {
             setVisitId(storedVisitId)
             // Load existing consent status for this visit if available
             try {
-                const consentData = sessionStorage.getItem(`consentFormsStatus-${storedVisitId}`)
+                const consentData = localStorage.getItem(`consentFormsStatus-${storedVisitId}`)
                 if (consentData) {
                     const consent = JSON.parse(consentData)
                     setConsentStates({
@@ -74,27 +74,18 @@ export function ConsentFormsPage() {
 
         // After 2 seconds, hide loading and show success
         setTimeout(() => {
-            // Save consent status
+            // Save consent status (use localStorage so it persists across tabs)
+            const consentStatus = {
+                hipaa: consentStates.hipaa,
+                privacy: consentStates.privacy,
+                treatment: consentStates.treatment,
+                submitted: true,
+                submittedAt: new Date().toISOString()
+            }
             if (!visitId) {
-                // If no visit ID, save to general location (fallback)
-                const consentStatus = {
-                    hipaa: consentStates.hipaa,
-                    privacy: consentStates.privacy,
-                    treatment: consentStates.treatment,
-                    submitted: true,
-                    submittedAt: new Date().toISOString()
-                }
-                sessionStorage.setItem('consentFormsStatus', JSON.stringify(consentStatus))
+                localStorage.setItem('consentFormsStatus', JSON.stringify(consentStatus))
             } else {
-                // Save consent status to sessionStorage for this specific visit
-                const consentStatus = {
-                    hipaa: consentStates.hipaa,
-                    privacy: consentStates.privacy,
-                    treatment: consentStates.treatment,
-                    submitted: true,
-                    submittedAt: new Date().toISOString()
-                }
-                sessionStorage.setItem(`consentFormsStatus-${visitId}`, JSON.stringify(consentStatus))
+                localStorage.setItem(`consentFormsStatus-${visitId}`, JSON.stringify(consentStatus))
             }
 
             // Hide loading, show success

@@ -745,10 +745,10 @@ function VisitCard({ visit }: { visit: Visit }) {
     navigate(ROUTES.app.visitDetails.href.replace(':visitId', visit.id), { state: { visit } })
   }
 
-  // Get visit state from session storage
+  // Get visit state from local storage (shared across tabs)
   const visitState = (() => {
     try {
-      const stored = sessionStorage.getItem(`visit-state-${visit.id}`)
+      const stored = localStorage.getItem(`visit-state-${visit.id}`)
       return stored ? JSON.parse(stored) : null
     } catch {
       return null
@@ -765,7 +765,7 @@ function VisitCard({ visit }: { visit: Visit }) {
     // Check consent forms completion status
     const consentStatus = (() => {
       try {
-        const consentData = sessionStorage.getItem(`consentFormsStatus-${visit.id}`)
+        const consentData = localStorage.getItem(`consentFormsStatus-${visit.id}`)
         if (consentData) {
           const consent = JSON.parse(consentData)
           return {
@@ -1214,7 +1214,7 @@ function VisitCard({ visit }: { visit: Visit }) {
                 let consentRecord: any | null = null
                 let showStatuses = false
                 try {
-                  const consentDataRaw = sessionStorage.getItem(`consentFormsStatus-${visit.id}`)
+                  const consentDataRaw = localStorage.getItem(`consentFormsStatus-${visit.id}`)
                   if (consentDataRaw) {
                     consentRecord = JSON.parse(consentDataRaw)
                     showStatuses = consentRecord?.submitted === true
@@ -1401,7 +1401,7 @@ export function VisitsDashboard() {
   const refreshVisitStates = useCallback(() => {
     try {
       setVisitsToday(prev => prev.map(v => {
-        const raw = sessionStorage.getItem(`visit-state-${v.id}`)
+        const raw = localStorage.getItem(`visit-state-${v.id}`)
         if (!raw) return v
         const data = JSON.parse(raw)
         const isCompleted = data?.status === 'completed'
@@ -1426,7 +1426,7 @@ export function VisitsDashboard() {
       const visitId = sessionStorage.getItem('currentVisitId')
       if (!visitId) {
         // If no visit ID, check general consent status
-        const consentData = sessionStorage.getItem('consentFormsStatus')
+        const consentData = localStorage.getItem('consentFormsStatus')
         if (consentData) {
           const consent = JSON.parse(consentData)
           const completedCount = [consent.hipaa, consent.privacy, consent.treatment].filter(Boolean).length
@@ -1439,7 +1439,7 @@ export function VisitsDashboard() {
         }
       } else {
         // Check consent status for specific visit
-        const consentData = sessionStorage.getItem(`consentFormsStatus-${visitId}`)
+        const consentData = localStorage.getItem(`consentFormsStatus-${visitId}`)
         if (consentData) {
           const consent = JSON.parse(consentData)
           const completedCount = [consent.hipaa, consent.privacy, consent.treatment].filter(Boolean).length

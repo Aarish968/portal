@@ -50,11 +50,11 @@ export default function VisitDetailsView() {
   const visitType = visitFromState?.visitType || 'in-home'
 
   
-  // Load saved data from session storage and set initial visit status
+  // Load saved data from local storage and set initial visit status
   React.useEffect(() => {
-    // Load saved visit data from session storage
+    // Load saved visit data from local storage
     try {
-      const stored = sessionStorage.getItem(`visit-state-${visitId}`)
+      const stored = localStorage.getItem(`visit-state-${visitId}`)
       if (stored) {
         const savedData = JSON.parse(stored)
         if (savedData.outcomes) {
@@ -72,10 +72,10 @@ export default function VisitDetailsView() {
     } catch {}
     
     // Set initial visit status from navigation state if no saved data
-    if (visitFromState?.status && !sessionStorage.getItem(`visit-state-${visitId}`)) {
+    if (visitFromState?.status && !localStorage.getItem(`visit-state-${visitId}`)) {
       setVisitStatus(visitFromState.status)
       
-      // Save initial state to session storage
+      // Save initial state to local storage
       const initialVisitData = {
         id: visitId,
         patientName,
@@ -87,11 +87,11 @@ export default function VisitDetailsView() {
         procedureReasons: {}
       }
       try {
-        sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(initialVisitData))
+        localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(initialVisitData))
       } catch {}
-    } else if (!sessionStorage.getItem(`visit-state-${visitId}`)) {
+    } else if (!localStorage.getItem(`visit-state-${visitId}`)) {
       // Default to not-started if no saved data and no navigation state
-      // Don't save to session storage to avoid overriding dashboard display
+      // Don't save to local storage to avoid overriding dashboard display
       setVisitStatus('not-started')
     }
     
@@ -112,7 +112,7 @@ export default function VisitDetailsView() {
       }
       setOutcomes(newOutcomes)
       
-      // Save to session storage immediately
+      // Save to local storage immediately
       const visitData = {
         id: visitId,
         patientName,
@@ -124,7 +124,7 @@ export default function VisitDetailsView() {
         procedureReasons
       }
       try {
-        sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+        localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
       } catch {}
       
       // When any outcome is set, change status to in-progress
@@ -149,7 +149,7 @@ export default function VisitDetailsView() {
       setOutcomes(newOutcomes)
       setProcedureReasons(newReasons)
       
-      // Save to session storage immediately
+      // Save to local storage immediately
       const visitData = {
         id: visitId,
         patientName,
@@ -161,7 +161,7 @@ export default function VisitDetailsView() {
         procedureReasons: newReasons
       }
       try {
-        sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+        localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
       } catch {}
       
       // Change status to in-progress if not started
@@ -246,7 +246,7 @@ export default function VisitDetailsView() {
     }
   }, [allOutcomesSet, visitStatus, isInitialLoad])
 
-  // Save to session storage whenever visitStatus changes (but not during initial load)
+  // Save to local storage whenever visitStatus changes (but not during initial load)
   React.useEffect(() => {
     if (isInitialLoad) return
     
@@ -261,7 +261,7 @@ export default function VisitDetailsView() {
       procedureReasons
     }
     try {
-      sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+      localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
     } catch {}
   }, [visitStatus, outcomes, procedureReasons, visitId, patientName, address, time, insurance, isInitialLoad])
 
@@ -288,7 +288,7 @@ export default function VisitDetailsView() {
       }
       // Persist for other pages (e.g., Visits dashboard)
       try {
-        sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+        localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
       } catch {}
     }, 1000) // Show "Saving" for 1 second
   }
@@ -302,7 +302,7 @@ export default function VisitDetailsView() {
       setVisitStatus('in-progress')
       // Removed setIsExplicitlyEditing call
       
-      // Update session storage immediately when editing
+      // Update local storage immediately when editing
       const visitData = {
         id: visitId,
         patientName,
@@ -314,7 +314,7 @@ export default function VisitDetailsView() {
         procedureReasons
       }
       try {
-        sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+        localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
       } catch {}
     }, 1000) // Show "Reopening" for 1 second
   }
