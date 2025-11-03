@@ -68,10 +68,10 @@ export function ConsentFormsPage() {
     const handleConfirmSubmit = () => {
         // Close confirmation modal
         setShowConfirmationModal(false)
-        
+
         // Show loading modal
         setShowLoadingModal(true)
-        
+
         // After 2 seconds, hide loading and show success
         setTimeout(() => {
             // Save consent status
@@ -96,11 +96,11 @@ export function ConsentFormsPage() {
                 }
                 sessionStorage.setItem(`consentFormsStatus-${visitId}`, JSON.stringify(consentStatus))
             }
-            
+
             // Hide loading, show success
             setShowLoadingModal(false)
             setShowSuccessModal(true)
-            
+
             // After 1 second, navigate to visit details
             setTimeout(() => {
                 setShowSuccessModal(false)
@@ -482,7 +482,7 @@ export function ConsentFormsPage() {
                         }}>
                             Collected consent?
                         </h2>
-                        
+
                         {/* Conditionally show message based on all forms selected */}
                         {consentStates.hipaa && consentStates.privacy && consentStates.treatment ? (
                             <p style={{
@@ -751,7 +751,7 @@ export function ConsentFormsPage() {
                         >
                             <CheckCircle size={32} color="#10B981" strokeWidth={3} />
                         </div>
-                        
+
                         {/* Success Message */}
                         <h2 style={{
                             fontSize: '24px',
@@ -761,7 +761,7 @@ export function ConsentFormsPage() {
                         }}>
                             Success!
                         </h2>
-                        
+
                         {/* Proceed Button */}
                         <button
                             onClick={() => {

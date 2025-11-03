@@ -472,7 +472,7 @@ function StatusBadge({ status, visitState }: { status: Visit['status'], visitSta
           outline: '0px',
           textDecoration: 'none',
           border: '0px',
-          padding: '0px 12px',
+          padding: '0px 8px',
           borderRadius: '999px'
         },
         text: 'Completed',
@@ -1219,7 +1219,7 @@ function VisitCard({ visit }: { visit: Visit }) {
                     consentRecord = JSON.parse(consentDataRaw)
                     showStatuses = consentRecord?.submitted === true
                   }
-                } catch {}
+                } catch { }
 
                 return visit.consentForms.map((cf, i) => {
                   // Determine completion only if we have a record
@@ -1232,7 +1232,7 @@ function VisitCard({ visit }: { visit: Visit }) {
                   })()
 
                   return (
-                    <div key={i} className="flex flex-col gap-1 min-w-[180px]">
+                    <div key={i} className="flex flex-col gap-1">
                       {showStatuses ? (
                         isCompleted ? (
                           <div
@@ -1242,26 +1242,28 @@ function VisitCard({ visit }: { visit: Visit }) {
                               height: '24px',
                               borderRadius: '9999px',
                               padding: '0 12px',
-                              gap: '8px'
+                              gap: '8px',
+                              width: '90px',
+                              justifyContent: 'center'
                             }}
                           >
                             <span
                               className="inline-flex items-center justify-center"
                               style={{
-                                width: '16px',
-                                height: '16px',
+                                width: '20px',
+                                height: '10px',
                                 borderRadius: '9999px',
                                 backgroundColor: '#FFFFFF'
                               }}
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 16 16" fill="none">
-                                <path d="M6.5 11.3L3.5 8.3L4.55 7.25L6.5 9.2L11.45 4.25L12.5 5.3L6.5 11.3Z" fill="#199A92"/>
+                                <path d="M6.5 11.3L3.5 8.3L4.55 7.25L6.5 9.2L11.45 4.25L12.5 5.3L6.5 11.3Z" fill="#199A92" />
                               </svg>
                             </span>
                             <span>Collected</span>
                           </div>
                         ) : (
-                          <span className="text-xs font-medium" style={{ color: 'rgb(207, 35, 35)' }}>Missing</span>
+                          <span className="text-xs font-medium" style={{ color: 'rgb(207, 35, 35)',  height: '24px'}}>Missing</span>
                         )
                       ) : null}
                       <span style={{
@@ -2160,7 +2162,7 @@ export function VisitsDashboard() {
               }}>
                 Consent Document Not Found.
               </h2>
-              
+
               {/* Description */}
               <p style={{
                 fontSize: '14px',
