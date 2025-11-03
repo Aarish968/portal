@@ -1208,67 +1208,75 @@ function VisitCard({ visit }: { visit: Visit }) {
             <h4 className="text-xs font-medium text-gray-700 mb-2 sm:mb-3 tracking-wide">
               Consent Forms:
             </h4>
-            <div className="flex flex-wrap gap-2 items-center">
-              {visit.consentForms.map((cf, i) => {
-                // Get consent status from sessionStorage for this specific visit
-                let isCompleted = false
+            <div className="flex flex-wrap gap-6 items-start">
+              {(() => {
+                // Read consent record once to decide whether to show statuses
+                let consentRecord: any | null = null
+                let showStatuses = false
                 try {
-                  const consentData = sessionStorage.getItem(`consentFormsStatus-${visit.id}`)
-                  if (consentData) {
-                    const consent = JSON.parse(consentData)
-                    // Map form names to consent keys
-                    if (cf.name === 'HIPAA Authorization' && consent.hipaa) {
-                      isCompleted = true
-                    } else if (cf.name === 'Notice of Privacy Practices' && consent.privacy) {
-                      isCompleted = true
-                    } else if (cf.name === 'Treatment Consent' && consent.treatment) {
-                      isCompleted = true
-                    }
+                  const consentDataRaw = sessionStorage.getItem(`consentFormsStatus-${visit.id}`)
+                  if (consentDataRaw) {
+                    consentRecord = JSON.parse(consentDataRaw)
+                    showStatuses = consentRecord?.submitted === true
                   }
-                } catch {
-                  // Keep isCompleted as false
-                }
+                } catch {}
 
-                return (
-                  <div key={i} className="inline-flex items-center gap-1.5">
-                    {isCompleted ? (
-                      <>
-                        <div style={{
-                          width: '16px',
-                          height: '16px',
-                          borderRadius: '50%',
-                          backgroundColor: 'rgb(25, 154, 146)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0
-                        }}>
-                          <Check size={10} color="white" strokeWidth={3} />
-                        </div>
-                        <span style={{
-                          fontSize: '0.875rem',
-                          lineHeight: '1.4',
-                          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                          color: 'rgb(25, 154, 146)',
-                          fontWeight: '500'
-                        }}>
-                          {cf.name}
-                        </span>
-                      </>
-                    ) : (
+                return visit.consentForms.map((cf, i) => {
+                  // Determine completion only if we have a record
+                  const isCompleted = (() => {
+                    if (!consentRecord) return false
+                    if (cf.name === 'HIPAA Authorization') return consentRecord.hipaa === true
+                    if (cf.name === 'Notice of Privacy Practices') return consentRecord.privacy === true
+                    if (cf.name === 'Treatment Consent') return consentRecord.treatment === true
+                    return false
+                  })()
+
+                  return (
+                    <div key={i} className="flex flex-col gap-1 min-w-[180px]">
+                      {showStatuses ? (
+                        isCompleted ? (
+                          <div
+                            className="inline-flex items-center text-white text-xs font-medium"
+                            style={{
+                              backgroundColor: 'rgb(25, 154, 146)',
+                              height: '24px',
+                              borderRadius: '9999px',
+                              padding: '0 12px',
+                              gap: '8px'
+                            }}
+                          >
+                            <span
+                              className="inline-flex items-center justify-center"
+                              style={{
+                                width: '16px',
+                                height: '16px',
+                                borderRadius: '9999px',
+                                backgroundColor: '#FFFFFF'
+                              }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 16 16" fill="none">
+                                <path d="M6.5 11.3L3.5 8.3L4.55 7.25L6.5 9.2L11.45 4.25L12.5 5.3L6.5 11.3Z" fill="#199A92"/>
+                              </svg>
+                            </span>
+                            <span>Collected</span>
+                          </div>
+                        ) : (
+                          <span className="text-xs font-medium" style={{ color: 'rgb(207, 35, 35)' }}>Missing</span>
+                        )
+                      ) : null}
                       <span style={{
                         fontSize: '0.875rem',
                         lineHeight: '1.4',
                         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                        color: 'rgb(228, 118, 0)',
-                        fontWeight: '500'
+                        color: showStatuses ? '#1B1B1B' : 'rgb(228, 118, 0)',
+                        fontWeight: 500
                       }}>
                         {cf.name}
                       </span>
-                    )}
-                  </div>
-                )
-              })}
+                    </div>
+                  )
+                })
+              })()}
             </div>
           </div>
 
