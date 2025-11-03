@@ -483,107 +483,15 @@ export function ConsentFormsPage() {
                             Collected consent?
                         </h2>
                         
-                        {/* Conditionally show message based on all forms selected */}
-                        {consentStates.hipaa && consentStates.privacy && consentStates.treatment ? (
-                            <p style={{
-                                fontSize: '14px',
-                                color: '#4B5563',
-                                lineHeight: '1.6',
-                                marginBottom: '24px'
-                            }}>
-                                All consent forms have been collected.
-                            </p>
-                        ) : (
-                            <>
-                                {/* Description */}
-                                <p style={{
-                                    fontSize: '14px',
-                                    color: '#4B5563',
-                                    lineHeight: '1.6',
-                                    marginBottom: '24px'
-                                }}>
-                                    Please verify that you have collected the required consent forms for this visit. You will not be able to begin this visit until all required consents have been obtained.
-                                </p>
-
-                                {/* Missing Consent Forms Section */}
-                                <div style={{ marginBottom: '24px' }}>
-                                    <label style={{
-                                        fontSize: '14px',
-                                        fontWeight: '500',
-                                        color: '#374151',
-                                        marginBottom: '12px',
-                                        display: 'block'
-                                    }}>
-                                        Missing Consent Forms:
-                                    </label>
-                                    <div style={{
-                                        display: 'flex',
-                                        flexWrap: 'nowrap',
-                                        gap: '8px',
-                                        overflowX: 'auto',
-                                        WebkitOverflowScrolling: 'touch'
-                                    }}>
-                                        {!consentStates.hipaa && (
-                                            <button
-                                                disabled
-                                                style={{
-                                                    padding: '8px 12px',
-                                                    backgroundColor: '#DC2626',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    borderRadius: '20px',
-                                                    fontSize: '12px',
-                                                    fontWeight: '500',
-                                                    cursor: 'default',
-                                                    whiteSpace: 'nowrap',
-                                                    flexShrink: 0
-                                                }}
-                                            >
-                                                HIPAA Authorization
-                                            </button>
-                                        )}
-                                        {!consentStates.privacy && (
-                                            <button
-                                                disabled
-                                                style={{
-                                                    padding: '8px 12px',
-                                                    backgroundColor: '#DC2626',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    borderRadius: '20px',
-                                                    fontSize: '12px',
-                                                    fontWeight: '500',
-                                                    cursor: 'default',
-                                                    whiteSpace: 'nowrap',
-                                                    flexShrink: 0
-                                                }}
-                                            >
-                                                Notice of Privacy Practices
-                                            </button>
-                                        )}
-                                        {!consentStates.treatment && (
-                                            <button
-                                                disabled
-                                                style={{
-                                                    padding: '8px 12px',
-                                                    backgroundColor: '#DC2626',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    borderRadius: '20px',
-                                                    fontSize: '12px',
-                                                    fontWeight: '500',
-                                                    cursor: 'default',
-                                                    whiteSpace: 'nowrap',
-                                                    flexShrink: 0
-                                                }}
-                                            >
-                                                Treatment Consent
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            </>
-                        )}
+                        {/* Description - unified message as per design */}
+                        <p style={{
+                            fontSize: '14px',
+                            color: '#4B5563',
+                            lineHeight: '1.6',
+                            marginBottom: '24px'
+                        }}>
+                            Please confirm that you've successfully collected patient consent. This will refresh the page.
+                        </p>
 
                         {/* Action Buttons */}
                         <div style={{
@@ -598,23 +506,23 @@ export function ConsentFormsPage() {
                                 style={{
                                     padding: '10px 20px',
                                     backgroundColor: 'white',
-                                    color: '#5538A6',
-                                    border: '1px solid #5538A6',
+                                    color: '#CF2323',
+                                    border: '1px solid #CF2323',
                                     borderRadius: '8px',
                                     fontSize: '14px',
                                     fontWeight: '500',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s',
-                                    minWidth: '80px'
+                                    minWidth: '140px'
                                 }}
                                 onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#F3F4F6'
+                                    e.currentTarget.style.backgroundColor = '#FFF5F5'
                                 }}
                                 onMouseLeave={(e) => {
                                     e.currentTarget.style.backgroundColor = 'white'
                                 }}
                             >
-                                No
+                                No, not collected
                             </button>
                             <button
                                 onClick={handleConfirmSubmit}
@@ -628,7 +536,7 @@ export function ConsentFormsPage() {
                                     fontWeight: '500',
                                     cursor: 'pointer',
                                     transition: 'all 0.2s',
-                                    minWidth: '80px'
+                                    minWidth: '140px'
                                 }}
                                 onMouseEnter={(e) => {
                                     e.currentTarget.style.backgroundColor = '#462D8A'
@@ -637,7 +545,7 @@ export function ConsentFormsPage() {
                                     e.currentTarget.style.backgroundColor = '#5538A6'
                                 }}
                             >
-                                Yes
+                                Yes, consent given
                             </button>
                         </div>
                     </div>
