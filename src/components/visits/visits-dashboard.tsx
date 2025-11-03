@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { Clock, MapPin, Building, Check, ChevronDown, Bell, X } from 'lucide-react'
+import { Clock, MapPin, Building, Check, ChevronDown, Bell, X, Link } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
 
@@ -762,20 +762,45 @@ function VisitCard({ visit }: { visit: Visit }) {
       displayStatus = visitState.status
     }
 
-    // Check if all consent forms are completed
-    const areAllConsentFormsCompleted = (() => {
+    // Check consent forms completion status
+    const consentStatus = (() => {
       try {
         const consentData = sessionStorage.getItem(`consentFormsStatus-${visit.id}`)
         if (consentData) {
           const consent = JSON.parse(consentData)
-          // Check if all three consent forms are completed
-          return consent.hipaa === true && consent.privacy === true && consent.treatment === true
+          return {
+            hipaa: consent.hipaa === true,
+            privacy: consent.privacy === true,
+            treatment: consent.treatment === true
+          }
         }
       } catch {
-        return false
+        return {
+          hipaa: false,
+          privacy: false,
+          treatment: false
+        }
       }
-      return false
+      return {
+        hipaa: false,
+        privacy: false,
+        treatment: false
+      }
     })()
+
+    const completedCount = Object.values(consentStatus).filter(Boolean).length
+    const areAllConsentFormsCompleted = completedCount === 3
+    const hasOneOrTwoConsentsCompleted = completedCount === 1 || completedCount === 2
+
+    // Function to copy visit link
+    const handleCopyVisitLink = () => {
+      const visitLink = `${window.location.origin}${ROUTES.app.visitDetails.href.replace(':visitId', visit.id)}`
+      navigator.clipboard.writeText(visitLink).then(() => {
+        console.log('Visit link copied to clipboard')
+      }).catch(() => {
+        console.error('Failed to copy visit link')
+      })
+    }
 
     // Button logic based on badge status
     if (displayStatus === 'completed') {
@@ -880,6 +905,92 @@ function VisitCard({ visit }: { visit: Visit }) {
         >
           Log Outcomes
         </button>
+      )
+    } else if (hasOneOrTwoConsentsCompleted) {
+      // 1 or 2 consents completed → Log Outcomes and Copy Consent Link buttons
+      return (
+        <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
+          <button
+            onClick={handleVisitClick}
+            className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              boxSizing: 'border-box',
+              cursor: 'pointer',
+              userSelect: 'none',
+              verticalAlign: 'middle',
+              appearance: 'none',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+              fontSize: '0.875rem',
+              lineHeight: '1.75',
+              minWidth: '64px',
+              textTransform: 'none',
+              fontWeight: '500',
+              boxShadow: 'none',
+              minHeight: '48px',
+              backgroundColor: 'rgb(85, 56, 166)',
+              color: 'rgb(255, 255, 255)',
+              outline: '0px',
+              margin: '0px',
+              textDecoration: 'none',
+              padding: '10px 24px',
+              borderWidth: '0px',
+              borderStyle: 'initial',
+              borderColor: 'initial',
+              borderImage: 'initial',
+              transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+              borderRadius: '12px',
+              width: '100%'
+            }}
+          >
+            Log Outcomes
+          </button>
+          <button
+            onClick={handleCopyVisitLink}
+            className="inline-flex items-center justify-center gap-2 relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              boxSizing: 'border-box',
+              cursor: 'pointer',
+              userSelect: 'none',
+              verticalAlign: 'middle',
+              appearance: 'none',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+              fontSize: '0.875rem',
+              lineHeight: '1.75',
+              minWidth: '64px',
+              textTransform: 'none',
+              fontWeight: '500',
+              boxShadow: 'none',
+              minHeight: '48px',
+              backgroundColor: 'rgb(85, 56, 166)',
+              color: 'rgb(255, 255, 255)',
+              outline: '0px',
+              margin: '0px',
+              textDecoration: 'none',
+              padding: '10px 24px',
+              borderWidth: '0px',
+              borderStyle: 'initial',
+              borderColor: 'initial',
+              borderImage: 'initial',
+              transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+              borderRadius: '12px',
+              width: '100%'
+            }}
+          >
+            Copy Consent Link
+            <Link className="w-4 h-4" />
+          </button>
+          <p className="text-xs text-gray-500" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', marginTop: '2px' }}>
+            Copies link to paste in Telehealth chat
+          </p>
+        </div>
       )
     } else {
       // Not Started / In Progress badge → Collect Consent button
@@ -1179,8 +1290,10 @@ function VisitCard({ visit }: { visit: Visit }) {
                 }
 
                 const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
-                // Only show completed if actually completed in session storage
-                const isCompleted = visitState?.outcomes?.[procedureId] === 'completed'
+                // Determine status: completed, not-completed, or pending (no outcome yet)
+                const outcome = visitState?.outcomes?.[procedureId]
+                const isCompleted = outcome === 'completed'
+                const isNotCompleted = outcome === 'not-completed'
 
                 return (
                   <div
@@ -1199,13 +1312,13 @@ function VisitCard({ visit }: { visit: Visit }) {
                       height: '32px',
                       fontWeight: '500',
                       fontSize: '0.75rem',
-                      backgroundColor: isCompleted ? 'rgb(25, 154, 146)' : 'rgb(207, 35, 35)',
-                      color: 'rgb(255, 255, 255)',
+                      backgroundColor: isCompleted ? 'rgb(25, 154, 146)' : (isNotCompleted ? 'rgb(207, 35, 35)' : 'white'),
+                      color: isCompleted || isNotCompleted ? 'rgb(255, 255, 255)' : '#1B1B1B',
                       whiteSpace: 'nowrap',
                       transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
                       outline: '0px',
                       textDecoration: 'none',
-                      border: '0px',
+                      border: isCompleted || isNotCompleted ? '0px' : '1px solid rgb(229, 231, 235)',
                       padding: '0px 12px',
                       borderRadius: '999px'
                     }}
@@ -1217,11 +1330,15 @@ function VisitCard({ visit }: { visit: Visit }) {
                         </div>
                         <span>{p.name}</span>
                       </>
-                    ) : (
+                    ) : isNotCompleted ? (
                       <>
                         <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center flex-shrink-0">
                           <X className="w-3 h-3" style={{ color: 'rgb(207, 35, 35)' }} />
                         </div>
+                        <span>{p.name}</span>
+                      </>
+                    ) : (
+                      <>
                         <span>{p.name}</span>
                       </>
                     )}
@@ -1302,7 +1419,9 @@ export function VisitsDashboard() {
         const consentData = sessionStorage.getItem('consentFormsStatus')
         if (consentData) {
           const consent = JSON.parse(consentData)
-          if (!consent.hipaa || !consent.privacy || !consent.treatment || !consent.submitted) {
+          const completedCount = [consent.hipaa, consent.privacy, consent.treatment].filter(Boolean).length
+          // Show modal ONLY when zero consents are completed
+          if (completedCount === 0) {
             setShowConsentModal(true)
           }
         } else {
@@ -1313,8 +1432,9 @@ export function VisitsDashboard() {
         const consentData = sessionStorage.getItem(`consentFormsStatus-${visitId}`)
         if (consentData) {
           const consent = JSON.parse(consentData)
-          // Check if any form is missing or not submitted
-          if (!consent.hipaa || !consent.privacy || !consent.treatment || !consent.submitted) {
+          const completedCount = [consent.hipaa, consent.privacy, consent.treatment].filter(Boolean).length
+          // Show modal ONLY when zero consents are completed
+          if (completedCount === 0) {
             setShowConsentModal(true)
           }
         } else {
