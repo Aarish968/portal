@@ -146,9 +146,7 @@ export function ConsentFormsPage() {
         treatment: false
     })
 
-    const [showConfirmationModal, setShowConfirmationModal] = useState(false)
-    const [showLoadingModal, setShowLoadingModal] = useState(false)
-    const [showSuccessModal, setShowSuccessModal] = useState(false)
+    // Removed showPageExpired state - no longer needed
 
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({
@@ -166,76 +164,116 @@ export function ConsentFormsPage() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        // Show confirmation modal instead of directly submitting
-        setShowConfirmationModal(true)
-    }
+        
+        // Save consent status immediately (use localStorage so it persists across tabs)
+        const consentStatus = {
+            hipaa: consentStates.hipaa,
+            privacy: consentStates.privacy,
+            treatment: consentStates.treatment,
+            submitted: true,
+            submittedAt: new Date().toISOString()
+        }
+        if (!visitId) {
+            localStorage.setItem('consentFormsStatus', JSON.stringify(consentStatus))
+        } else {
+            localStorage.setItem(`consentFormsStatus-${visitId}`, JSON.stringify(consentStatus))
+        }
 
-    const handleConfirmSubmit = () => {
-        // Close confirmation modal
-        setShowConfirmationModal(false)
-
-        // Show loading modal
-        setShowLoadingModal(true)
-
-        // After 2 seconds, hide loading and show success
-        setTimeout(() => {
-            // Save consent status (use localStorage so it persists across tabs)
-            const consentStatus = {
-                hipaa: consentStates.hipaa,
-                privacy: consentStates.privacy,
-                treatment: consentStates.treatment,
-                submitted: true,
-                submittedAt: new Date().toISOString()
-            }
-            if (!visitId) {
-                localStorage.setItem('consentFormsStatus', JSON.stringify(consentStatus))
-            } else {
-                localStorage.setItem(`consentFormsStatus-${visitId}`, JSON.stringify(consentStatus))
-            }
-
-            // Notify other tabs/windows about consent submission using localStorage event
-            // This works across all tabs, not just window.opener
-            localStorage.setItem('consentSubmissionEvent', JSON.stringify({
-                type: 'CONSENT_SUBMITTED',
+        // Notify other tabs/windows about consent submission using localStorage event
+        localStorage.setItem('consentSubmissionEvent', JSON.stringify({
+            type: 'CONSENT_SUBMITTED',
+            visitId: visitId,
+            consentStatus: consentStatus,
+            timestamp: Date.now()
+        }))
+        
+        // Also try window.opener for direct parent-child communication
+        if (window.opener) {
+            window.opener.postMessage({ 
+                type: 'CONSENT_SUBMITTED', 
                 visitId: visitId,
-                consentStatus: consentStatus,
-                timestamp: Date.now()
-            }))
+                consentStatus: consentStatus 
+            }, window.location.origin)
+        }
+
+        // After 3 seconds, show page expired message
+        setTimeout(() => {
+            // Replace the entire page content with expired message
+            document.body.innerHTML = `
+                <div style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100vh;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    background-color: #f9fafb;
+                    color: #374151;
+                    text-align: center;
+                    margin: 0;
+                    padding: 20px;
+                    box-sizing: border-box;
+                ">
+                    <div style="
+                        background: white;
+                        padding: 40px;
+                        border-radius: 12px;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                        max-width: 400px;
+                        width: 100%;
+                    ">
+                        <div style="
+                            width: 64px;
+                            height: 64px;
+                            background-color: #FEF2F2;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin: 0 auto 20px auto;
+                        ">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12,6 12,12 16,14"/>
+                            </svg>
+                        </div>
+                        <h1 style="
+                            font-size: 24px; 
+                            margin: 0 0 12px 0;
+                            font-weight: 600;
+                            color: #1f2937;
+                        ">
+                            Page Expired
+                        </h1>
+                        <p style="
+                            font-size: 16px; 
+                            color: #6b7280;
+                            margin: 0 0 20px 0;
+                            line-height: 1.5;
+                        ">
+                            This consent form has expired for security reasons.
+                        </p>
+                        <p style="
+                            font-size: 14px; 
+                            color: #9ca3af;
+                            margin: 0;
+                        ">
+                            You can safely close this tab.
+                        </p>
+                    </div>
+                </div>
+            `
             
-            // Also try window.opener for direct parent-child communication
-            if (window.opener) {
-                window.opener.postMessage({ 
-                    type: 'CONSENT_SUBMITTED', 
-                    visitId: visitId,
-                    consentStatus: consentStatus 
-                }, window.location.origin)
+            // Also try to close the window (works if opened by script)
+            try {
+                window.close()
+            } catch (e) {
+                // Silently fail if can't close
+                console.log('Cannot close window automatically')
             }
-
-            // Hide loading, show success
-            setShowLoadingModal(false)
-            setShowSuccessModal(true)
-
-            // After 1 second, navigate to visit details
-            setTimeout(() => {
-                setShowSuccessModal(false)
-                if (visitId) {
-                    // Get visit data from sessionStorage if available
-                    try {
-                        const visitData = sessionStorage.getItem(`visit-${visitId}`)
-                        const visit = visitData ? JSON.parse(visitData) : null
-                        navigate(ROUTES.app.visitDetails.href.replace(':visitId', visitId), { 
-                            state: { visit } 
-                        })
-                    } catch {
-                        // Fallback without state
-                        navigate(ROUTES.app.visitDetails.href.replace(':visitId', visitId))
-                    }
-                } else {
-                    navigate('/visits')
-                }
-            }, 1000)
-        }, 2000)
+        }, 3000)
     }
+
+    // Remove handleConfirmSubmit as it's no longer needed
 
     const handleCancel = () => {
         // Navigate back to visits dashboard
@@ -564,271 +602,7 @@ export function ConsentFormsPage() {
                 </div>
             </div>
 
-            {/* Confirmation Modal */}
-            {showConfirmationModal && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 1000,
-                        padding: '16px'
-                    }}
-                    onClick={(e) => {
-                        if (e.target === e.currentTarget) {
-                            setShowConfirmationModal(false)
-                        }
-                    }}
-                >
-                    <div
-                        style={{
-                            backgroundColor: 'white',
-                            borderRadius: '12px',
-                            padding: '24px',
-                            maxWidth: '500px',
-                            width: '100%',
-                            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        {/* Title */}
-                        <h2 style={{
-                            fontSize: '20px',
-                            fontWeight: '600',
-                            color: '#1b1b1b',
-                            marginBottom: '12px'
-                        }}>
-                            Collected consent?
-                        </h2>
-                        
-                        {/* Description - unified message as per design */}
-                        <p style={{
-                            fontSize: '14px',
-                            color: '#4B5563',
-                            lineHeight: '1.6',
-                            marginBottom: '24px'
-                        }}>
-                            Please confirm that you've successfully collected patient consent. This will refresh the page.
-                        </p>
-
-                        {/* Action Buttons */}
-                        <div style={{
-                            display: 'flex',
-                            gap: '12px',
-                            justifyContent: 'flex-end',
-                            width: '100%',
-                            flexWrap: 'wrap'
-                        }}>
-                            <button
-                                onClick={() => setShowConfirmationModal(false)}
-                                style={{
-                                    padding: '10px 20px',
-                                    backgroundColor: 'white',
-                                    color: '#CF2323',
-                                    border: '1px solid #CF2323',
-                                    borderRadius: '8px',
-                                    fontSize: '14px',
-                                    fontWeight: '500',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    minWidth: '140px'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#FFF5F5'
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = 'white'
-                                }}
-                            >
-                                No, not collected
-                            </button>
-                            <button
-                                onClick={handleConfirmSubmit}
-                                style={{
-                                    padding: '10px 20px',
-                                    backgroundColor: '#5538A6',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    fontSize: '14px',
-                                    fontWeight: '500',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s',
-                                    minWidth: '140px'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#462D8A'
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = '#5538A6'
-                                }}
-                            >
-                                Yes, consent given
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Loading Modal */}
-            {showLoadingModal && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 1001,
-                        padding: '16px'
-                    }}
-                >
-                    <div
-                        style={{
-                            backgroundColor: 'white',
-                            borderRadius: '12px',
-                            padding: '32px',
-                            maxWidth: '400px',
-                            width: '100%',
-                            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '20px'
-                        }}
-                    >
-                        <div
-                            style={{
-                                width: '48px',
-                                height: '48px',
-                                border: '4px solid #E5E7EB',
-                                borderTop: '4px solid #5538A6',
-                                borderRadius: '50%',
-                                animation: 'spin 1s linear infinite'
-                            }}
-                        />
-                        <style>
-                            {`
-                                @keyframes spin {
-                                    0% { transform: rotate(0deg); }
-                                    100% { transform: rotate(360deg); }
-                                }
-                            `}
-                        </style>
-                        <p style={{
-                            fontSize: '16px',
-                            color: '#1b1b1b',
-                            fontWeight: '500',
-                            margin: 0
-                        }}>
-                            Processing...
-                        </p>
-                    </div>
-                </div>
-            )}
-
-            {/* Success Modal */}
-            {showSuccessModal && (
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 1002,
-                        padding: '16px'
-                    }}
-                >
-                    <div
-                        style={{
-                            backgroundColor: 'white',
-                            borderRadius: '12px',
-                            padding: '32px',
-                            maxWidth: '400px',
-                            width: '100%',
-                            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '20px',
-                            textAlign: 'center'
-                        }}
-                    >
-                        {/* Success Icon */}
-                        <div
-                            style={{
-                                width: '64px',
-                                height: '64px',
-                                borderRadius: '50%',
-                                backgroundColor: '#D1FAE5',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}
-                        >
-                            <CheckCircle size={32} color="#10B981" strokeWidth={3} />
-                        </div>
-
-                        {/* Success Message */}
-                        <h2 style={{
-                            fontSize: '24px',
-                            fontWeight: '600',
-                            color: '#1b1b1b',
-                            margin: 0
-                        }}>
-                            Success!
-                        </h2>
-
-                        {/* Proceed Button */}
-                        <button
-                            onClick={() => {
-                                setShowSuccessModal(false)
-                                if (visitId) {
-                                    navigate(ROUTES.app.visitDetails.href.replace(':visitId', visitId))
-                                } else {
-                                    navigate('/visits')
-                                }
-                            }}
-                            style={{
-                                padding: '12px 24px',
-                                backgroundColor: '#5538A6',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '8px',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                width: '100%',
-                                marginTop: '8px'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor = '#462D8A'
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor = '#5538A6'
-                            }}
-                        >
-                            Proceed to Visit
-                        </button>
-                    </div>
-                </div>
-            )}
+            {/* No page expired modal needed - page will close automatically */}
         </div>
     )
 }
