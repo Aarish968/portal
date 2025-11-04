@@ -800,11 +800,33 @@ function VisitCard({ visit }: { visit: Visit }) {
       sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
       sessionStorage.setItem('currentVisitId', visit.id)
 
-      const consentLink = `${window.location.origin}${ROUTES.app.consentForms.href}?visitId=${visit.id}`
+      // Determine base URL based on environment
+      const getBaseUrl = () => {
+        const hostname = window.location.hostname
+        const protocol = window.location.protocol
+        const port = window.location.port
+
+        // Local development
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+          return `${protocol}//${hostname}${port ? `:${port}` : ''}`
+        }
+
+        // QA environment (you can adjust this pattern based on your QA URL)
+        if (hostname.includes('qa') || hostname.includes('staging') || hostname.includes('dev')) {
+          return `${protocol}//${hostname}`
+        }
+
+        // Production environment
+        return `${protocol}//${hostname}`
+      }
+
+      const baseUrl = getBaseUrl()
+      const consentLink = `${baseUrl}${ROUTES.app.consentForms.href}?visitId=${visit.id}`
+
       navigator.clipboard.writeText(consentLink).then(() => {
         // Change button state to show success
         setIsLinkCopied(true)
-        console.log('Consent link copied to clipboard')
+        console.log('Consent link copied to clipboard:', consentLink)
 
         // Reset button state after 2 seconds
         setTimeout(() => {
@@ -923,9 +945,96 @@ function VisitCard({ visit }: { visit: Visit }) {
         </button>
       )
     } else if (hasOneOrTwoConsentsCompleted) {
-      // 1 or 2 consents completed → Log Outcomes and Copy Consent Link buttons
-      return (
-        <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
+      // 1 or 2 consents completed → Different buttons based on visit type
+      if (visit.visitType === 'telehealth') {
+        // Telehealth: Log Outcomes and Copy Consent Link buttons
+        return (
+          <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
+            <button
+              onClick={handleVisitClick}
+              className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                boxSizing: 'border-box',
+                cursor: 'pointer',
+                userSelect: 'none',
+                verticalAlign: 'middle',
+                appearance: 'none',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                fontSize: '0.875rem',
+                lineHeight: '1.75',
+                minWidth: '64px',
+                textTransform: 'none',
+                fontWeight: '500',
+                boxShadow: 'none',
+                minHeight: '48px',
+                backgroundColor: 'rgb(85, 56, 166)',
+                color: 'rgb(255, 255, 255)',
+                outline: '0px',
+                margin: '0px',
+                textDecoration: 'none',
+                padding: '10px 24px',
+                borderWidth: '0px',
+                borderStyle: 'initial',
+                borderColor: 'initial',
+                borderImage: 'initial',
+                transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+                borderRadius: '12px',
+                width: '100%'
+              }}
+            >
+              Log Outcomes
+            </button>
+            <button
+              onClick={handleCopyConsentLink}
+              className="inline-flex items-center justify-center gap-2 relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                boxSizing: 'border-box',
+                cursor: 'pointer',
+                userSelect: 'none',
+                verticalAlign: 'middle',
+                appearance: 'none',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                fontSize: '0.875rem',
+                lineHeight: '1.75',
+                minWidth: '64px',
+                textTransform: 'none',
+                fontWeight: '500',
+                boxShadow: 'none',
+                minHeight: '48px',
+                backgroundColor: 'rgb(85, 56, 166)',
+                color: 'rgb(255, 255, 255)',
+                outline: '0px',
+                margin: '0px',
+                textDecoration: 'none',
+                padding: '10px 24px',
+                borderWidth: '0px',
+                borderStyle: 'initial',
+                borderColor: 'initial',
+                borderImage: 'initial',
+                transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+                borderRadius: '12px',
+                width: '100%'
+              }}
+            >
+              {isLinkCopied ? 'Link Copied!' : 'Copy Consent Link'}
+              <Link className="w-4 h-4" />
+            </button>
+            <p className="text-xs text-gray-500" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', marginTop: '2px' }}>
+              Copies link to paste in Telehealth chat
+            </p>
+          </div>
+        )
+      } else if (visit.visitType === 'in-home') {
+        // In-home: Only Log Outcomes button
+        return (
           <button
             onClick={handleVisitClick}
             className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
@@ -958,56 +1067,16 @@ function VisitCard({ visit }: { visit: Visit }) {
               borderColor: 'initial',
               borderImage: 'initial',
               transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-              borderRadius: '12px',
-              width: '100%'
+              borderRadius: '12px'
             }}
           >
             Log Outcomes
           </button>
-          <button
-            onClick={handleCopyConsentLink}
-            className="inline-flex items-center justify-center gap-2 relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-              boxSizing: 'border-box',
-              cursor: 'pointer',
-              userSelect: 'none',
-              verticalAlign: 'middle',
-              appearance: 'none',
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-              fontSize: '0.875rem',
-              lineHeight: '1.75',
-              minWidth: '64px',
-              textTransform: 'none',
-              fontWeight: '500',
-              boxShadow: 'none',
-              minHeight: '48px',
-              backgroundColor: 'rgb(85, 56, 166)',
-              color: 'rgb(255, 255, 255)',
-              outline: '0px',
-              margin: '0px',
-              textDecoration: 'none',
-              padding: '10px 24px',
-              borderWidth: '0px',
-              borderStyle: 'initial',
-              borderColor: 'initial',
-              borderImage: 'initial',
-              transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-              borderRadius: '12px',
-              width: '100%'
-            }}
-          >
-            {isLinkCopied ? 'Link Copied!' : 'Copy Consent Link'}
-            <Link className="w-4 h-4" />
-          </button>
-          <p className="text-xs text-gray-500" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', marginTop: '2px' }}>
-            Copies link to paste in Telehealth chat
-          </p>
-        </div>
-      )
+        )
+      }
+
+      // Fallback
+      return null
     } else {
       // For telehealth visits with no consents completed, show Copy Consent Link button
       if (visit.visitType === 'telehealth' && hasNoConsentsCompleted) {
@@ -1034,15 +1103,16 @@ function VisitCard({ visit }: { visit: Visit }) {
                 fontWeight: '500',
                 boxShadow: 'none',
                 minHeight: '48px',
-                backgroundColor: isLinkCopied ? 'rgb(85, 56, 166)' : 'transparent',
-                color: isLinkCopied ? 'rgb(255, 255, 255)' : 'rgb(85, 56, 166)',
+                backgroundColor: 'rgb(85, 56, 166)',
+                color: 'rgb(255, 255, 255)',
                 outline: '0px',
                 margin: '0px',
                 textDecoration: 'none',
                 padding: '10px 24px',
-                borderWidth: isLinkCopied ? '0px' : '1px',
-                borderStyle: 'solid',
-                borderColor: 'rgb(85, 56, 166)',
+                borderWidth: '0px',
+                borderStyle: 'initial',
+                borderColor: 'initial',
+                borderImage: 'initial',
                 borderRadius: '12px',
                 width: '100%',
                 transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)'
