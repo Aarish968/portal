@@ -740,6 +740,7 @@ function VisitTypeBadge({ visitType }: { visitType: Visit['visitType'] }) {
 
 function VisitCard({ visit }: { visit: Visit }) {
   const navigate = useNavigate()
+  const [isLinkCopied, setIsLinkCopied] = useState(false)
 
   const handleVisitClick = () => {
     navigate(ROUTES.app.visitDetails.href.replace(':visitId', visit.id), { state: { visit } })
@@ -791,16 +792,31 @@ function VisitCard({ visit }: { visit: Visit }) {
     const completedCount = Object.values(consentStatus).filter(Boolean).length
     const areAllConsentFormsCompleted = completedCount === 3
     const hasOneOrTwoConsentsCompleted = completedCount === 1 || completedCount === 2
+    const hasNoConsentsCompleted = completedCount === 0
 
-    // Function to copy visit link
-    const handleCopyVisitLink = () => {
-      const visitLink = `${window.location.origin}${ROUTES.app.visitDetails.href.replace(':visitId', visit.id)}`
-      navigator.clipboard.writeText(visitLink).then(() => {
-        console.log('Visit link copied to clipboard')
+    // Function to copy consent link
+    const handleCopyConsentLink = () => {
+      // Store visit data for later use when user submits consent form
+      sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
+      sessionStorage.setItem('currentVisitId', visit.id)
+
+      const consentLink = `${window.location.origin}${ROUTES.app.consentForms.href}?visitId=${visit.id}`
+      navigator.clipboard.writeText(consentLink).then(() => {
+        // Change button state to show success
+        setIsLinkCopied(true)
+        console.log('Consent link copied to clipboard')
+
+        // Reset button state after 2 seconds
+        setTimeout(() => {
+          setIsLinkCopied(false)
+        }, 2000)
       }).catch(() => {
-        console.error('Failed to copy visit link')
+        console.error('Failed to copy consent link')
+        // Could show error state here if needed
       })
     }
+
+
 
     // Button logic based on badge status
     if (displayStatus === 'completed') {
@@ -949,7 +965,7 @@ function VisitCard({ visit }: { visit: Visit }) {
             Log Outcomes
           </button>
           <button
-            onClick={handleCopyVisitLink}
+            onClick={handleCopyConsentLink}
             className="inline-flex items-center justify-center gap-2 relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
             style={{
               display: 'inline-flex',
@@ -984,7 +1000,7 @@ function VisitCard({ visit }: { visit: Visit }) {
               width: '100%'
             }}
           >
-            Copy Consent Link
+            {isLinkCopied ? 'Link Copied!' : 'Copy Consent Link'}
             <Link className="w-4 h-4" />
           </button>
           <p className="text-xs text-gray-500" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', marginTop: '2px' }}>
@@ -993,50 +1009,106 @@ function VisitCard({ visit }: { visit: Visit }) {
         </div>
       )
     } else {
-      // Not Started / In Progress badge → Collect Consent button
-      return (
-        <button
-          onClick={() => {
-            sessionStorage.setItem('fromConsentPage', 'true')
-            sessionStorage.setItem('currentVisitId', visit.id)
-            window.open(ROUTES.app.consentForms.href, '_blank')
-          }}
-          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            boxSizing: 'border-box',
-            cursor: 'pointer',
-            userSelect: 'none',
-            verticalAlign: 'middle',
-            appearance: 'none',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-            fontSize: '0.875rem',
-            lineHeight: '1.75',
-            minWidth: '64px',
-            textTransform: 'none',
-            fontWeight: '500',
-            boxShadow: 'none',
-            minHeight: '44px',
-            backgroundColor: 'rgb(228, 118, 0)',
-            color: 'rgb(255, 255, 255)',
-            outline: '0px',
-            margin: '0px',
-            textDecoration: 'none',
-            padding: '6px 16px',
-            borderWidth: '0px',
-            borderStyle: 'initial',
-            borderColor: 'initial',
-            borderImage: 'initial',
-            transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-            borderRadius: '12px'
-          }}
-        >
-          Collect Consent
-        </button>
-      )
+      // For telehealth visits with no consents completed, show Copy Consent Link button
+      if (visit.visitType === 'telehealth' && hasNoConsentsCompleted) {
+        return (
+          <div className="flex flex-col gap-1" style={{ alignItems: 'flex-end' }}>
+            <button
+              onClick={handleCopyConsentLink}
+              className="inline-flex items-center justify-center gap-2 relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                boxSizing: 'border-box',
+                cursor: 'pointer',
+                userSelect: 'none',
+                verticalAlign: 'middle',
+                appearance: 'none',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                fontSize: '0.875rem',
+                lineHeight: '1.75',
+                minWidth: '64px',
+                textTransform: 'none',
+                fontWeight: '500',
+                boxShadow: 'none',
+                minHeight: '48px',
+                backgroundColor: isLinkCopied ? 'rgb(85, 56, 166)' : 'transparent',
+                color: isLinkCopied ? 'rgb(255, 255, 255)' : 'rgb(85, 56, 166)',
+                outline: '0px',
+                margin: '0px',
+                textDecoration: 'none',
+                padding: '10px 24px',
+                borderWidth: isLinkCopied ? '0px' : '1px',
+                borderStyle: 'solid',
+                borderColor: 'rgb(85, 56, 166)',
+                borderRadius: '12px',
+                width: '100%',
+                transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)'
+              }}
+            >
+              {isLinkCopied ? 'Link Copied!' : 'Copy Consent Link'}
+              <Link className="w-4 h-4" />
+            </button>
+            <p className="text-xs text-gray-500" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', marginTop: '2px' }}>
+              Copies link to paste in Telehealth chat
+            </p>
+          </div>
+        )
+      }
+
+      // For in-home visits with no consents completed, show Collect Consent button
+      if (visit.visitType === 'in-home' && hasNoConsentsCompleted) {
+        return (
+          <button
+            onClick={() => {
+              sessionStorage.setItem('fromConsentPage', 'true')
+              sessionStorage.setItem('currentVisitId', visit.id)
+              // Store visit data for later use
+              sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
+              window.open(ROUTES.app.consentForms.href, '_blank')
+            }}
+            className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              boxSizing: 'border-box',
+              cursor: 'pointer',
+              userSelect: 'none',
+              verticalAlign: 'middle',
+              appearance: 'none',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+              fontSize: '0.875rem',
+              lineHeight: '1.75',
+              minWidth: '64px',
+              textTransform: 'none',
+              fontWeight: '500',
+              boxShadow: 'none',
+              minHeight: '44px',
+              backgroundColor: 'rgb(228, 118, 0)',
+              color: 'rgb(255, 255, 255)',
+              outline: '0px',
+              margin: '0px',
+              textDecoration: 'none',
+              padding: '6px 16px',
+              borderWidth: '0px',
+              borderStyle: 'initial',
+              borderColor: 'initial',
+              borderImage: 'initial',
+              transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+              borderRadius: '12px'
+            }}
+          >
+            Collect Consent
+          </button>
+        )
+      }
+
+      // Fallback for any other cases
+      return null
     }
   }
 
@@ -1263,7 +1335,7 @@ function VisitCard({ visit }: { visit: Visit }) {
                             <span>Collected</span>
                           </div>
                         ) : (
-                          <span className="text-xs font-medium" style={{ color: 'rgb(207, 35, 35)',  height: '24px'}}>Missing</span>
+                          <span className="text-xs font-medium" style={{ color: 'rgb(207, 35, 35)', height: '24px' }}>Missing</span>
                         )
                       ) : null}
                       <span style={{
@@ -1467,6 +1539,48 @@ export function VisitsDashboard() {
       checkConsentStatus()
     }
   }, [checkConsentStatus])
+
+  // Listen for consent submission messages from child windows
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Verify origin for security
+      if (event.origin !== window.location.origin) return
+
+      if (event.data.type === 'CONSENT_SUBMITTED') {
+        console.log('Consent submitted for visit:', event.data.visitId)
+        // Refresh visit states to update the cards
+        refreshVisitStates()
+        // Force re-render by updating a state
+        setTime(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }))
+      }
+    }
+
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [refreshVisitStates])
+
+  // Listen for localStorage changes (consent submissions from other tabs)
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'consentSubmissionEvent' && event.newValue) {
+        try {
+          const eventData = JSON.parse(event.newValue)
+          if (eventData.type === 'CONSENT_SUBMITTED') {
+            console.log('Consent submitted in another tab for visit:', eventData.visitId)
+            // Refresh visit states to update the cards
+            refreshVisitStates()
+            // Force re-render by updating a state
+            setTime(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }))
+          }
+        } catch (error) {
+          console.error('Error parsing consent submission event:', error)
+        }
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [refreshVisitStates])
 
   // Refresh data when window gains focus (user navigates back)
   useEffect(() => {

@@ -3,18 +3,123 @@ import { PenTool, CheckCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
 
+// Mock visit data - in real app this would come from API
+const mockVisitsToday = [
+  {
+    id: '1',
+    patientName: 'Jane Smith',
+    time: '10:30AM',
+    address: '1234 Main Street, Dayton, OH',
+    insurance: 'UHC',
+    status: 'not-started' as const,
+    visitType: 'in-home' as const,
+    procedures: [
+      { name: 'A1C' },
+      { name: 'Blood Pressure' },
+      { name: 'Urine Sample' },
+    ],
+    healthRiskAssessment: 'not-started' as const,
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
+  },
+  {
+    id: '2',
+    patientName: 'John Doe',
+    time: '11:00AM',
+    address: '5678 Oak Avenue, Dayton, OH',
+    insurance: 'Aetna',
+    status: 'not-started' as const,
+    visitType: 'telehealth' as const,
+    procedures: [
+      { name: 'A1C', completed: true },
+      { name: 'Blood Pressure', completed: true },
+      { name: 'Urine Sample' },
+    ],
+    healthRiskAssessment: 'in-progress' as const,
+    consentForms: [
+      { name: 'HIPAA Authorization', completed: true },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
+  },
+  {
+    id: '3',
+    patientName: 'John Doe',
+    time: '11:00AM',
+    address: '5678 Oak Avenue, Dayton, OH',
+    insurance: 'Aetna',
+    status: 'not-started' as const,
+    visitType: 'telehealth' as const,
+    procedures: [
+      { name: 'A1C', completed: true },
+      { name: 'Blood Pressure', completed: true },
+      { name: 'Urine Sample' },
+    ],
+    healthRiskAssessment: 'not-started' as const,
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
+  },
+  {
+    id: '4',
+    patientName: 'John Doe',
+    time: '11:00AM',
+    address: '5678 Oak Avenue, Dayton, OH',
+    insurance: 'Aetna',
+    status: 'not-started' as const,
+    visitType: 'telehealth' as const,
+    procedures: [
+      { name: 'A1C', completed: true },
+      { name: 'Blood Pressure', completed: true },
+      { name: 'Urine Sample' },
+    ],
+    healthRiskAssessment: 'in-progress' as const,
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices', completed: true },
+      { name: 'Treatment Consent' },
+    ],
+  },
+]
+
 export function ConsentFormsPage() {
     const navigate = useNavigate()
     const [visitId, setVisitId] = useState<string | null>(null)
 
     useEffect(() => {
-        // Get visit ID from sessionStorage
+        // First check URL parameters for visitId
+        const urlParams = new URLSearchParams(window.location.search)
+        const urlVisitId = urlParams.get('visitId')
+        
+        // Then check sessionStorage as fallback
         const storedVisitId = sessionStorage.getItem('currentVisitId')
-        if (storedVisitId) {
-            setVisitId(storedVisitId)
+        
+        // Use URL visitId if available, otherwise use sessionStorage
+        const finalVisitId = urlVisitId || storedVisitId
+        
+        if (finalVisitId) {
+            setVisitId(finalVisitId)
+            // Update sessionStorage with the visitId for consistency
+            sessionStorage.setItem('currentVisitId', finalVisitId)
+            
+            // If visit data is not in sessionStorage, try to find it from mock data
+            let visitData = sessionStorage.getItem(`visit-${finalVisitId}`)
+            if (!visitData) {
+                // Find visit in mock data and store it
+                const visit = mockVisitsToday.find(v => v.id === finalVisitId)
+                if (visit) {
+                    sessionStorage.setItem(`visit-${finalVisitId}`, JSON.stringify(visit))
+                }
+            }
+            
             // Load existing consent status for this visit if available
             try {
-                const consentData = localStorage.getItem(`consentFormsStatus-${storedVisitId}`)
+                const consentData = localStorage.getItem(`consentFormsStatus-${finalVisitId}`)
                 if (consentData) {
                     const consent = JSON.parse(consentData)
                     setConsentStates({
@@ -88,6 +193,24 @@ export function ConsentFormsPage() {
                 localStorage.setItem(`consentFormsStatus-${visitId}`, JSON.stringify(consentStatus))
             }
 
+            // Notify other tabs/windows about consent submission using localStorage event
+            // This works across all tabs, not just window.opener
+            localStorage.setItem('consentSubmissionEvent', JSON.stringify({
+                type: 'CONSENT_SUBMITTED',
+                visitId: visitId,
+                consentStatus: consentStatus,
+                timestamp: Date.now()
+            }))
+            
+            // Also try window.opener for direct parent-child communication
+            if (window.opener) {
+                window.opener.postMessage({ 
+                    type: 'CONSENT_SUBMITTED', 
+                    visitId: visitId,
+                    consentStatus: consentStatus 
+                }, window.location.origin)
+            }
+
             // Hide loading, show success
             setShowLoadingModal(false)
             setShowSuccessModal(true)
@@ -96,7 +219,17 @@ export function ConsentFormsPage() {
             setTimeout(() => {
                 setShowSuccessModal(false)
                 if (visitId) {
-                    navigate(ROUTES.app.visitDetails.href.replace(':visitId', visitId))
+                    // Get visit data from sessionStorage if available
+                    try {
+                        const visitData = sessionStorage.getItem(`visit-${visitId}`)
+                        const visit = visitData ? JSON.parse(visitData) : null
+                        navigate(ROUTES.app.visitDetails.href.replace(':visitId', visitId), { 
+                            state: { visit } 
+                        })
+                    } catch {
+                        // Fallback without state
+                        navigate(ROUTES.app.visitDetails.href.replace(':visitId', visitId))
+                    }
                 } else {
                     navigate('/visits')
                 }
