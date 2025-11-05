@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
-import { PenTool, CheckCircle } from 'lucide-react'
+import { PenTool } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import ROUTES from '@/data/routing/routes'
 
 // Mock visit data - in real app this would come from API
 const mockVisitsToday = [
@@ -146,6 +145,13 @@ export function ConsentFormsPage() {
         treatment: false
     })
 
+    const [errors, setErrors] = useState({
+        fullName: '',
+        dateOfBirth: '',
+        emailAddress: '',
+        signatureDate: ''
+    })
+
     // Removed showPageExpired state - no longer needed
 
     const handleInputChange = (field: string, value: string) => {
@@ -153,6 +159,13 @@ export function ConsentFormsPage() {
             ...prev,
             [field]: value
         }))
+        // Clear error when user starts typing
+        if (errors[field as keyof typeof errors]) {
+            setErrors(prev => ({
+                ...prev,
+                [field]: ''
+            }))
+        }
     }
 
     const handleConsentChange = (field: string, checked: boolean) => {
@@ -164,6 +177,48 @@ export function ConsentFormsPage() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
+        
+        // Validate required fields
+        const newErrors = {
+            fullName: '',
+            dateOfBirth: '',
+            emailAddress: '',
+            signatureDate: ''
+        }
+        
+        let hasErrors = false
+        
+        if (!formData.fullName.trim()) {
+            newErrors.fullName = 'Full Name is required'
+            hasErrors = true
+        }
+        
+        if (!formData.dateOfBirth.trim()) {
+            newErrors.dateOfBirth = 'Date of Birth is required'
+            hasErrors = true
+        }
+        
+        if (!formData.emailAddress.trim()) {
+            newErrors.emailAddress = 'Email Address is required'
+            hasErrors = true
+        } else {
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            if (!emailRegex.test(formData.emailAddress)) {
+                newErrors.emailAddress = 'Please enter a valid email address'
+                hasErrors = true
+            }
+        }
+        
+        if (!formData.signatureDate.trim()) {
+            newErrors.signatureDate = 'Date is required'
+            hasErrors = true
+        }
+        
+        if (hasErrors) {
+            setErrors(newErrors)
+            return
+        }
         
         // Save consent status immediately (use localStorage so it persists across tabs)
         const consentStatus = {
@@ -336,18 +391,22 @@ export function ConsentFormsPage() {
                             </label>
                             <input
                                 type="text"
+                                required
                                 value={formData.fullName}
                                 onChange={(e) => handleInputChange('fullName', e.target.value)}
                                 placeholder="Enter your full legal name"
                                 style={{
                                     width: '100%',
                                     padding: '12px',
-                                    border: '1px solid #EFEFEF',
+                                    border: errors.fullName ? '1px solid #DC2626' : '1px solid #EFEFEF',
                                     borderRadius: '4px',
                                     fontSize: '14px',
                                     fontFamily: 'inherit'
                                 }}
                             />
+                            {errors.fullName && (
+                                <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>
+                            )}
                         </div>
 
                         {/* Date of Birth */}
@@ -357,18 +416,22 @@ export function ConsentFormsPage() {
                             </label>
                             <input
                                 type="text"
+                                required
                                 value={formData.dateOfBirth}
                                 onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
                                 placeholder="mm/dd/yyyy"
                                 style={{
                                     width: '100%',
                                     padding: '12px',
-                                    border: '1px solid #EFEFEF',
+                                    border: errors.dateOfBirth ? '1px solid #DC2626' : '1px solid #EFEFEF',
                                     borderRadius: '4px',
                                     fontSize: '14px',
                                     fontFamily: 'inherit'
                                 }}
                             />
+                            {errors.dateOfBirth && (
+                                <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>
+                            )}
                         </div>
 
                         {/* Email Address */}
@@ -378,18 +441,22 @@ export function ConsentFormsPage() {
                             </label>
                             <input
                                 type="email"
+                                required
                                 value={formData.emailAddress}
                                 onChange={(e) => handleInputChange('emailAddress', e.target.value)}
                                 placeholder="your.email@example.com"
                                 style={{
                                     width: '100%',
                                     padding: '12px',
-                                    border: '1px solid #EFEFEF',
+                                    border: errors.emailAddress ? '1px solid #DC2626' : '1px solid #EFEFEF',
                                     borderRadius: '4px',
                                     fontSize: '14px',
                                     fontFamily: 'inherit'
                                 }}
                             />
+                            {errors.emailAddress && (
+                                <p className="text-red-500 text-sm mt-1">{errors.emailAddress}</p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -517,18 +584,22 @@ export function ConsentFormsPage() {
                         </label>
                         <input
                             type="text"
+                            required
                             value={formData.signatureDate}
                             onChange={(e) => handleInputChange('signatureDate', e.target.value)}
                             placeholder="mm/dd/yyyy"
                             style={{
                                 width: '100%',
                                 padding: '12px',
-                                border: '1px solid #EFEFEF',
+                                border: errors.signatureDate ? '1px solid #DC2626' : '1px solid #EFEFEF',
                                 borderRadius: '4px',
                                 fontSize: '14px',
                                 fontFamily: 'inherit'
                             }}
                         />
+                        {errors.signatureDate && (
+                            <p className="text-red-500 text-sm mt-1">{errors.signatureDate}</p>
+                        )}
                     </div>
                 </div>
 
@@ -572,7 +643,11 @@ export function ConsentFormsPage() {
                     <button
                         type="submit"
                         onClick={handleSubmit}
-                        disabled={!(consentStates.hipaa || consentStates.privacy || consentStates.treatment)}
+                        disabled={!(consentStates.hipaa || consentStates.privacy || consentStates.treatment) || 
+                                 !formData.fullName.trim() || 
+                                 !formData.dateOfBirth.trim() || 
+                                 !formData.emailAddress.trim() || 
+                                 !formData.signatureDate.trim()}
                         style={{
                             width: '100%',
                             padding: '10px 24px',
@@ -582,17 +657,33 @@ export function ConsentFormsPage() {
                             fontWeight: '500',
                             color: 'white',
                             backgroundColor: '#5538A6',
-                            cursor: (consentStates.hipaa || consentStates.privacy || consentStates.treatment) ? 'pointer' : 'not-allowed',
-                            opacity: (consentStates.hipaa || consentStates.privacy || consentStates.treatment) ? 1 : 0.6,
+                            cursor: (consentStates.hipaa || consentStates.privacy || consentStates.treatment) && 
+                                   formData.fullName.trim() && 
+                                   formData.dateOfBirth.trim() && 
+                                   formData.emailAddress.trim() && 
+                                   formData.signatureDate.trim() ? 'pointer' : 'not-allowed',
+                            opacity: (consentStates.hipaa || consentStates.privacy || consentStates.treatment) && 
+                                    formData.fullName.trim() && 
+                                    formData.dateOfBirth.trim() && 
+                                    formData.emailAddress.trim() && 
+                                    formData.signatureDate.trim() ? 1 : 0.6,
                             transition: 'all 0.2s'
                         }}
                         onMouseEnter={(e) => {
-                            if (consentStates.hipaa || consentStates.privacy || consentStates.treatment) {
+                            if ((consentStates.hipaa || consentStates.privacy || consentStates.treatment) && 
+                                formData.fullName.trim() && 
+                                formData.dateOfBirth.trim() && 
+                                formData.emailAddress.trim() && 
+                                formData.signatureDate.trim()) {
                                 e.currentTarget.style.backgroundColor = '#462D8A'
                             }
                         }}
                         onMouseLeave={(e) => {
-                            if (consentStates.hipaa || consentStates.privacy || consentStates.treatment) {
+                            if ((consentStates.hipaa || consentStates.privacy || consentStates.treatment) && 
+                                formData.fullName.trim() && 
+                                formData.dateOfBirth.trim() && 
+                                formData.emailAddress.trim() && 
+                                formData.signatureDate.trim()) {
                                 e.currentTarget.style.backgroundColor = '#5538A6'
                             }
                         }}

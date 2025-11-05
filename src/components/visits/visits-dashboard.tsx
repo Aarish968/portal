@@ -793,6 +793,11 @@ function VisitCard({ visit }: { visit: Visit }) {
     const areAllConsentFormsCompleted = completedCount === 3
     const hasOneOrTwoConsentsCompleted = completedCount === 1 || completedCount === 2
     const hasNoConsentsCompleted = completedCount === 0
+    const hasTreatmentConsent = consentStatus.treatment === true
+    // Only Treatment Consent is collected (no other consents)
+    const onlyTreatmentConsentCollected = hasTreatmentConsent && !consentStatus.hipaa && !consentStatus.privacy
+    // HIPAA and Privacy collected but Treatment Consent missing
+    const hipaaAndPrivacyCollectedButTreatmentMissing = consentStatus.hipaa && consentStatus.privacy && !consentStatus.treatment
 
     // Function to copy consent link
     const handleCopyConsentLink = () => {
@@ -944,8 +949,143 @@ function VisitCard({ visit }: { visit: Visit }) {
           Log Outcomes
         </button>
       )
+    } else if (hipaaAndPrivacyCollectedButTreatmentMissing && visit.visitType === 'in-home') {
+      // HIPAA + Privacy collected (Treatment missing) → Show only Collect Consent button (In-Home only)
+      return (
+        <button
+          onClick={() => {
+            sessionStorage.setItem('fromConsentPage', 'true')
+            sessionStorage.setItem('currentVisitId', visit.id)
+            // Store visit data for later use
+            sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
+            window.open(`${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
+          }}
+          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            boxSizing: 'border-box',
+            cursor: 'pointer',
+            userSelect: 'none',
+            verticalAlign: 'middle',
+            appearance: 'none',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            fontSize: '0.875rem',
+            lineHeight: '1.75',
+            minWidth: '64px',
+            textTransform: 'none',
+            fontWeight: '500',
+            boxShadow: 'none',
+            minHeight: '48px',
+            backgroundColor: 'rgb(85, 56, 166)',
+            color: 'rgb(255, 255, 255)',
+            outline: '0px',
+            margin: '0px',
+            textDecoration: 'none',
+            padding: '10px 24px',
+            borderWidth: '0px',
+            borderStyle: 'initial',
+            borderColor: 'initial',
+            borderImage: 'initial',
+            transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+            borderRadius: '12px'
+          }}
+        >
+          Collect Consent
+        </button>
+      )
+    } else if (onlyTreatmentConsentCollected && visit.visitType === 'in-home') {
+      // Only Treatment Consent collected → Show both Log Outcomes and Collect Consent buttons (In-Home only)
+      return (
+        <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
+          <button
+            onClick={handleVisitClick}
+            className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              boxSizing: 'border-box',
+              cursor: 'pointer',
+              userSelect: 'none',
+              verticalAlign: 'middle',
+              appearance: 'none',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+              fontSize: '0.875rem',
+              lineHeight: '1.75',
+              minWidth: '64px',
+              textTransform: 'none',
+              fontWeight: '500',
+              boxShadow: 'none',
+              minHeight: '48px',
+              backgroundColor: 'rgb(85, 56, 166)',
+              color: 'rgb(255, 255, 255)',
+              outline: '0px',
+              margin: '0px',
+              textDecoration: 'none',
+              padding: '10px 24px',
+              borderWidth: '0px',
+              borderStyle: 'initial',
+              borderColor: 'initial',
+              borderImage: 'initial',
+              transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+              borderRadius: '12px',
+              width: '100%'
+            }}
+          >
+            Log Outcomes
+          </button>
+          <button
+            onClick={() => {
+              sessionStorage.setItem('fromConsentPage', 'true')
+              sessionStorage.setItem('currentVisitId', visit.id)
+              // Store visit data for later use
+              sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
+              window.open(`${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
+            }}
+            className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              boxSizing: 'border-box',
+              cursor: 'pointer',
+              userSelect: 'none',
+              verticalAlign: 'middle',
+              appearance: 'none',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+              fontSize: '0.875rem',
+              lineHeight: '1.75',
+              minWidth: '64px',
+              textTransform: 'none',
+              fontWeight: '500',
+              boxShadow: 'none',
+              minHeight: '48px',
+              backgroundColor: 'rgb(85, 56, 166)',
+              color: 'rgb(255, 255, 255)',
+              outline: '0px',
+              margin: '0px',
+              textDecoration: 'none',
+              padding: '10px 24px',
+              borderWidth: '0px',
+              borderStyle: 'initial',
+              borderColor: 'initial',
+              borderImage: 'initial',
+              transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+              borderRadius: '12px',
+              width: '100%'
+            }}
+          >
+            Collect Consent
+          </button>
+        </div>
+      )
     } else if (hasOneOrTwoConsentsCompleted) {
-      // 1 or 2 consents completed → Different buttons based on visit type
+      // 1 or 2 consents completed (but not Treatment Consent) → Different buttons based on visit type
       if (visit.visitType === 'telehealth') {
         // Telehealth: Log Outcomes and Copy Consent Link buttons
         return (
@@ -1158,7 +1298,7 @@ function VisitCard({ visit }: { visit: Visit }) {
               fontWeight: '500',
               boxShadow: 'none',
               minHeight: '44px',
-              backgroundColor: 'rgb(228, 118, 0)',
+              backgroundColor: 'rgb(85, 56, 166)',
               color: 'rgb(255, 255, 255)',
               outline: '0px',
               margin: '0px',
@@ -2579,6 +2719,15 @@ export function VisitsDashboard() {
               }}>
                 <button
                   onClick={() => {
+                    // Clear consent data from localStorage when user clicks No
+                    if (pendingConsentData?.visitId) {
+                      localStorage.removeItem(`consentFormsStatus-${pendingConsentData.visitId}`)
+                      // Also clear any localStorage event
+                      localStorage.removeItem('consentSubmissionEvent')
+                    } else {
+                      localStorage.removeItem('consentFormsStatus')
+                      localStorage.removeItem('consentSubmissionEvent')
+                    }
                     setShowConsentConfirmation(false)
                     setPendingConsentData(null)
                   }}
