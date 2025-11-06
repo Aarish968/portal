@@ -43,6 +43,9 @@ export default function VisitDetailsView() {
   const [saveErrorIds, setSaveErrorIds] = React.useState<string[]>([])
   const [editingCardIds, setEditingCardIds] = React.useState<string[]>([])
   const [isInitialLoad, setIsInitialLoad] = React.useState(true)
+  
+  // TEST FLAG: Set to true to simulate save errors for testing
+  const FORCE_SAVE_ERROR = true // Change to true to test error toast
 
   // Extract visit either from navigation state or fallback to param id
   const visitFromState = (location.state as any)?.visit
@@ -110,14 +113,15 @@ export default function VisitDetailsView() {
         setDialogOpen(true)
       }
     } else {
-      const newOutcomes = {
+      // show per-procedure saving indicator briefly
+      setSavingProcedureIds(prev => prev.includes(procedureId) ? prev : [...prev, procedureId])
+      
+      // Build proposed outcomes but DON'T update UI yet (no optimistic update)
+      const proposedOutcomes = {
         ...outcomes,
         [procedureId]: outcome
       }
-      setOutcomes(newOutcomes)
-      // show per-procedure saving indicator briefly
-      setSavingProcedureIds(prev => prev.includes(procedureId) ? prev : [...prev, procedureId])
-
+      
       // Save to local storage immediately
       const visitData = {
         id: visitId,
@@ -126,18 +130,29 @@ export default function VisitDetailsView() {
         time,
         insurance,
         status: visitStatus === 'not-started' ? 'in-progress' : visitStatus,
-        outcomes: newOutcomes,
+        outcomes: proposedOutcomes,
         procedureReasons
       }
       try {
+        if (FORCE_SAVE_ERROR) {
+          throw new Error('Test error - simulating save failure')
+        }
         localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+        // Only now update UI
+        setOutcomes(proposedOutcomes)
         setSaveErrorIds(prev => prev.filter(id => id !== procedureId))
+        // When any outcome is set, change status to in-progress (only on success)
+        if (visitStatus === 'not-started') {
+          setVisitStatus('in-progress')
+        }
       } catch {
+        // Do not change outcomes/state on error
         setSaveErrorIds(prev => prev.includes(procedureId) ? prev : [...prev, procedureId])
         toast({
           variant: 'destructive',
-          title: 'Outcome not saved',
-          description: `${procedures.find(p => p.id === procedureId)?.title || 'Procedure'} not saved. Please try again.`
+          title: 'Outcomes not saved',
+          description: `Outcomes not saved for ${procedures.find(p=>p.id===procedureId)?.title || 'Procedure'}. Please Try Again`,
+          duration: Infinity // Never auto-dismiss, user must close manually
         })
       }
 
@@ -145,11 +160,6 @@ export default function VisitDetailsView() {
       setTimeout(() => {
         setSavingProcedureIds(prev => prev.filter(id => id !== procedureId))
       }, 700)
-
-      // When any outcome is set, change status to in-progress
-      if (visitStatus === 'not-started') {
-        setVisitStatus('in-progress')
-      }
     }
   }
 
@@ -158,17 +168,16 @@ export default function VisitDetailsView() {
       console.log(`Procedure ${selectedProcedure.title} not completed:`, { reason, description })
       // show per-procedure saving indicator
       setSavingProcedureIds(prev => prev.includes(selectedProcedure.id) ? prev : [...prev, selectedProcedure.id])
-      const newOutcomes = {
+      
+      // Build proposed values (no optimistic update)
+      const proposedOutcomes = {
         ...outcomes,
         [selectedProcedure.id]: 'not-completed' as OutcomeValue
       }
-      const newReasons = {
+      const proposedReasons = {
         ...procedureReasons,
         [selectedProcedure.id]: reason
       }
-
-      setOutcomes(newOutcomes)
-      setProcedureReasons(newReasons)
 
       // Save to local storage immediately
       const visitData = {
@@ -178,29 +187,36 @@ export default function VisitDetailsView() {
         time,
         insurance,
         status: visitStatus === 'not-started' ? 'in-progress' : visitStatus,
-        outcomes: newOutcomes,
-        procedureReasons: newReasons
+        outcomes: proposedOutcomes,
+        procedureReasons: proposedReasons
       }
       try {
+        if (FORCE_SAVE_ERROR) {
+          throw new Error('Test error - simulating save failure')
+        }
         localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+        // Only on success, update UI
+        setOutcomes(proposedOutcomes)
+        setProcedureReasons(proposedReasons)
         setSaveErrorIds(prev => prev.filter(id => id !== selectedProcedure.id))
+        // Change status to in-progress if not started (only on success)
+        if (visitStatus === 'not-started') {
+          setVisitStatus('in-progress')
+        }
       } catch {
+        // Do not change outcomes/state on error
         setSaveErrorIds(prev => prev.includes(selectedProcedure.id) ? prev : [...prev, selectedProcedure.id])
         toast({
           variant: 'destructive',
-          title: 'Outcome not saved',
-          description: `${selectedProcedure.title} not saved. Please try again.`
+          title: 'Outcomes not saved',
+          description: `Outcomes not saved for ${selectedProcedure.title}. Please Try Again`,
+          duration: Infinity // Never auto-dismiss, user must close manually
         })
       }
       // remove saving indicator after short delay
       setTimeout(() => {
         setSavingProcedureIds(prev => prev.filter(id => id !== selectedProcedure.id))
       }, 700)
-
-      // Change status to in-progress if not started
-      if (visitStatus === 'not-started') {
-        setVisitStatus('in-progress')
-      }
     }
   }
 
@@ -217,17 +233,16 @@ export default function VisitDetailsView() {
     if (editingProcedure) {
       // show per-procedure saving indicator
       setSavingProcedureIds(prev => prev.includes(editingProcedure.id) ? prev : [...prev, editingProcedure.id])
-      const newOutcomes = {
+      
+      // Build proposed values (no optimistic update)
+      const proposedOutcomes = {
         ...outcomes,
         [editingProcedure.id]: outcome
       }
-      const newReasons = reason ? {
+      const proposedReasons = reason ? {
         ...procedureReasons,
         [editingProcedure.id]: reason
       } : procedureReasons
-
-      setOutcomes(newOutcomes)
-      if (reason) setProcedureReasons(newReasons)
 
       // Update session storage
       const visitData = {
@@ -237,18 +252,26 @@ export default function VisitDetailsView() {
         time,
         insurance,
         status: visitStatus,
-        outcomes: newOutcomes,
-        procedureReasons: newReasons
+        outcomes: proposedOutcomes,
+        procedureReasons: proposedReasons
       }
       try {
+        if (FORCE_SAVE_ERROR) {
+          throw new Error('Test error - simulating save failure')
+        }
         sessionStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+        // Only on success, update UI
+        setOutcomes(proposedOutcomes)
+        if (reason) setProcedureReasons(proposedReasons)
         setSaveErrorIds(prev => prev.filter(id => id !== editingProcedure.id))
       } catch {
+        // Do not change outcomes/state on error
         setSaveErrorIds(prev => prev.includes(editingProcedure.id) ? prev : [...prev, editingProcedure.id])
         toast({
           variant: 'destructive',
-          title: 'Outcome not saved',
-          description: `${editingProcedure.title} not saved. Please try again.`
+          title: 'Outcomes not saved',
+          description: `Outcomes not saved for ${editingProcedure.title}. Please Try Again`,
+          duration: Infinity // Never auto-dismiss, user must close manually
         })
       }
       setTimeout(() => {
@@ -828,7 +851,13 @@ export default function VisitDetailsView() {
                 const reason = procedureReasons[procedure.id]
 
                 return (
-                  <div key={procedure.id} className={`bg-white rounded-2xl shadow-sm p-6 transition-shadow duration-300 hover:shadow-md ${editingCardIds.includes(procedure.id) ? 'flex flex-col' : ''}`}>
+                  <div key={procedure.id} className={`bg-white rounded-2xl shadow-sm p-6 transition-shadow duration-300 hover:shadow-md relative ${editingCardIds.includes(procedure.id) ? 'flex flex-col' : ''}`}>
+                    {/* Error Icon - top-right corner */}
+                    {saveErrorIds.includes(procedure.id) && !editingCardIds.includes(procedure.id) && !savingProcedureIds.includes(procedure.id) && (
+                      <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-red-600 flex items-center justify-center z-10">
+                        <span className="text-white text-[12px] font-bold leading-none">!</span>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-base font-semibold text-gray-900">{procedure.title}</h3>
                       <div className="flex items-center gap-2">
@@ -932,6 +961,9 @@ export default function VisitDetailsView() {
                                     // retry persisting current state
                                     setSavingProcedureIds(prev => prev.includes(procedure.id) ? prev : [...prev, procedure.id])
                                     try {
+                                      if (FORCE_SAVE_ERROR) {
+                                        throw new Error('Test error - simulating save failure')
+                                      }
                                       const visitData = {
                                         id: visitId,
                                         patientName,
@@ -947,8 +979,9 @@ export default function VisitDetailsView() {
                                     } catch {
                                       toast({
                                         variant: 'destructive',
-                                        title: 'Outcome not saved',
-                                        description: `${procedures.find(p => p.id === procedure.id)?.title || 'Procedure'} not saved. Please try again.`
+                                        title: 'Outcomes not saved',
+                                        description: `Outcomes not saved for ${procedures.find(p=>p.id===procedure.id)?.title || 'Procedure'}. Please Try Again`,
+                                        duration: Infinity // Never auto-dismiss, user must close manually
                                       })
                                     } finally {
                                       setTimeout(() => {
