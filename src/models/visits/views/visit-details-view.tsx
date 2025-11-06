@@ -766,7 +766,12 @@ export default function VisitDetailsView() {
                 ) : (
                   <div className="space-y-4">
                     <button
-                      onClick={() => handleOutcomeClick('hra', 'completed')}
+                      onClick={() => {
+                        // Mark HRA as completed first
+                        handleOutcomeClick('hra', 'completed')
+                        // Then navigate to HRA page
+                        navigate('/hra')
+                      }}
                       className="w-full bg-[#5538A6] hover:bg-[#4A2F95] text-white font-medium py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-sm active:scale-[0.99]"
                       aria-pressed={false}
                     >
