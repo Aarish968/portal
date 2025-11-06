@@ -1,4 +1,4 @@
-import { VisitsDashboard } from '@/components/visits/visits-dashboard'
+import { VisitsDashboard } from '@/models/visits/components/visits/visits-dashboard'
 
 export default function VisitsPage() {
   return <VisitsDashboard />
