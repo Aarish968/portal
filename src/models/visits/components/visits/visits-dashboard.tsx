@@ -1960,25 +1960,11 @@ export function VisitsDashboard() {
       // Force re-render by updating a state
       setTime(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }))
 
-      // After 1 second, redirect to visit details page
+      // After 1 second, close the success modal and stay on visit outcomes page
       setTimeout(() => {
         setShowConsentSuccess(false)
-
-        if (pendingConsentData?.visitId) {
-          // Get visit data for navigation
-          try {
-            const visitData = sessionStorage.getItem(`visit-${pendingConsentData.visitId}`)
-            const visit = visitData ? JSON.parse(visitData) : null
-            navigate(ROUTES.app.visitDetails.href.replace(':visitId', pendingConsentData.visitId), {
-              state: { visit }
-            })
-          } catch {
-            // Fallback without state
-            navigate(ROUTES.app.visitDetails.href.replace(':visitId', pendingConsentData.visitId))
-          }
-        }
-
         setPendingConsentData(null)
+        // User stays on visit outcomes page - no navigation to visit details
       }, 1000)
     }, 2000)
   }
