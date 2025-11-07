@@ -3,6 +3,8 @@ import { ArrowLeft, MapPin, Clock, Play, X, Pencil, Loader2 } from 'lucide-react
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ProcedureIncompleteDialog } from '../components/ProcedureIncompleteDialog'
 import { useToast } from '@/base_submod/hooks/use-toast'
+// TOAST TEST - Easy to remove: Delete this import and <ForceSaveErrorToggle /> below
+import { useForceSaveError, ForceSaveErrorToggle } from '../components/force-save-error-toggle'
 
 const procedures = [
   { id: 'a1c', title: 'A1C' },
@@ -44,8 +46,12 @@ export default function VisitDetailsView() {
   const [editingCardIds, setEditingCardIds] = React.useState<string[]>([])
   const [isInitialLoad, setIsInitialLoad] = React.useState(true)
   
+  // TOAST TEST - Easy to remove: Delete this hook and <ForceSaveErrorToggle /> below
+  const { forceSaveError, toggleForceSaveError } = useForceSaveError()
+  
   // TEST FLAG: Set to true to simulate save errors for testing
-  const FORCE_SAVE_ERROR = true // Change to true to test error toast
+  // TOAST TEST - Easy to remove: Delete this line and all FORCE_SAVE_ERROR checks
+  const FORCE_SAVE_ERROR = forceSaveError
 
   // Extract visit either from navigation state or fallback to param id
   const visitFromState = (location.state as any)?.visit
@@ -405,6 +411,7 @@ export default function VisitDetailsView() {
     }, 1000) // Show "Reopening" for 1 second
   }
 
+
   // Check if visit needs to be saved after editing
   const needsSaving = React.useMemo(() => {
     // Show save button when all outcomes are set (regardless of completed/not-completed)
@@ -475,6 +482,11 @@ export default function VisitDetailsView() {
           
           {/* Dynamic Header Buttons */}
           <div className="flex items-center gap-3">
+            {/* TOAST TEST - Easy to remove: Delete this component */}
+            <ForceSaveErrorToggle 
+              forceSaveError={forceSaveError} 
+              onToggle={toggleForceSaveError} 
+            />
             {/* Reopening State - with Completed button */}
             {isReopening && (
               <>

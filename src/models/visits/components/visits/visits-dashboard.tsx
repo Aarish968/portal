@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { Clock, MapPin, Building, Check, ChevronDown, Bell, X, Link, CheckCircle } from 'lucide-react'
+import { Clock, MapPin, Building, Phone, Check, ChevronDown, Bell, X, Link, CheckCircle } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
 
@@ -43,6 +43,7 @@ interface Visit {
   patientName: string
   time: string
   address: string
+  phone?: string
   insurance: string
   status: 'not-started' | 'in-progress' | 'completed' | 'ready-to-save'
   visitType: 'in-home' | 'telehealth'
@@ -87,6 +88,7 @@ const mockVisitsToday: Visit[] = [
     patientName: 'Jane Smith',
     time: '10:30AM',
     address: '1234 Main Street, Dayton, OH',
+    phone: '(570) 555-0001',
     insurance: 'UHC',
     status: 'not-started',
     visitType: 'in-home',
@@ -107,6 +109,7 @@ const mockVisitsToday: Visit[] = [
     patientName: 'John Doe',
     time: '11:00AM',
     address: '5678 Oak Avenue, Dayton, OH',
+    phone: '(570) 555-0002',
     insurance: 'Aetna',
     status: 'not-started',
     visitType: 'telehealth',
@@ -127,6 +130,7 @@ const mockVisitsToday: Visit[] = [
     patientName: 'John Doe',
     time: '11:00AM',
     address: '5678 Oak Avenue, Dayton, OH',
+    phone: '(570) 555-0003',
     insurance: 'Aetna',
     status: 'not-started',
     visitType: 'telehealth',
@@ -147,6 +151,7 @@ const mockVisitsToday: Visit[] = [
     patientName: 'John Doe',
     time: '11:00AM',
     address: '5678 Oak Avenue, Dayton, OH',
+    phone: '(570) 555-0004',
     insurance: 'Aetna',
     status: 'not-started',
     visitType: 'telehealth',
@@ -170,6 +175,7 @@ const mockVisits14Days: Visit[] = [
     patientName: 'Emily Davis',
     time: '9:30AM',
     address: '5678 Oak Avenue, Dayton, OH',
+    phone: '(570) 555-0101',
     insurance: 'Medicare',
     status: 'not-started',
     visitType: 'telehealth',
@@ -192,6 +198,7 @@ const mockVisits14Days: Visit[] = [
     patientName: 'Brandon Young',
     time: '1:00PM',
     address: '147 Willow Court, Englewo...',
+    phone: '(570) 555-0102',
     insurance: 'BCBS',
     status: 'not-started',
     visitType: 'in-home',
@@ -214,6 +221,7 @@ const mockVisits14Days: Visit[] = [
     patientName: 'Sarah Johnson',
     time: '10:00AM',
     address: '789 Pine Street, Dayton, OH',
+    phone: '(570) 555-0103',
     insurance: 'Aetna',
     status: 'not-started',
     visitType: 'in-home',
@@ -235,6 +243,7 @@ const mockVisits14Days: Visit[] = [
     patientName: 'Michael Brown',
     time: '2:30PM',
     address: '321 Oak Avenue, Dayton, OH',
+    phone: '(570) 555-0104',
     insurance: 'UHC',
     status: 'not-started',
     visitType: 'in-home',
@@ -256,6 +265,7 @@ const mockVisits14Days: Visit[] = [
     patientName: 'Lisa Wilson',
     time: '11:00AM',
     address: '5678 Oak Avenue, Dayton, OH',
+    phone: '(570) 555-0105',
     insurance: 'Medicare',
     status: 'not-started',
     visitType: 'telehealth',
@@ -277,6 +287,7 @@ const mockVisits14Days: Visit[] = [
     patientName: 'David Miller',
     time: '3:00PM',
     address: '456 Elm Street, Dayton, OH',
+    phone: '(570) 555-0106',
     insurance: 'BCBS',
     status: 'not-started',
     visitType: 'in-home',
@@ -298,6 +309,7 @@ const mockVisits14Days: Visit[] = [
     patientName: 'Jennifer Garcia',
     time: '9:00AM',
     address: '654 Maple Drive, Dayton, OH',
+    phone: '(570) 555-0107',
     insurance: 'Aetna',
     status: 'not-started',
     visitType: 'in-home',
@@ -319,6 +331,7 @@ const mockVisits14Days: Visit[] = [
     patientName: 'Robert Taylor',
     time: '1:30PM',
     address: '987 Cedar Lane, Dayton, OH',
+    phone: '(570) 555-0108',
     insurance: 'UHC',
     status: 'not-started',
     visitType: 'in-home',
@@ -340,6 +353,7 @@ const mockVisits14Days: Visit[] = [
     patientName: 'Maria Rodriguez',
     time: '10:30AM',
     address: '5678 Oak Avenue, Dayton, OH',
+    phone: '(570) 555-0109',
     insurance: 'Medicare',
     status: 'not-started',
     visitType: 'telehealth',
@@ -361,6 +375,7 @@ const mockVisits14Days: Visit[] = [
     patientName: 'James Anderson',
     time: '2:00PM',
     address: '123 Birch Street, Dayton, OH',
+    phone: '(570) 555-0110',
     insurance: 'BCBS',
     status: 'not-started',
     visitType: 'in-home',
@@ -382,6 +397,7 @@ const mockVisits14Days: Visit[] = [
     patientName: 'Patricia White',
     time: '4:30PM',
     address: '789 Cedar Avenue, Dayton, OH',
+    phone: '(570) 555-0111',
     insurance: 'UHC',
     status: 'not-started',
     visitType: 'in-home',
@@ -402,6 +418,7 @@ const mockVisits14Days: Visit[] = [
     patientName: 'Thomas Clark',
     time: '6:00PM',
     address: '456 Pine Street, Dayton, OH',
+    phone: '(570) 555-0112',
     insurance: 'Medicare',
     status: 'not-started',
     visitType: 'in-home',
@@ -422,6 +439,7 @@ const mockVisits14Days: Visit[] = [
     patientName: 'Piter Clark',
     time: '7:00PM',
     address: '456 Pine Street, Dayton, OH',
+    phone: '(570) 555-0113',
     insurance: 'Medicare',
     status: 'not-started',
     visitType: 'in-home',
@@ -883,26 +901,35 @@ function VisitCard({ visit }: { visit: Visit }) {
           onClick={handleVisitClick}
           className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
           style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            boxSizing: 'border-box',
+            cursor: 'pointer',
+            userSelect: 'none',
+            verticalAlign: 'middle',
+            appearance: 'none',
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
             fontSize: '0.875rem',
             lineHeight: '1.75',
-            minWidth: '64px',
+            minWidth: '120px',
             textTransform: 'none',
             fontWeight: '500',
             boxShadow: 'none',
-            minHeight: '44px',
+            minHeight: '48px',
             backgroundColor: 'rgb(85, 56, 166)',
             color: 'rgb(255, 255, 255)',
             outline: '0px',
             margin: '0px',
             textDecoration: 'none',
-            padding: '6px 16px',
+            padding: '10px 24px',
             borderWidth: '0px',
             borderStyle: 'initial',
             borderColor: 'initial',
             borderImage: 'initial',
             transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-            borderRadius: '18px'
+            borderRadius: '12px'
           }}
         >
           Save
@@ -1728,6 +1755,14 @@ function VisitCard({ visit }: { visit: Visit }) {
               <div className="flex items-center gap-1 min-w-0 max-w-full sm:max-w-xs">
                 <MapPin className="w-4 h-4 flex-shrink-0" />
                 <span className="text-sm truncate">{visit.address}</span>
+              </div>
+            )}
+
+            {/* Phone Number */}
+            {visit.phone && (
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <Phone className="w-4 h-4 flex-shrink-0" />
+                <span className="text-sm whitespace-nowrap">{visit.phone}</span>
               </div>
             )}
 
