@@ -2376,15 +2376,15 @@ export function VisitsDashboard() {
           overflow-x: hidden !important;
         }
         
-        /* Small mobile (300px - 680px) - No sidebar */
-        @media (max-width: 680px) {
+        /* Small mobile (up to 34.375rem / 550px) - No sidebar */
+        @media (max-width: 34.375rem) {
           .mobile-header {
             left: 12.3rem !important;
             right: 0 !important;
             z-index: 50 !important;
             position: fixed !important;
             margin-left: 0 !important;
-            padding-left: 0.75rem !important;
+            padding-left: 0rem !important;
             padding-right: 0.75rem !important;
             width: 100% !important;
             box-sizing: border-box !important;
@@ -2401,8 +2401,8 @@ export function VisitsDashboard() {
           }
         }
         
-        /* Shared mobile styles (300px - 680px) */
-        @media (max-width: 680px) {
+        /* Shared mobile styles (up to 34.375rem / 550px) */
+        @media (max-width: 34.375rem) {
           /* Force single column layout on mobile */
           .visits-grid-14days {
             display: block !important;
@@ -2459,8 +2459,8 @@ export function VisitsDashboard() {
           }
         }
         
-        /* Tablet responsive fixes (800px - 1022px) */
-        @media (min-width: 681px) and (max-width: 1024px) {
+        /* Tablet responsive fixes (34.375rem to 64rem / 550px - 1024px) */
+        @media (min-width: 34.375rem) and (max-width: 64rem) {
           .mobile-header {
             left: 12.3rem !important;
             right: 0 !important;
@@ -2473,10 +2473,10 @@ export function VisitsDashboard() {
           }
           
           .mobile-content {
-            padding-top: 9rem !important;
-            padding-left: 1.5rem !important;
+            padding-top: 10rem !important;
+            padding-left: 3rem !important;
             padding-right: 1.5rem !important;
-            margin-left: 2rem !important;
+            margin-left: 1rem !important;
             width: calc(100vw - 12rem) !important;
             max-width: calc(100vw - 12rem) !important;
             box-sizing: border-box !important;
@@ -2499,24 +2499,24 @@ export function VisitsDashboard() {
           }
         }
         
-        /* Desktop: maintain current layout (1023px and above) */
-        @media (min-width: 1023px) {
+        /* Desktop: maintain current layout (above 64rem / 1024px) */
+        @media (min-width: 64rem) {
           .mobile-header {
-            left: 12rem !important;
+            left: 12.3rem !important;
             right: 0 !important;
             z-index: 50 !important;
             position: fixed !important;
             width: auto !important;
             max-width: calc(100vw - 12rem) !important;
-            padding-left: 1.5rem !important;
+            padding-left: 0rem !important;
             padding-right: 0rem !important;
           }
           
           .mobile-content {
-            padding-top: 9rem !important;
-            padding-left: 1.5rem !important;
+            padding-top: 10rem !important;
+            padding-left: 3rem !important;
             padding-right: 1.5rem !important;
-            margin-left: 2rem !important;
+            margin-left: 1rem !important;
             width: calc(100vw - 12rem) !important;
             max-width: calc(100vw - 12rem) !important;
             box-sizing: border-box !important;
@@ -2575,27 +2575,27 @@ export function VisitsDashboard() {
         }
         
         /* Responsive text and spacing */
-        @media (max-width: 639px) {
+        @media (max-width: 34.375rem) {
           .visit-card-content {
-            padding: 1rem !important;
+            padding: 0.75rem !important;
           }
           
           .visit-card-content h3 {
-            font-size: 1rem !important;
+            font-size: 0.95rem !important;
             line-height: 1.25 !important;
           }
           
           .visit-card-content .text-sm {
-            font-size: 0.875rem !important;
+            font-size: 0.8rem !important;
           }
           
           .visit-card-content .text-xs {
-            font-size: 0.75rem !important;
+            font-size: 0.7rem !important;
           }
         }
         
         /* Equipment section mobile fixes */
-        @media (max-width: 799px) {
+        @media (max-width: 34.375rem) {
           .equipment-header {
             flex-direction: column !important;
             align-items: flex-start !important;
