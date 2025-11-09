@@ -1752,9 +1752,9 @@ function VisitCard({ visit }: { visit: Visit }) {
 
             {/* Address - show for all visits */}
             {visit.address && (
-              <div className="flex items-center gap-1 min-w-0 max-w-full sm:max-w-xs">
-                <MapPin className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm truncate">{visit.address}</span>
+              <div className="flex items-start gap-1 min-w-0 max-w-full sm:max-w-xs">
+                <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span className="text-sm break-words" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{visit.address}</span>
               </div>
             )}
 
@@ -1833,10 +1833,12 @@ function VisitCard({ visit }: { visit: Visit }) {
                               backgroundColor: 'rgb(25, 154, 146)',
                               height: '24px',
                               borderRadius: '9999px',
-                              padding: '0 12px',
-                              gap: '8px',
-                              width: '90px',
-                              justifyContent: 'center'
+                              padding: '0 8px',
+                              gap: '6px',
+                              minWidth: 'fit-content',
+                              maxWidth: '100%',
+                              justifyContent: 'center',
+                              whiteSpace: 'nowrap'
                             }}
                           >
                             <span
@@ -2180,9 +2182,9 @@ export function VisitsDashboard() {
       // Adjust header height based on screen size
       let headerHeight = 135 // Default desktop
       if (isVerySmallMobile) {
-        headerHeight = 200 // Very small mobile (389px and below)
+        headerHeight = 220 // Very small mobile (389px and below)
       } else if (isSmallMobile) {
-        headerHeight = 180 // Small mobile (390px - 638px) - reduced spacing
+        headerHeight = 220 // Small mobile (390px - 638px) - same as very small
       }
 
       // Removed unused sidebarWidth variable
@@ -2392,7 +2394,7 @@ export function VisitsDashboard() {
           }
           
           .mobile-content {
-            margin-top: 14rem !important;
+            margin-top: 13.80rem !important;
             padding-top: 0 !important;
             padding-left: 0.5rem !important;
             padding-right: 0.5rem !important;
@@ -2427,6 +2429,20 @@ export function VisitsDashboard() {
           .mobile-content p {
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
+          }
+          
+          /* Fix consent forms layout on mobile */
+          .mobile-content .flex.flex-wrap.gap-6 {
+            gap: 1rem !important;
+          }
+          
+          /* Ensure consent badges don't overflow on mobile */
+          .mobile-content .inline-flex.items-center.text-white {
+            max-width: 90px !important;
+            min-width: 85px !important;
+            overflow: hidden !important;
+            padding: 0 6px !important;
+            gap: 4px !important;
           }
         }
         
@@ -2526,10 +2542,25 @@ export function VisitsDashboard() {
             display: block !important;
             box-sizing: border-box !important;
           }
+          
+          /* Control consent badge width on tablet */
+          .inline-flex.items-center.text-white {
+            max-width: 95px !important;
+            min-width: 90px !important;
+            padding: 0 8px !important;
+            gap: 6px !important;
+          }
         }
         
         /* Desktop: maintain current layout (above 64rem / 1024px) */
         @media (min-width: 64rem) {
+          /* Control consent badge width on desktop */
+          .inline-flex.items-center.text-white {
+            max-width: 100px !important;
+            min-width: 95px !important;
+            padding: 0 10px !important;
+            gap: 8px !important;
+          }
           .mobile-header {
             left: 12.3rem !important;
             right: 0 !important;
