@@ -1722,8 +1722,8 @@ function VisitCard({ visit }: { visit: Visit }) {
   }
 
   return (
-    <Card className="w-full bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer h-full" style={{ width: '100%', maxWidth: '100%' }}>
-      <CardContent className="p-3 sm:p-4 md:p-5 lg:p-6 h-full flex flex-col visit-card-content">
+    <Card className="w-full bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer h-full" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
+      <CardContent className="p-3 sm:p-4 md:p-5 lg:p-6 h-full flex flex-col visit-card-content" style={{ maxWidth: '100%', boxSizing: 'border-box' }}>
         <div className="space-y-4 sm:space-y-5">
           {/* Header Row */}
           <div className="flex flex-col gap-3 sm:gap-4">
@@ -1743,7 +1743,7 @@ function VisitCard({ visit }: { visit: Visit }) {
 
 
           {/* Visit Details - Responsive Layout */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 text-sm min-w-0 visit-details-mobile" style={{ color: '#939090' }}>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 text-sm min-w-0 visit-details-mobile" style={{ color: '#939090', maxWidth: '100%', overflow: 'hidden' }}>
             {/* Time */}
             <div className="flex items-center gap-1 flex-shrink-0">
               <Clock className="w-4 h-4 flex-shrink-0" />
@@ -1796,11 +1796,11 @@ function VisitCard({ visit }: { visit: Visit }) {
           <div className="border-t border-gray-200"></div>
 
           {/* Consent Forms */}
-          <div>
+          <div style={{ maxWidth: '100%', overflow: 'hidden' }}>
             <h4 className="text-xs font-medium text-gray-700 mb-2 sm:mb-3 tracking-wide">
               Consent Forms:
             </h4>
-            <div className="flex flex-wrap gap-6 items-start">
+            <div className="flex flex-wrap gap-6 items-start" style={{ maxWidth: '100%' }}>
               {(() => {
                 // Read consent record once to decide whether to show statuses
                 let consentRecord: any | null = null
@@ -1878,11 +1878,11 @@ function VisitCard({ visit }: { visit: Visit }) {
           <div className="border-t border-gray-200"></div>
 
           {/* Procedures */}
-          <div>
+          <div style={{ maxWidth: '100%', overflow: 'hidden' }}>
             <h4 className="text-xs font-medium text-gray-700 mb-2 sm:mb-3 tracking-wide">
               Required Procedures
             </h4>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 procedures-mobile" style={{ maxWidth: '100%' }}>
               {visit.procedures.map((p, i) => {
                 // Map procedure names to IDs used in visit details
                 const procedureIdMap: Record<string, string> = {
@@ -2172,9 +2172,10 @@ export function VisitsDashboard() {
 
     try {
       // Responsive header heights and positioning
-      const isMobile = window.innerWidth < 640
-      const isVerySmallMobile = window.innerWidth <= 389
-      const isSmallMobile = window.innerWidth >= 390 && window.innerWidth <= 638
+      const viewportWidth = Math.min(window.innerWidth, document.documentElement.clientWidth)
+      const isMobile = viewportWidth < 640
+      const isVerySmallMobile = viewportWidth <= 389
+      const isSmallMobile = viewportWidth >= 390 && viewportWidth <= 638
 
       // Adjust header height based on screen size
       let headerHeight = 135 // Default desktop
@@ -2355,11 +2356,52 @@ export function VisitsDashboard() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 w-full">
+    <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
       {/* Custom styles for responsive zoom behavior and mobile fixes */}
       <style>{`
-        /* Mobile-first responsive design */
+        /* Global container fix */
+        * {
+          box-sizing: border-box !important;
+        }
+        
+        body, html {
+          overflow-x: hidden !important;
+          max-width: 100vw !important;
+          width: 100% !important;
+        }
+        
+        /* Prevent horizontal overflow on all containers */
+        .min-h-screen {
+          max-width: 100vw !important;
+          overflow-x: hidden !important;
+        }
+        
+        /* Very small mobile (300px - 389px) */
         @media (max-width: 389px) {
+          .mobile-header {
+            left: 12.3rem !important;
+            right: 0 !important;
+            z-index: 50 !important;
+            position: fixed !important;
+            margin-left: 0 !important;
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+            width: 100% !important;
+          }
+          
+          .mobile-content {
+            padding-top: 12rem !important;
+            padding-left: 3rem !important;
+            padding-right: 0rem !important;
+            margin-left: 0 !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+            box-sizing: border-box !important;
+          }
+        }
+        
+        /* Small mobile (390px - 799px) */
+        @media (min-width: 390px) and (max-width: 799px) {
           .mobile-header {
             left: 12.3rem !important;
             right: 0 !important;
@@ -2368,6 +2410,7 @@ export function VisitsDashboard() {
             margin-left: 0 !important;
             padding-left: 1rem !important;
             padding-right: 1rem !important;
+            width: 100% !important;
           }
           
           .mobile-content {
@@ -2376,52 +2419,33 @@ export function VisitsDashboard() {
             padding-right: 1rem !important;
             margin-left: 0 !important;
             width: 100% !important;
-            max-width: 100% !important;
+            max-width: 100vw !important;
+            box-sizing: border-box !important;
           }
         }
         
-        /* Small mobile (390px - 638px) */
-        @media (min-width: 390px) and (max-width: 639px) {
-          .mobile-header {
-            left: 12.3rem !important;
-            right: 0 !important;
-            z-index: 50 !important;
-            position: fixed !important;
-            margin-left: 0 !important;
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-          }
-          
-          .mobile-content {
-            padding-top: 11rem !important;
-            padding-left: 3rem !important;
-            padding-right: 1rem !important;
-            margin-left: 0 !important;
-            width: 100% !important;
-            max-width: 100% !important;
-          }
-        }
-          
-        }
-        
-        /* Shared mobile styles for both breakpoints */
-        @media (max-width: 639px) {
+        /* Shared mobile styles (300px - 799px) */
+        @media (max-width: 799px) {
           /* Force single column layout on mobile */
           .visits-grid-14days {
             display: block !important;
             grid-template-columns: none !important;
             width: 100% !important;
+            max-width: 100% !important;
           }
           
           .visits-grid-14days > div {
             width: 100% !important;
+            max-width: 100% !important;
             margin-bottom: 1rem !important;
             display: block !important;
+            box-sizing: border-box !important;
           }
           
           /* Mobile visit card styling */
           .visit-card-mobile {
             width: 100% !important;
+            max-width: 100% !important;
             margin-bottom: 1rem !important;
             display: block !important;
           }
@@ -2453,20 +2477,27 @@ export function VisitsDashboard() {
           }
         }
         
-        /* Tablet responsive fixes */
-        @media (min-width: 639px) and (max-width: 1023px) {
+        /* Tablet responsive fixes (800px - 1022px) */
+        @media (min-width: 800px) and (max-width: 1022px) {
           .mobile-header {
             left: 12.3rem !important;
             right: 0 !important;
             z-index: 50 !important;
             position: fixed !important;
+            width: auto !important;
+            max-width: calc(100vw - 12rem) !important;
+            padding-left: 0rem !important;
+            padding-right: 1.5rem !important;
           }
           
           .mobile-content {
             padding-top: 10rem !important;
-            padding-left: 3rem !important;
+            padding-left: 1.5rem !important;
             padding-right: 1.5rem !important;
-            margin-left: 0 !important;
+            margin-left: 2rem !important;
+            width: calc(100vw - 12rem) !important;
+            max-width: calc(100vw - 12rem) !important;
+            box-sizing: border-box !important;
           }
           
           /* Tablet: single column for 14 days view */
@@ -2474,28 +2505,55 @@ export function VisitsDashboard() {
             display: block !important;
             grid-template-columns: none !important;
             width: 100% !important;
+            max-width: 100% !important;
           }
           
           .visits-grid-14days > div {
             width: 100% !important;
+            max-width: 100% !important;
             margin-bottom: 1rem !important;
             display: block !important;
+            box-sizing: border-box !important;
           }
         }
         
-        /* Desktop: maintain current layout */
-        @media (min-width: 1024px) {
+        /* Desktop: maintain current layout (1023px and above) */
+        @media (min-width: 1023px) {
+          .mobile-header {
+            left: 12rem !important;
+            right: 0 !important;
+            z-index: 50 !important;
+            position: fixed !important;
+            width: auto !important;
+            max-width: calc(100vw - 12rem) !important;
+            padding-left: 1.5rem !important;
+            padding-right: 1.5rem !important;
+          }
+          
+          .mobile-content {
+            padding-top: 9rem !important;
+            padding-left: 1.5rem !important;
+            padding-right: 1.5rem !important;
+            margin-left: 2rem !important;
+            width: calc(100vw - 12rem) !important;
+            max-width: calc(100vw - 12rem) !important;
+            box-sizing: border-box !important;
+          }
+          
           .visits-grid-14days {
             display: grid !important;
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 1rem !important;
             width: 100% !important;
+            max-width: 100% !important;
           }
           
           .visits-grid-14days > div {
             width: 100% !important;
             max-width: 100% !important;
             min-height: 100% !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
           }
         }
         
@@ -2555,7 +2613,7 @@ export function VisitsDashboard() {
         }
         
         /* Equipment section mobile fixes */
-        @media (max-width: 639px) {
+        @media (max-width: 799px) {
           .equipment-header {
             flex-direction: column !important;
             align-items: flex-start !important;
@@ -2567,9 +2625,39 @@ export function VisitsDashboard() {
             justify-content: space-between !important;
           }
         }
+        
+        /* Additional overflow prevention for all screen sizes */
+        .date-section-container,
+        .white-container,
+        .visits-section-container {
+          max-width: 100% !important;
+          overflow-x: hidden !important;
+          box-sizing: border-box !important;
+        }
+        
+        /* Ensure cards don't overflow */
+        .bg-white.rounded-lg {
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+        }
+        
+        /* Fix for very small screens */
+        @media (max-width: 389px) {
+          .visit-card-content {
+            padding: 0.75rem !important;
+          }
+          
+          .text-sm {
+            font-size: 0.8rem !important;
+          }
+          
+          .text-xs {
+            font-size: 0.7rem !important;
+          }
+        }
       `}</style>
       {/* Fixed Header - fully responsive */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm lg:left-48 xl:left-49 mobile-header">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm mobile-header">
         <div className="px-4 sm:px-6 py-4 pb-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 mobile-header-content">
             <div className="mb-3 sm:mb-0">
@@ -2657,12 +2745,12 @@ export function VisitsDashboard() {
 
 
       {/* Main Content Area - fully responsive layout */}
-      <div className="pt-40 sm:pt-36 md:pt-35 px-4 sm:px-6 pb-6 flex-1 overflow-y-auto lg:ml-10 max-w-full mobile-content">
+      <div className="pt-40 sm:pt-36 md:pt-35 px-4 sm:px-6 pb-6 flex-1 overflow-x-hidden mobile-content" style={{ maxWidth: '100%', boxSizing: 'border-box' }}>
         {/* Equipment Section */}
         <Card
           onClick={() => setIsEquipmentExpanded(!isEquipmentExpanded)}
           className="mb-4 bg-white border border-gray-200 rounded-xl shadow-sm cursor-pointer transition-all select-none outline-none w-full"
-          style={{ minHeight: '56px' }}
+          style={{ minHeight: '56px', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}
         >
           <CardContent className="p-3 sm:p-4 bg-transparent">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between equipment-header">
@@ -2737,16 +2825,17 @@ export function VisitsDashboard() {
         </div>
 
         {/* Visit Cards Layout */}
-        <div className="space-y-4 sm:space-y-6 w-full">
+        <div className="space-y-4 sm:space-y-6 w-full visits-section-container" style={{ maxWidth: '100%', overflow: 'hidden', boxSizing: 'border-box' }}>
           {activeTab === '14days' ? (
             <>
               {Object.entries(groupedVisits).map(([date, visits]) => (
-                <div key={date} className="w-full" ref={el => dateSectionRefs.current[date] = el}>
+                <div key={date} className="w-full date-section-container" ref={el => dateSectionRefs.current[date] = el} style={{ maxWidth: '100%', overflow: 'hidden' }}>
                   {/* Date Header Wrapper - maintains space when date card is fixed */}
-                  <div className="date-card-wrapper" style={{ minHeight: 'fit-content' }}>
+                  <div className="date-card-wrapper" style={{ minHeight: 'fit-content', maxWidth: '100%' }}>
                     <div
                       ref={el => dateRefs.current[date] = el}
                       className="date-card rounded-lg px-3 sm:px-4 py-3 w-full"
+                      style={{ maxWidth: '100%', boxSizing: 'border-box' }}
                     >
                       <h4 className="text-sm font-medium mb-1">{date}</h4>
                       <span className="text-xs font-medium" style={{ color: '#939090' }}>
@@ -2756,11 +2845,11 @@ export function VisitsDashboard() {
                   </div>
 
                   {/* Responsive layout for 14 days view - fully responsive */}
-                  <div className="w-full bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+                  <div className="w-full bg-white rounded-lg p-4 sm:p-6 shadow-sm white-container" style={{ maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
                     {/* Unified responsive grid - works on both mobile and desktop */}
-                    <div className="visits-grid-14days">
+                    <div className="visits-grid-14days" style={{ maxWidth: '100%' }}>
                       {visits.map(v => (
-                        <div key={v.id}>
+                        <div key={v.id} style={{ maxWidth: '100%' }}>
                           <VisitCard visit={v} />
                         </div>
                       ))}
