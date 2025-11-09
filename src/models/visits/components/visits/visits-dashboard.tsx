@@ -2376,8 +2376,8 @@ export function VisitsDashboard() {
           overflow-x: hidden !important;
         }
         
-        /* Very small mobile (300px - 389px) */
-        @media (max-width: 389px) {
+        /* Small mobile (300px - 680px) - No sidebar */
+        @media (max-width: 680px) {
           .mobile-header {
             left: 12.3rem !important;
             right: 0 !important;
@@ -2387,12 +2387,13 @@ export function VisitsDashboard() {
             padding-left: 0.75rem !important;
             padding-right: 0.75rem !important;
             width: 100% !important;
+            box-sizing: border-box !important;
           }
           
           .mobile-content {
             padding-top: 12rem !important;
             padding-left: 3rem !important;
-            padding-right: 0rem !important;
+            padding-right: 0.75rem !important;
             margin-left: 0 !important;
             width: 100% !important;
             max-width: 100vw !important;
@@ -2400,32 +2401,8 @@ export function VisitsDashboard() {
           }
         }
         
-        /* Small mobile (390px - 799px) */
-        @media (min-width: 390px) and (max-width: 799px) {
-          .mobile-header {
-            left: 12.3rem !important;
-            right: 0 !important;
-            z-index: 50 !important;
-            position: fixed !important;
-            margin-left: 0 !important;
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-            width: 100% !important;
-          }
-          
-          .mobile-content {
-            padding-top: 12rem !important;
-            padding-left: 3rem !important;
-            padding-right: 1rem !important;
-            margin-left: 0 !important;
-            width: 100% !important;
-            max-width: 100vw !important;
-            box-sizing: border-box !important;
-          }
-        }
-        
-        /* Shared mobile styles (300px - 799px) */
-        @media (max-width: 799px) {
+        /* Shared mobile styles (300px - 680px) */
+        @media (max-width: 680px) {
           /* Force single column layout on mobile */
           .visits-grid-14days {
             display: block !important;
@@ -2475,10 +2452,15 @@ export function VisitsDashboard() {
             width: 100% !important;
             justify-content: flex-start !important;
           }
+          
+          /* Reduce white container padding */
+          .white-container {
+            padding: 0.75rem !important;
+          }
         }
         
         /* Tablet responsive fixes (800px - 1022px) */
-        @media (min-width: 800px) and (max-width: 1022px) {
+        @media (min-width: 681px) and (max-width: 1024px) {
           .mobile-header {
             left: 12.3rem !important;
             right: 0 !important;
@@ -2491,7 +2473,7 @@ export function VisitsDashboard() {
           }
           
           .mobile-content {
-            padding-top: 10rem !important;
+            padding-top: 9rem !important;
             padding-left: 1.5rem !important;
             padding-right: 1.5rem !important;
             margin-left: 2rem !important;
@@ -2527,7 +2509,7 @@ export function VisitsDashboard() {
             width: auto !important;
             max-width: calc(100vw - 12rem) !important;
             padding-left: 1.5rem !important;
-            padding-right: 1.5rem !important;
+            padding-right: 0rem !important;
           }
           
           .mobile-content {
@@ -2845,11 +2827,11 @@ export function VisitsDashboard() {
                   </div>
 
                   {/* Responsive layout for 14 days view - fully responsive */}
-                  <div className="w-full bg-white rounded-lg p-4 sm:p-6 shadow-sm white-container" style={{ maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
+                  <div className="w-full bg-white rounded-lg shadow-sm white-container" style={{ maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden', padding: 'clamp(0.75rem, 2vw, 1.5rem)' }}>
                     {/* Unified responsive grid - works on both mobile and desktop */}
-                    <div className="visits-grid-14days" style={{ maxWidth: '100%' }}>
+                    <div className="visits-grid-14days" style={{ maxWidth: '100%', width: '100%' }}>
                       {visits.map(v => (
-                        <div key={v.id} style={{ maxWidth: '100%' }}>
+                        <div key={v.id} style={{ maxWidth: '100%', width: '100%' }}>
                           <VisitCard visit={v} />
                         </div>
                       ))}
