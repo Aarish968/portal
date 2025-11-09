@@ -2376,7 +2376,7 @@ export function VisitsDashboard() {
           overflow-x: hidden !important;
         }
         
-        /* Small mobile (up to 34.375rem / 550px) - No sidebar */
+        /* Small mobile (up to 34.375rem / 550px) - WITH SIDEBAR */
         @media (max-width: 34.375rem) {
           .mobile-header {
             left: 12.3rem !important;
@@ -2384,20 +2384,49 @@ export function VisitsDashboard() {
             z-index: 50 !important;
             position: fixed !important;
             margin-left: 0 !important;
-            padding-left: 0rem !important;
-            padding-right: 0.75rem !important;
-            width: 100% !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+            width: calc(100vw - 12.3rem) !important;
+            max-width: calc(100vw - 12.3rem) !important;
             box-sizing: border-box !important;
           }
           
           .mobile-content {
-            padding-top: 12rem !important;
-            padding-left: 3rem !important;
-            padding-right: 0.75rem !important;
-            margin-left: 0 !important;
-            width: 100% !important;
-            max-width: 100vw !important;
+            margin-top: 14rem !important;
+            padding-top: 0 !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+            margin-left: 2.4rem !important;
+            width: calc(100vw - 12.3rem) !important;
+            max-width: calc(100vw - 12.3rem) !important;
             box-sizing: border-box !important;
+            overflow-x: hidden !important;
+          }
+          
+          /* Force all cards to full width without gaps */
+          .mobile-content > * {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+            box-sizing: border-box !important;
+          }
+          
+          /* Remove horizontal scroll from flex containers */
+          .mobile-content .flex,
+          .mobile-content .inline-flex {
+            flex-wrap: wrap !important;
+            overflow-x: hidden !important;
+          }
+          
+          /* Stack typography cleanly */
+          .mobile-content h1,
+          .mobile-content h2,
+          .mobile-content h3,
+          .mobile-content h4,
+          .mobile-content p {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
           }
         }
         
