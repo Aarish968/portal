@@ -1742,8 +1742,8 @@ function VisitCard({ visit }: { visit: Visit }) {
 
 
 
-          {/* Visit Details - Responsive Layout */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 text-sm min-w-0 visit-details-mobile" style={{ color: '#939090', maxWidth: '100%', overflow: 'hidden' }}>
+          {/* Visit Details - Responsive Flex Layout */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm visit-details-mobile" style={{ color: '#939090', maxWidth: '100%', overflow: 'hidden' }}>
             {/* Time */}
             <div className="flex items-center gap-1 flex-shrink-0">
               <Clock className="w-4 h-4 flex-shrink-0" />
@@ -2378,8 +2378,66 @@ export function VisitsDashboard() {
           overflow-x: hidden !important;
         }
         
-        /* Small mobile (up to 34.375rem / 550px) - WITH SIDEBAR */
-        @media (max-width: 34.375rem) {
+        /* Extra small mobile (up to 22.125rem / 354px) - Reduce header text */
+        @media (max-width: 22.125rem) {
+          .mobile-header {
+            left: 12.3rem !important;
+            right: 0 !important;
+            z-index: 50 !important;
+            position: fixed !important;
+            margin-left: 0 !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+            width: calc(100vw - 12.3rem) !important;
+            max-width: calc(100vw - 12.3rem) !important;
+            box-sizing: border-box !important;
+          }
+          
+          /* Reduce header text size to prevent height increase */
+          .mobile-header h1 {
+            font-size: 0.875rem !important;
+            line-height: 1.2 !important;
+          }
+          
+          .mobile-header p,
+          .mobile-header span {
+            font-size: 0.75rem !important;
+            line-height: 1.2 !important;
+          }
+          
+          .mobile-header .text-xs {
+            font-size: 0.65rem !important;
+          }
+          
+          .mobile-header .text-sm {
+            font-size: 0.75rem !important;
+          }
+          
+          .mobile-content {
+            margin-top: 13.80rem !important;
+            padding-top: 0 !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+            margin-left: 2.4rem !important;
+            width: calc(100vw - 12.3rem) !important;
+            max-width: calc(100vw - 12.3rem) !important;
+            box-sizing: border-box !important;
+            overflow-x: hidden !important;
+          }
+          
+          /* Ensure visit details wrap properly on extra small screens */
+          .visit-details-mobile {
+            flex-wrap: wrap !important;
+          }
+          
+          .visit-details-mobile > div {
+            flex: 0 1 auto !important;
+            min-width: fit-content !important;
+          }
+        }
+        
+        /* Small mobile (22.125rem to 34.375rem / 354px - 550px) - WITH SIDEBAR */
+        @media (min-width: 22.125rem) and (max-width: 34.375rem) {
           .mobile-header {
             left: 12.3rem !important;
             right: 0 !important;
@@ -2421,14 +2479,16 @@ export function VisitsDashboard() {
             overflow-x: hidden !important;
           }
           
-          /* Stack typography cleanly */
+          /* Stack typography cleanly - ONLY for mobile */
           .mobile-content h1,
           .mobile-content h2,
           .mobile-content h3,
           .mobile-content h4,
-          .mobile-content p {
+          .mobile-content p,
+          .mobile-content span {
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
+            word-break: break-word !important;
           }
           
           /* Fix consent forms layout on mobile */
@@ -2472,11 +2532,18 @@ export function VisitsDashboard() {
             display: block !important;
           }
           
-          /* Mobile visit details - stack vertically */
+          /* Mobile visit details - responsive flex wrap */
           .visit-details-mobile {
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            gap: 0.75rem !important;
+            display: flex !important;
+            flex-wrap: wrap !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+          }
+          
+          .visit-details-mobile > div {
+            flex: 0 1 auto !important;
+            min-width: fit-content !important;
+            max-width: 100% !important;
           }
           
           /* Mobile procedure badges - wrap properly */
@@ -2550,6 +2617,18 @@ export function VisitsDashboard() {
             padding: 0 8px !important;
             gap: 6px !important;
           }
+          
+          /* Reset text wrapping for tablet - normal behavior */
+          .mobile-content h1,
+          .mobile-content h2,
+          .mobile-content h3,
+          .mobile-content h4,
+          .mobile-content p,
+          .mobile-content span {
+            word-wrap: normal !important;
+            overflow-wrap: normal !important;
+            word-break: normal !important;
+          }
         }
         
         /* Desktop: maintain current layout (above 64rem / 1024px) */
@@ -2596,6 +2675,18 @@ export function VisitsDashboard() {
             min-height: 100% !important;
             box-sizing: border-box !important;
             overflow: hidden !important;
+          }
+          
+          /* Reset text wrapping for desktop - normal behavior */
+          .mobile-content h1,
+          .mobile-content h2,
+          .mobile-content h3,
+          .mobile-content h4,
+          .mobile-content p,
+          .mobile-content span {
+            word-wrap: normal !important;
+            overflow-wrap: normal !important;
+            word-break: normal !important;
           }
         }
         
