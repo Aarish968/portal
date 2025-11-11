@@ -1776,7 +1776,13 @@ function VisitCard({ visit }: { visit: Visit }) {
       )
     } else {
       return (
-        <div className="bg-red-500 text-white px-3 sm:px-4 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 whitespace-nowrap">
+        <div
+          className="bg-red-500 text-white px-3 sm:px-4 rounded-full text-xs font-medium inline-flex items-center gap-1 whitespace-nowrap"
+          // style={{
+          //   height: '32px',
+          //   minHeight: '32px',
+          // }}
+        >
           <span className="text-xs">Not Started</span>
         </div>
       )
@@ -2569,7 +2575,7 @@ export function VisitsDashboard() {
             max-width: 90px !important;
             min-width: 85px !important;
             overflow: hidden !important;
-            padding: 0 6px !important;
+            padding: 4px 1rem !important;
             gap: 4px !important;
           }
         }
@@ -2682,7 +2688,7 @@ export function VisitsDashboard() {
           .inline-flex.items-center.text-white {
             max-width: 95px !important;
             min-width: 90px !important;
-            padding: 0 8px !important;
+            padding: 4px 1rem !important;
             gap: 6px !important;
           }
           
@@ -2705,7 +2711,7 @@ export function VisitsDashboard() {
           .inline-flex.items-center.text-white {
             max-width: 100px !important;
             min-width: 95px !important;
-            padding: 0 10px !important;
+            padding: 4px 1rem !important;
             gap: 8px !important;
           }
           .mobile-header {
