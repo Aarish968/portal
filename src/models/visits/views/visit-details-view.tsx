@@ -424,7 +424,7 @@ export default function VisitDetailsView() {
 
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+    <div className="h-screen bg-gray-85 flex flex-col overflow-hidden">
       {/* Header - Full Width */}
       <div className="w-full flex-shrink-0">
         <div className="flex items-center justify-between bg-white border border-gray-300 px-6 py-4">
@@ -665,7 +665,7 @@ export default function VisitDetailsView() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Main Info Card */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8 mb-6 mt-6">
+        <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Patient Info */}
             <div>
@@ -873,7 +873,6 @@ export default function VisitDetailsView() {
 
         {/* Procedures */}
         <div data-procedures-section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Visit Procedures</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {procedures.map((procedure) => {
               const outcome = outcomes[procedure.id]
