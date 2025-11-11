@@ -2049,6 +2049,28 @@ export function VisitsDashboard() {
   const [showConsentSuccess, setShowConsentSuccess] = useState(false)
   // Removed unused refreshTrigger state
   const dateRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+  const todayTabRef = useRef<HTMLButtonElement>(null)
+  const tomorrowTabRef = useRef<HTMLButtonElement>(null)
+  const weekTabRef = useRef<HTMLButtonElement>(null)
+  const [underlineStyle, setUnderlineStyle] = useState({ width: 0, left: 0 })
+
+  // Calculate underline position based on active tab
+  useEffect(() => {
+    const updateUnderlinePosition = () => {
+      let targetRef = todayTabRef
+      if (activeTab === 'tomorrow') targetRef = tomorrowTabRef
+      if (activeTab === '14days') targetRef = weekTabRef
+
+      if (targetRef.current) {
+        const { offsetLeft, offsetWidth } = targetRef.current
+        setUnderlineStyle({ width: offsetWidth, left: offsetLeft })
+      }
+    }
+
+    updateUnderlinePosition()
+    window.addEventListener('resize', updateUnderlinePosition)
+    return () => window.removeEventListener('resize', updateUnderlinePosition)
+  }, [activeTab])
 
   // Handle consent confirmation
   const handleConsentConfirmation = () => {
@@ -2921,6 +2943,7 @@ export function VisitsDashboard() {
           {/* Tabs */}
           <div className="relative flex pb-3 mobile-tabs" style={{ gap: 'clamp(0.5rem, 3vw, 2rem)' }}>
             <button
+              ref={todayTabRef}
               onClick={() => setActiveTab('today')}
               className="relative font-medium transition-colors duration-200 whitespace-nowrap text-sm sm:text-base"
               style={{
@@ -2930,6 +2953,7 @@ export function VisitsDashboard() {
               Today
             </button>
             <button
+              ref={tomorrowTabRef}
               onClick={() => setActiveTab('tomorrow')}
               className="relative font-medium transition-colors duration-200 whitespace-nowrap text-sm sm:text-base"
               style={{
@@ -2939,6 +2963,7 @@ export function VisitsDashboard() {
               Tomorrow
             </button>
             <button
+              ref={weekTabRef}
               onClick={() => setActiveTab('14days')}
               className="relative font-medium transition-colors duration-200 whitespace-nowrap text-sm sm:text-base"
               style={{
@@ -2955,18 +2980,8 @@ export function VisitsDashboard() {
                 backgroundColor: '#015F88',
                 height: '3px',
                 borderRadius: '100px 100px 0 0',
-                width:
-                  activeTab === 'today'
-                    ? 'clamp(2.5rem, 12vw, 3.125rem)'
-                    : activeTab === 'tomorrow'
-                      ? 'clamp(4rem, 20vw, 5.313rem)'
-                      : 'clamp(2rem, 10vw, 2.813rem)',
-                left:
-                  activeTab === 'today'
-                    ? '0'
-                    : activeTab === 'tomorrow'
-                      ? 'clamp(3rem, 15vw, 3.8rem)'
-                      : 'clamp(7.5rem, 38vw, 9.95rem)',
+                width: `${underlineStyle.width}px`,
+                left: `${underlineStyle.left}px`,
               }}
             />
           </div>
