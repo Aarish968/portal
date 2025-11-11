@@ -65,6 +65,14 @@ const equipmentDataToday = [
   { name: 'STI Kit', visits: 1 },
 ]
 
+const equipmentDataTomorrow = [
+  { name: 'HbA1c Kit', visits: 2 },
+  { name: 'Lipid Panel Kit', visits: 1 },
+  { name: 'Retinal Camera', visits: 1 },
+  { name: 'Portable ECG/EKG', visits: 1 },
+  { name: 'Vaccine Kit', visits: 1 },
+]
+
 const equipmentData14Days = [
   { name: 'HbA1c Kit', visits: 11 },
   { name: 'Lipid Panel Kit', visits: 12 },
@@ -164,6 +172,60 @@ const mockVisitsToday: Visit[] = [
     consentForms: [
       { name: 'HIPAA Authorization' },
       { name: 'Notice of Privacy Practices', completed: true },
+      { name: 'Treatment Consent' },
+    ],
+  },
+]
+
+const mockVisitsTomorrow: Visit[] = [
+  {
+    id: 'tom-1',
+    patientName: 'Sarah Williams',
+    time: '9:00AM',
+    address: '789 Maple Street, Dayton, OH',
+    phone: '(570) 555-1001',
+    insurance: 'Medicare',
+    status: 'not-started',
+    visitType: 'in-home',
+    procedures: [{ name: 'HbA1c Test' }, { name: 'Blood Pressure' }, { name: 'Lipid Panel' }],
+    healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
+  },
+  {
+    id: 'tom-2',
+    patientName: 'Michael Chen',
+    time: '10:30AM',
+    address: '456 Pine Avenue, Dayton, OH',
+    phone: '(570) 555-1002',
+    insurance: 'BCBS',
+    status: 'not-started',
+    visitType: 'telehealth',
+    procedures: [{ name: 'Retinal Screening' }, { name: 'Blood Pressure' }],
+    healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
+      { name: 'Treatment Consent' },
+    ],
+  },
+  {
+    id: 'tom-3',
+    patientName: 'Emily Rodriguez',
+    time: '1:00PM',
+    address: '321 Cedar Lane, Dayton, OH',
+    phone: '(570) 555-1003',
+    insurance: 'UHC',
+    status: 'not-started',
+    visitType: 'in-home',
+    procedures: [{ name: 'EKG' }, { name: 'Vaccine' }, { name: 'Blood Pressure' }],
+    healthRiskAssessment: 'not-started',
+    consentForms: [
+      { name: 'HIPAA Authorization' },
+      { name: 'Notice of Privacy Practices' },
       { name: 'Treatment Consent' },
     ],
   },
@@ -1970,7 +2032,7 @@ function VisitCard({ visit }: { visit: Visit }) {
 
 export function VisitsDashboard() {
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState('today')
+  const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | '14days'>('today')
   const [visitsToday, setVisitsToday] = useState<Visit[]>(mockVisitsToday)
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
   const [time, setTime] = useState('')
@@ -2007,8 +2069,14 @@ export function VisitsDashboard() {
   }
   const dateSectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
-  const currentVisits = activeTab === 'today' ? visitsToday : mockVisits14Days
-  const currentEquipment = activeTab === 'today' ? equipmentDataToday : equipmentData14Days
+  const currentVisits =
+    activeTab === 'today' ? visitsToday : activeTab === 'tomorrow' ? mockVisitsTomorrow : mockVisits14Days
+  const currentEquipment =
+    activeTab === 'today'
+      ? equipmentDataToday
+      : activeTab === 'tomorrow'
+        ? equipmentDataTomorrow
+        : equipmentData14Days
   const equipmentCount = currentEquipment.length
   const visitCount = currentVisits.length
 
@@ -2820,53 +2888,46 @@ export function VisitsDashboard() {
           <div className="relative flex gap-4 sm:gap-8 pb-3 mobile-tabs">
             <button
               onClick={() => setActiveTab('today')}
-              onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
-              onMouseLeave={(e) => e.currentTarget.style.color = activeTab === 'today' ? '#239BCF' : '#1b1b1b'}
-              className="relative font-medium transition-all duration-300 text-sm sm:text-base"
+              className="relative font-medium transition-colors duration-200 text-sm sm:text-base"
               style={{
-                color: activeTab === 'today' ? '#239BCF' : '#1b1b1b'
+                color: activeTab === 'today' ? '#015F88' : '#6b7280',
               }}
             >
-              {activeTab === 'today' && (
-                <span
-                  className="absolute inset-0 -z-10 rounded"
-                  style={{
-                    backgroundColor: 'rgba(35, 155, 207, 0.1)',
-                    boxShadow: '0 0 15px rgba(35, 155, 207, 0.3)'
-                  }}
-                />
-              )}
               Today
             </button>
             <button
-              onClick={() => setActiveTab('14days')}
-              onMouseEnter={(e) => e.currentTarget.style.color = '#6b7280'}
-              onMouseLeave={(e) => e.currentTarget.style.color = activeTab === '14days' ? '#239BCF' : '#1b1b1b'}
-              className="relative font-medium transition-all duration-300 text-sm sm:text-base"
+              onClick={() => setActiveTab('tomorrow')}
+              className="relative font-medium transition-colors duration-200 text-sm sm:text-base"
               style={{
-                color: activeTab === '14days' ? '#239BCF' : '#1b1b1b'
+                color: activeTab === 'tomorrow' ? '#015F88' : '#6b7280',
               }}
             >
-              {activeTab === '14days' && (
-                <span
-                  className="absolute inset-0 -z-10 rounded"
-                  style={{
-                    backgroundColor: 'rgba(35, 155, 207, 0.1)',
-                    boxShadow: '0 0 15px rgba(35, 155, 207, 0.3)'
-                  }}
-                />
-              )}
-              Next 14 Days
+              Tomorrow
+            </button>
+            <button
+              onClick={() => setActiveTab('14days')}
+              className="relative font-medium transition-colors duration-200 text-sm sm:text-base"
+              style={{
+                color: activeTab === '14days' ? '#015F88' : '#6b7280',
+              }}
+            >
+              Week
             </button>
 
-            {/* Animated underline - positioned above the grey border */}
+            {/* Animated underline with rounded top corners */}
             <div
-              className="absolute bottom-0 h-0.5 transition-all duration-500 ease-in-out z-10"
+              className="absolute bottom-0 transition-all duration-500 ease-in-out z-10"
               style={{
-                backgroundColor: '#239BCF',
-                width: activeTab === 'today' ? '48px' : '105px',
-                transform: activeTab === 'today' ? 'translateX(0)' : 'translateX(calc(48px + 1rem))',
-                boxShadow: '0 0 10px rgba(35, 155, 207, 0.5)'
+                backgroundColor: '#015F88',
+                height: '3px',
+                borderRadius: '100px 100px 0 0',
+                width: activeTab === 'today' ? '48px' : activeTab === 'tomorrow' ? '80px' : '40px',
+                transform:
+                  activeTab === 'today'
+                    ? 'translateX(0)'
+                    : activeTab === 'tomorrow'
+                      ? 'translateX(calc(48px + 1rem))'
+                      : 'translateX(calc(48px + 80px + 2rem))',
               }}
             />
           </div>
@@ -2898,7 +2959,9 @@ export function VisitsDashboard() {
                 >
                   {activeTab === 'today'
                     ? 'Equipment Needed Today'
-                    : 'Equipment Needed - Next 14 Days'}
+                    : activeTab === 'tomorrow'
+                      ? 'Equipment Needed Tomorrow'
+                      : 'Equipment Needed - Next 14 Days'}
                 </h2>
               </div>
 
@@ -2953,7 +3016,7 @@ export function VisitsDashboard() {
         {/* Today's Visits Section */}
         <div className="mb-4 sm:mb-6">
           <h3 className="text-lg sm:text-xl font-medium mb-0" style={{ color: '#1b1b1b' }}>
-            {activeTab === 'today' ? "Today's Visits" : "Upcoming Visits"}
+            {activeTab === 'today' ? "Today's Visits" : activeTab === 'tomorrow' ? "Tomorrow's Visits" : 'Upcoming Visits'}
           </h3>
         </div>
 
