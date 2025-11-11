@@ -1778,10 +1778,10 @@ function VisitCard({ visit }: { visit: Visit }) {
       return (
         <div
           className="bg-red-500 text-white px-3 sm:px-4 rounded-full text-xs font-medium inline-flex items-center gap-1 whitespace-nowrap"
-          // style={{
-          //   height: '32px',
-          //   minHeight: '32px',
-          // }}
+        // style={{
+        //   height: '32px',
+        //   minHeight: '32px',
+        // }}
         >
           <span className="text-xs">Not Started</span>
         </div>
@@ -2452,6 +2452,34 @@ export function VisitsDashboard() {
           overflow-x: hidden !important;
         }
         
+        /* Mobile tabs responsive fixes */
+        @media (max-width: 377px) {
+          .mobile-tabs {
+            gap: 0.5rem !important;
+          }
+          .mobile-tabs button {
+            font-size: 0.75rem !important;
+          }
+        }
+        
+        @media (min-width: 378px) and (max-width: 389px) {
+          .mobile-tabs {
+            gap: 0.625rem !important;
+          }
+          .mobile-tabs button {
+            font-size: 0.813rem !important;
+          }
+        }
+        
+        @media (min-width: 390px) and (max-width: 454px) {
+          .mobile-tabs {
+            gap: 0.75rem !important;
+          }
+          .mobile-tabs button {
+            font-size: 0.875rem !important;
+          }
+        }
+        
         /* Extra small mobile (up to 22.125rem / 354px) - Reduce header text */
         @media (max-width: 22.125rem) {
           .mobile-header {
@@ -2891,10 +2919,10 @@ export function VisitsDashboard() {
           </div>
 
           {/* Tabs */}
-          <div className="relative flex gap-4 sm:gap-8 pb-3 mobile-tabs">
+          <div className="relative flex pb-3 mobile-tabs" style={{ gap: 'clamp(0.5rem, 3vw, 2rem)' }}>
             <button
               onClick={() => setActiveTab('today')}
-              className="relative font-medium transition-colors duration-200 text-sm sm:text-base"
+              className="relative font-medium transition-colors duration-200 whitespace-nowrap text-sm sm:text-base"
               style={{
                 color: activeTab === 'today' ? '#015F88' : '#6b7280',
               }}
@@ -2903,7 +2931,7 @@ export function VisitsDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('tomorrow')}
-              className="relative font-medium transition-colors duration-200 text-sm sm:text-base"
+              className="relative font-medium transition-colors duration-200 whitespace-nowrap text-sm sm:text-base"
               style={{
                 color: activeTab === 'tomorrow' ? '#015F88' : '#6b7280',
               }}
@@ -2912,7 +2940,7 @@ export function VisitsDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('14days')}
-              className="relative font-medium transition-colors duration-200 text-sm sm:text-base"
+              className="relative font-medium transition-colors duration-200 whitespace-nowrap text-sm sm:text-base"
               style={{
                 color: activeTab === '14days' ? '#015F88' : '#6b7280',
               }}
@@ -2927,13 +2955,18 @@ export function VisitsDashboard() {
                 backgroundColor: '#015F88',
                 height: '3px',
                 borderRadius: '100px 100px 0 0',
-                width: activeTab === 'today' ? '2.8rem' : activeTab === 'tomorrow' ? '4.7rem' : '45px',
-                transform:
+                width:
                   activeTab === 'today'
-                    ? 'translateX(0)'
+                    ? 'clamp(2.5rem, 12vw, 3.125rem)'
                     : activeTab === 'tomorrow'
-                      ? 'translateX(calc(50px + 1.5rem))'
-                      : 'translateX(calc(50px + 85px + 2.7rem))',
+                      ? 'clamp(4rem, 20vw, 5.313rem)'
+                      : 'clamp(2rem, 10vw, 2.813rem)',
+                left:
+                  activeTab === 'today'
+                    ? '0'
+                    : activeTab === 'tomorrow'
+                      ? 'clamp(3rem, 15vw, 3.8rem)'
+                      : 'clamp(7.5rem, 38vw, 9.95rem)',
               }}
             />
           </div>
