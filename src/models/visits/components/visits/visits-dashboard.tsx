@@ -2475,7 +2475,31 @@ export function VisitsDashboard() {
         }
         
         /* Mobile tabs responsive fixes */
-        @media (max-width: 377px) {
+        /* Very small screens - 354px and below */
+        @media (max-width: 354px) {
+          .mobile-tabs {
+            gap: 0.188rem !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            -webkit-overflow-scrolling: touch !important;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+          }
+          .mobile-tabs::-webkit-scrollbar {
+            display: none !important;
+          }
+          .mobile-tabs button {
+            font-size: 0.563rem !important;
+            padding: 0.125rem 0.25rem !important;
+            flex-shrink: 0 !important;
+            letter-spacing: -0.02em !important;
+          }
+        }
+        
+        /* Small screens - 355px to 377px */
+        @media (min-width: 355px) and (max-width: 377px) {
           .mobile-tabs {
             gap: 0.5rem !important;
           }
@@ -2510,11 +2534,17 @@ export function VisitsDashboard() {
             z-index: 50 !important;
             position: fixed !important;
             margin-left: 0 !important;
-            padding-left: 0.5rem !important;
-            padding-right: 0.5rem !important;
+            padding-left: 0.25rem !important;
+            padding-right: 0.25rem !important;
             width: calc(100vw - 12.3rem) !important;
             max-width: calc(100vw - 12.3rem) !important;
             box-sizing: border-box !important;
+          }
+          
+          /* Reduce tabs container padding */
+          .mobile-header > div {
+            padding-left: 0.25rem !important;
+            padding-right: 0.25rem !important;
           }
           
           /* Reduce header text size to prevent height increase */
@@ -2941,7 +2971,7 @@ export function VisitsDashboard() {
           </div>
 
           {/* Tabs */}
-          <div className="relative flex pb-3 mobile-tabs" style={{ gap: 'clamp(0.5rem, 3vw, 2rem)' }}>
+          <div className="relative flex pb-3 mobile-tabs" style={{ gap: 'clamp(0.188rem, 3vw, 2rem)' }}>
             <button
               ref={todayTabRef}
               onClick={() => setActiveTab('today')}
