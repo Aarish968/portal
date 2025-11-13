@@ -828,7 +828,7 @@ export default function VisitDetailsView() {
                     aria-pressed={false}
                   >
                     <Play className="w-5 h-5 fill-white" />
-                    <span>Start HRA</span>
+                    <span>{visitStatus === 'in-progress' && !outcomes['hra'] ? 'Continue HRA Assessment' : 'Start HRA'}</span>
                   </button>
 
                   {/* Also show Start Telehealth alongside HRA for telehealth visits */}
