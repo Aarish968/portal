@@ -2881,26 +2881,38 @@ export function VisitsDashboard() {
 
   // Handle consent confirmation
   const handleConsentConfirmation = () => {
+    // Close "Collected consent?" modal
     setShowConsentConfirmation(false)
-    setShowConsentLoading(true)
+    
+    // Check if all 3 consents are missing
+    const consentStatus = pendingConsentData?.consentStatus
+    const allThreeMissing = !consentStatus?.hipaa && !consentStatus?.privacy && !consentStatus?.treatment
+    
+    if (allThreeMissing) {
+      // Show "Consent Document Not Found" modal
+      setShowConsentModal(true)
+    } else {
+      // Show loading → success → stay on dashboard
+      setShowConsentLoading(true)
 
-    // After 2 seconds, show success
-    setTimeout(() => {
-      setShowConsentLoading(false)
-      setShowConsentSuccess(true)
-
-      // Refresh visit states to update the cards
-      refreshVisitStates()
-      // Force re-render by updating a state
-      setTime(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }))
-
-      // After 1 second, close the success modal and stay on visit outcomes page
+      // After 2 seconds, show success
       setTimeout(() => {
-        setShowConsentSuccess(false)
-        setPendingConsentData(null)
-        // User stays on visit outcomes page - no navigation to visit details
-      }, 1000)
-    }, 2000)
+        setShowConsentLoading(false)
+        setShowConsentSuccess(true)
+
+        // Refresh visit states to update the cards
+        refreshVisitStates()
+        // Force re-render by updating a state
+        setTime(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }))
+
+        // After 1 second, close the success modal and stay on visit outcomes page
+        setTimeout(() => {
+          setShowConsentSuccess(false)
+          setPendingConsentData(null)
+          // User stays on visit outcomes page - no navigation to visit details
+        }, 1000)
+      }, 2000)
+    }
   }
   const dateSectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
@@ -2955,12 +2967,22 @@ export function VisitsDashboard() {
         if (consentData) {
           const consent = JSON.parse(consentData)
           const completedCount = [consent.hipaa, consent.privacy, consent.treatment].filter(Boolean).length
-          // Show modal ONLY when zero consents are completed
+          // Show "Collected consent?" modal ONLY when all 3 consents are missing
           if (completedCount === 0) {
-            setShowConsentModal(true)
+            // Store consent status for later use in confirmation modal
+            setPendingConsentData({
+              visitId: null,
+              consentStatus: consent
+            })
+            setShowConsentConfirmation(true)
           }
         } else {
-          setShowConsentModal(true)
+          // No consent data found, show "Collected consent?" modal
+          setPendingConsentData({
+            visitId: null,
+            consentStatus: { hipaa: false, privacy: false, treatment: false }
+          })
+          setShowConsentConfirmation(true)
         }
       } else {
         // Check consent status for specific visit
@@ -2968,18 +2990,31 @@ export function VisitsDashboard() {
         if (consentData) {
           const consent = JSON.parse(consentData)
           const completedCount = [consent.hipaa, consent.privacy, consent.treatment].filter(Boolean).length
-          // Show modal ONLY when zero consents are completed
+          // Show "Collected consent?" modal ONLY when all 3 consents are missing
           if (completedCount === 0) {
-            setShowConsentModal(true)
+            // Store consent status for later use in confirmation modal
+            setPendingConsentData({
+              visitId,
+              consentStatus: consent
+            })
+            setShowConsentConfirmation(true)
           }
         } else {
-          // No consent data found, show modal
-          setShowConsentModal(true)
+          // No consent data found, show "Collected consent?" modal
+          setPendingConsentData({
+            visitId,
+            consentStatus: { hipaa: false, privacy: false, treatment: false }
+          })
+          setShowConsentConfirmation(true)
         }
       }
     } catch {
-      // Error parsing, show modal
-      setShowConsentModal(true)
+      // Error parsing, show "Collected consent?" modal
+      setPendingConsentData({
+        visitId: null,
+        consentStatus: { hipaa: false, privacy: false, treatment: false }
+      })
+      setShowConsentConfirmation(true)
     }
   }, [])
 
@@ -4020,8 +4055,25 @@ export function VisitsDashboard() {
               }}>
                 <button
                   onClick={() => {
-                    // Just close modal and stay on Visit Outcomes page
+                    // Close modal
                     setShowConsentModal(false)
+                    
+                    // Get visit ID from pending consent data or first visit
+                    const visitId = pendingConsentData?.visitId || currentVisits[0]?.id
+                    
+                    if (visitId) {
+                      sessionStorage.setItem('fromConsentPage', 'true')
+                      sessionStorage.setItem('currentVisitId', visitId)
+                      
+                      // Store visit data for later use
+                      const visit = currentVisits.find(v => v.id === visitId)
+                      if (visit) {
+                        sessionStorage.setItem(`visit-${visitId}`, JSON.stringify(visit))
+                      }
+                      
+                      // Open consent form in new tab
+                      window.open(`${ROUTES.app.consentForms.href}?visitId=${visitId}`, '_blank')
+                    }
                   }}
                   style={{
                     padding: '10px 20px',
@@ -4046,14 +4098,22 @@ export function VisitsDashboard() {
                 </button>
                 <button
                   onClick={() => {
+                    // Close the consent modal
                     setShowConsentModal(false)
-                    // Get visit ID from current context or first visit
-                    const firstVisit = currentVisits[0]
-                    if (firstVisit) {
-                      sessionStorage.setItem('currentVisitId', firstVisit.id)
-                    }
-                    // Navigate to consent forms page
-                    navigate(ROUTES.app.consentForms.href)
+                    // Show loading
+                    setShowConsentLoading(true)
+
+                    // After 2 seconds, show success
+                    setTimeout(() => {
+                      setShowConsentLoading(false)
+                      setShowConsentSuccess(true)
+
+                      // After 1 second, close success and stay on dashboard
+                      setTimeout(() => {
+                        setShowConsentSuccess(false)
+                        // User stays on visit dashboard - no navigation needed
+                      }, 1000)
+                    }, 2000)
                   }}
                   style={{
                     padding: '10px 20px',
