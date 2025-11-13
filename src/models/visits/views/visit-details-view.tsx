@@ -1,5 +1,5 @@
 import React from 'react'
-import { ArrowLeft, MapPin, Clock, Play, X, Pencil, Loader2, Folder } from 'lucide-react'
+import { ArrowLeft, MapPin, Clock, X, Pencil, Loader2, Folder } from 'lucide-react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ProcedureIncompleteDialog } from '../components/ProcedureIncompleteDialog'
 import { useToast } from '@/base_submod/hooks/use-toast'

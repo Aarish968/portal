@@ -669,141 +669,6 @@ function StatusBadge({ status, visitState }: { status: Visit['status'], visitSta
   )
 }
 
-function ProcedureBadge({ procedure }: { procedure: VisitProcedure }) {
-  if (procedure.completed) {
-    return (
-      <div
-        className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full"
-        style={{
-          maxWidth: '100%',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          lineHeight: '1.5',
-          cursor: 'unset',
-          verticalAlign: 'middle',
-          boxSizing: 'border-box',
-          height: '26px',
-          fontWeight: '500',
-          fontSize: '0.75rem',
-          backgroundColor: 'rgb(25, 154, 146)',
-          color: 'rgb(255, 255, 255)',
-          whiteSpace: 'nowrap',
-          transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
-          outline: '0px',
-          textDecoration: 'none',
-          borderWidth: '0px',
-          borderStyle: 'initial',
-          borderColor: 'initial',
-          borderImage: 'initial',
-          padding: '0px 8px',
-          borderRadius: '999px'
-        }}
-      >
-        <div className="w-3 h-3 rounded-full bg-white flex items-center justify-center flex-shrink-0">
-          <Check className="w-2 h-2" style={{ color: 'rgb(25, 154, 146)' }} />
-        </div>
-        <span className="text-xs">{procedure.name}</span>
-      </div>
-    )
-  }
-  return (
-    <div
-      className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full"
-      style={{
-        maxWidth: '100%',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        lineHeight: '1.5',
-        cursor: 'unset',
-        verticalAlign: 'middle',
-        boxSizing: 'border-box',
-        height: '24px',
-        fontWeight: '500',
-        fontSize: '0.75rem',
-        backgroundColor: 'rgb(207, 35, 35)',
-        color: 'rgb(255, 255, 255)',
-        whiteSpace: 'nowrap',
-        transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
-        outline: '0px',
-        textDecoration: 'none',
-        borderWidth: '0px',
-        borderStyle: 'initial',
-        borderColor: 'initial',
-        borderImage: 'initial',
-        padding: '0px 8px',
-        borderRadius: '999px'
-      }}
-    >
-      <div className="w-3 h-3 rounded-full bg-white flex items-center justify-center flex-shrink-0">
-        <X className="w-2 h-2" style={{ color: 'rgb(207, 35, 35)' }} />
-      </div>
-      <span className="text-xs">{procedure.name}</span>
-    </div>
-  )
-}
-
-function ConsentFormBadge({ consentForm }: { consentForm: ConsentForm }) {
-  if (consentForm.completed) {
-    return (
-      <div
-        className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full"
-        style={{
-          maxWidth: '100%',
-          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          lineHeight: '1.5',
-          cursor: 'unset',
-          verticalAlign: 'middle',
-          boxSizing: 'border-box',
-          height: '26px',
-          fontWeight: '500',
-          fontSize: '0.75rem',
-          backgroundColor: 'rgb(25, 154, 146)',
-          color: 'rgb(255, 255, 255)',
-          whiteSpace: 'nowrap',
-          transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
-          outline: '0px',
-          textDecoration: 'none',
-          borderWidth: '0px',
-          borderStyle: 'initial',
-          borderColor: 'initial',
-          borderImage: 'initial',
-          padding: '0px 8px',
-          borderRadius: '999px'
-        }}
-      >
-        <div className="w-3 h-3 rounded-full bg-white flex items-center justify-center flex-shrink-0">
-          <Check className="w-2 h-2" style={{ color: 'rgb(25, 154, 146)' }} />
-        </div>
-        <span className="text-xs">{consentForm.name}</span>
-      </div>
-    )
-  }
-  return (
-    <div
-      className="px-2 sm:px-3 py-1 text-xs font-medium whitespace-nowrap rounded-full"
-      style={{
-        margin: '0px',
-        fontSize: '0.875rem',
-        lineHeight: '1.4',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-        color: 'rgb(228, 118, 0)',
-        fontWeight: '500',
-        backgroundColor: 'rgba(228, 118, 0, 0.1)',
-        border: '1px solid rgba(228, 118, 0, 0.3)'
-      }}
-    >
-      {consentForm.name}
-    </div>
-  )
-}
-
 function VisitTypeBadge({ visitType }: { visitType: Visit['visitType'] }) {
   if (visitType === 'telehealth') {
     return null // Don't show separate visit type badge for telehealth since it's shown after time
@@ -2844,7 +2709,6 @@ function VisitCard({ visit }: { visit: Visit }) {
 }
 
 export function VisitsDashboard() {
-  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<'today' | 'tomorrow' | 'week'>('today')
   const [visitsToday, setVisitsToday] = useState<Visit[]>(mockVisitsToday)
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
@@ -2883,11 +2747,11 @@ export function VisitsDashboard() {
   const handleConsentConfirmation = () => {
     // Close "Collected consent?" modal
     setShowConsentConfirmation(false)
-    
+
     // Check if all 3 consents are missing
     const consentStatus = pendingConsentData?.consentStatus
     const allThreeMissing = !consentStatus?.hipaa && !consentStatus?.privacy && !consentStatus?.treatment
-    
+
     if (allThreeMissing) {
       // Show "Consent Document Not Found" modal
       setShowConsentModal(true)
@@ -4057,20 +3921,20 @@ export function VisitsDashboard() {
                   onClick={() => {
                     // Close modal
                     setShowConsentModal(false)
-                    
+
                     // Get visit ID from pending consent data or first visit
                     const visitId = pendingConsentData?.visitId || currentVisits[0]?.id
-                    
+
                     if (visitId) {
                       sessionStorage.setItem('fromConsentPage', 'true')
                       sessionStorage.setItem('currentVisitId', visitId)
-                      
+
                       // Store visit data for later use
                       const visit = currentVisits.find(v => v.id === visitId)
                       if (visit) {
                         sessionStorage.setItem(`visit-${visitId}`, JSON.stringify(visit))
                       }
-                      
+
                       // Open consent form in new tab
                       window.open(`${ROUTES.app.consentForms.href}?visitId=${visitId}`, '_blank')
                     }
