@@ -7,9 +7,9 @@ import ROUTES from '@/data/routing/routes'
 export function RootRedirect() {
   // Skip authentication in development mode - go directly to main app
   const isDevelopment = import.meta.env.DEV || import.meta.env.VITE_SKIP_AUTH === 'true'
-  
+
   if (isDevelopment) {
-    return <Navigate to={ROUTES.app.hraActivity.href} replace />
+    return <Navigate to={ROUTES.app.visits.href} replace />
   }
 
   const { instance, inProgress } = useMsal()
@@ -22,7 +22,7 @@ export function RootRedirect() {
   const activeAccount = instance.getAllAccounts()[0]
 
   if (isAuthenticated || activeAccount) {
-    return <Navigate to={ROUTES.app.hraActivity.href} replace />
+    return <Navigate to={ROUTES.app.visits.href} replace />
   }
 
   return <Navigate to={ROUTES.auth.login.href} replace />
