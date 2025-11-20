@@ -2625,7 +2625,20 @@ function VisitCard({ visit }: { visit: Visit }) {
               Required Procedures
             </h4>
             <div className="flex flex-wrap gap-2 procedures-mobile" style={{ maxWidth: '100%' }}>
-              {visit.procedures.map((p, i) => {
+              {visit.procedures
+                .filter((p) => {
+                  // Map procedure names to IDs used in visit details
+                  const procedureIdMap: Record<string, string> = {
+                    'A1C': 'a1c',
+                    'Blood Pressure': 'blood-pressure',
+                    'Urine Sample': 'urine-sample'
+                  }
+                  const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
+                  // Hide completed procedures, only show incomplete or not-started ones
+                  const outcome = visitState?.outcomes?.[procedureId]
+                  return outcome !== 'completed'
+                })
+                .map((p, i) => {
                 // Map procedure names to IDs used in visit details
                 const procedureIdMap: Record<string, string> = {
                   'A1C': 'a1c',

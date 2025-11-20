@@ -726,24 +726,27 @@ export default function VisitDetailsView() {
                     color: '#1B1B1B'
                   }}>Equipment Needed</h4>
                   <div className="flex flex-wrap gap-2">
-                    <span className="px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs" style={{
-                      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                      color: '#1B1B1B'
-                    }}>
-                      A1C Kit
-                    </span>
-                    <span className="px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs" style={{
-                      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                      color: '#1B1B1B'
-                    }}>
-                      Blood Pressure Monitor
-                    </span>
-                    <span className="px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs" style={{
-                      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                      color: '#1B1B1B'
-                    }}>
-                      Urine Collection Kit
-                    </span>
+                    {[
+                      { name: 'A1C Kit', procedureId: 'a1c' },
+                      { name: 'Blood Pressure Monitor', procedureId: 'blood-pressure' },
+                      { name: 'Urine Collection Kit', procedureId: 'urine-sample' }
+                    ]
+                      .filter((equipment) => {
+                        // Hide equipment for completed procedures
+                        return outcomes[equipment.procedureId] !== 'completed'
+                      })
+                      .map((equipment, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs"
+                          style={{
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                            color: '#1B1B1B'
+                          }}
+                        >
+                          {equipment.name}
+                        </span>
+                      ))}
                   </div>
                 </div>
               </div>
@@ -874,7 +877,13 @@ export default function VisitDetailsView() {
           {/* Procedures */}
           <div data-procedures-section>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {procedures.map((procedure) => {
+              {procedures
+                .filter((procedure) => {
+                  // Hide completed procedures, only show incomplete or not-started ones
+                  const outcome = outcomes[procedure.id]
+                  return outcome !== 'completed'
+                })
+                .map((procedure) => {
                 const outcome = outcomes[procedure.id]
                 const reason = procedureReasons[procedure.id]
 
