@@ -1,6 +1,6 @@
 import { AnimatePresence } from 'motion/react'
 import { useEffect, useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { useToast } from '@/base_submod/hooks/use-toast'
 import { useHRAStore } from '@/models/hra/stores/hra-store'
 import HRAStartView from '@/models/hra/views/hra-start-view'
@@ -20,13 +20,28 @@ import HRAQuestionPreviousButton from '@/models/hra/components/hra-questions/hra
 
 function HRAView() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { toast } = useToast()
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [showStartView, setShowStartView] = useState(true)
   const [showReviewView, setShowReviewView] = useState(false)
   const [direction, setDirection] = useState(1)
 
-  const selectedMember = useMemberStore(state => state.selectedMember)
+  const selectedMemberFromStore = useMemberStore(state => state.selectedMember)
+  const setSelectedMember = useMemberStore(state => state.setSelectedMember)
+
+  // Get member from navigation state if available
+  const memberFromState = (location.state as any)?.member
+
+  // Use member from state if available, otherwise use from store
+  const selectedMember = memberFromState || selectedMemberFromStore
+
+  // If member came from navigation state, update the store
+  useEffect(() => {
+    if (memberFromState && !selectedMemberFromStore) {
+      setSelectedMember(memberFromState)
+    }
+  }, [memberFromState, selectedMemberFromStore, setSelectedMember])
   const {
     hra,
     error,
