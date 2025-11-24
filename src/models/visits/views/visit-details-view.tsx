@@ -47,6 +47,7 @@ export default function VisitDetailsView() {
   const [saveErrorIds, setSaveErrorIds] = React.useState<string[]>([])
   const [editingCardIds, setEditingCardIds] = React.useState<string[]>([])
   const [isInitialLoad, setIsInitialLoad] = React.useState(true)
+  const [hraStarted, setHraStarted] = React.useState(false)
 
   // TOAST TEST - Easy to remove: Delete this hook and <ForceSaveErrorToggle /> below
   const { forceSaveError, toggleForceSaveError } = useForceSaveError()
@@ -63,6 +64,7 @@ export default function VisitDetailsView() {
   const time = visitFromState?.time || '10:30AM'
   const insurance = visitFromState?.insurance || 'UHC'
   const visitType = visitFromState?.visitType || 'in-home'
+  const visitProcedures = visitFromState?.procedures || []
 
   // Redirect if visitId is missing from URL params (route mismatch)
   React.useEffect(() => {
@@ -94,6 +96,14 @@ export default function VisitDetailsView() {
       }
     } catch { }
 
+    // Check if HRA has been started (from localStorage flag or HRA store)
+    try {
+      const hraStartedFlag = localStorage.getItem(`hra-started-${visitId}`)
+      if (hraStartedFlag === 'true') {
+        setHraStarted(true)
+      }
+    } catch { }
+
     // Set initial visit status from navigation state if no saved data
     if (visitFromState?.status && !localStorage.getItem(`visit-state-${visitId}`)) {
       setVisitStatus(visitFromState.status)
@@ -120,6 +130,14 @@ export default function VisitDetailsView() {
 
     setIsInitialLoad(false)
   }, [visitId, visitFromState?.status, patientName, address, time, insurance])
+
+  // Check if HRA has been started (check on component mount and when visitId changes)
+  React.useEffect(() => {
+    try {
+      const hraStartedFlag = localStorage.getItem(`hra-started-${visitId}`)
+      setHraStarted(hraStartedFlag === 'true')
+    } catch { }
+  }, [visitId])
 
   const handleOutcomeClick = (procedureId: string, outcome: OutcomeValue) => {
     if (outcome === 'not-completed') {
@@ -734,8 +752,22 @@ export default function VisitDetailsView() {
                       { name: 'Urine Collection Kit', procedureId: 'urine-sample' }
                     ]
                       .filter((equipment) => {
-                        // Hide equipment for completed procedures
-                        return outcomes[equipment.procedureId] !== 'completed'
+                        // Hide equipment only if procedure came from backend as completed
+                        // If user manually marked as completed, keep showing the equipment
+                        const backendProcedure = visitProcedures.find((p: any) => {
+                          const procedureIdMap: Record<string, string> = {
+                            'A1C': 'a1c',
+                            'HbA1c Test': 'a1c', // Map HbA1c Test to same ID as A1C
+                            'Blood Pressure': 'blood-pressure',
+                            'Urine Sample': 'urine-sample',
+                            'Lipid Panel': 'lipid-panel' // Add Lipid Panel mapping
+                          }
+                          const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
+                          return procedureId === equipment.procedureId
+                        })
+                        const isBackendCompleted = backendProcedure?.completed === true
+                        // Hide if backend says completed, but show if user manually completed
+                        return !isBackendCompleted
                       })
                       .map((equipment, index) => (
                         <span
@@ -763,96 +795,131 @@ export default function VisitDetailsView() {
                   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                   color: '#939090'
                 }}>Health Risk Assessment questionnaire</p>
-                {outcomes['hra'] === 'completed' ? (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 font-medium" style={{ color: 'rgb(25, 154, 146)' }}>
-                      <div
-                        className="w-4 h-4 rounded-sm flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: 'rgb(25, 154, 146)' }}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 16 16"
-                          fill="none"
-                          className="w-3 h-3"
+                {(() => {
+                  const hraCompleted = outcomes['hra'] === 'completed'
+                  return hraCompleted ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 font-medium" style={{ color: 'rgb(25, 154, 146)' }}>
+                        <div
+                          className="w-4 h-4 rounded-sm flex items-center justify-center flex-shrink-0"
+                          style={{ backgroundColor: 'rgb(25, 154, 146)' }}
                         >
-                          <path d="M6.5 11.3L3.5 8.3L4.55 7.25L6.5 9.2L11.45 4.25L12.5 5.3L6.5 11.3Z" fill="white" />
-                        </svg>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            className="w-3 h-3"
+                          >
+                            <path d="M6.5 11.3L3.5 8.3L4.55 7.25L6.5 9.2L11.45 4.25L12.5 5.3L6.5 11.3Z" fill="white" />
+                          </svg>
+                        </div>
+                        <span>Assessment Complete</span>
                       </div>
-                      <span>Assessment Complete</span>
-                    </div>
 
-                    {/* Start Telehealth button for telehealth visits */}
-                    {visitType === 'telehealth' && (
+                      {/* Start Telehealth button for telehealth visits */}
+                      {visitType === 'telehealth' && (
+                        <button
+                          onClick={() => {
+                            // Handle telehealth start logic here
+                            console.log('Starting telehealth session...')
+                          }}
+                          className="w-full flex items-center justify-center gap-2 font-semibold transition-all duration-250 ease-out mt-4"
+                          style={{
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                            fontSize: '0.875rem',
+                            lineHeight: '1.75',
+                            minWidth: '64px',
+                            minHeight: '44px',
+                            backgroundColor: 'transparent',
+                            color: 'rgb(35, 155, 207)',
+                            textTransform: 'none',
+                            fontWeight: '600',
+                            outline: '0px',
+                            margin: '12px 0 0 0',
+                            textDecoration: 'none',
+                            padding: '12px 15px',
+                            borderWidth: '1px',
+                            borderStyle: 'solid',
+                            borderColor: 'rgb(35, 155, 207)',
+                            borderRadius: '18px',
+                            transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)'
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
+                            <path d="M4.5 20C3.95 20 3.475 19.8083 3.075 19.425C2.69167 19.025 2.5 18.55 2.5 18V6C2.5 5.45 2.69167 4.98333 3.075 4.6C3.475 4.2 3.95 4 4.5 4H16.5C17.05 4 17.5167 4.2 17.9 4.6C18.3 4.98333 18.5 5.45 18.5 6V10.5L22.5 6.5V17.5L18.5 13.5V18C18.5 18.55 18.3 19.025 17.9 19.425C17.5167 19.8083 17.05 20 16.5 20H4.5ZM4.5 18H16.5V6H4.5V18ZM4.5 18V6V18Z" fill="#239BCF" />
+                          </svg>
+                          <span>Start Telehealth</span>
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
                       <button
                         onClick={() => {
-                          // Handle telehealth start logic here
-                          console.log('Starting telehealth session...')
+                          // Mark HRA as started in localStorage
+                          try {
+                            localStorage.setItem(`hra-started-${visitId}`, 'true')
+                            setHraStarted(true)
+                          } catch { }
+
+                          // Mark HRA as started in outcomes (for progress bar update)
+                          // Only mark if not already completed
+                          if (!outcomes['hra']) {
+                            const updatedOutcomes = {
+                              ...outcomes,
+                              'hra': 'not-completed' as OutcomeValue // Mark as not-completed initially to update progress
+                            }
+                            setOutcomes(updatedOutcomes)
+                            
+                            // Save to localStorage
+                            const visitData = {
+                              id: visitId,
+                              patientName,
+                              address,
+                              time,
+                              insurance,
+                              status: visitStatus === 'not-started' ? 'in-progress' : visitStatus,
+                              outcomes: updatedOutcomes,
+                              procedureReasons
+                            }
+                            try {
+                              localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+                            } catch { }
+                            
+                            // Update visit status if needed
+                            if (visitStatus === 'not-started') {
+                              setVisitStatus('in-progress')
+                            }
+                          }
+
+                          // Prepare member data
+                          const memberData = {
+                            id: visitId,
+                            firstName: patientName.split(' ')[0] || '',
+                            lastName: patientName.split(' ').slice(1).join(' ') || '',
+                            address: address,
+                            phone: '',
+                            assessmentId: visitId,
+                            isStarted: hraStarted || hraCompleted || outcomes['hra'] === 'not-completed',
+                            isCompleted: hraCompleted,
+                          }
+
+                          // Set member data in store
+                          setSelectedMember(memberData)
+
+                          // Navigate to HRA page with member data in state
+                          navigate('/hra', {
+                            state: { member: memberData }
+                          })
                         }}
-                        className="w-full flex items-center justify-center gap-2 font-semibold transition-all duration-250 ease-out mt-4"
-                        style={{
-                          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                          fontSize: '0.875rem',
-                          lineHeight: '1.75',
-                          minWidth: '64px',
-                          minHeight: '44px',
-                          backgroundColor: 'transparent',
-                          color: 'rgb(35, 155, 207)',
-                          textTransform: 'none',
-                          fontWeight: '600',
-                          outline: '0px',
-                          margin: '12px 0 0 0',
-                          textDecoration: 'none',
-                          padding: '12px 15px',
-                          borderWidth: '1px',
-                          borderStyle: 'solid',
-                          borderColor: 'rgb(35, 155, 207)',
-                          borderRadius: '18px',
-                          transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)'
-                        }}
+                        className="w-full bg-[#5538A6] hover:bg-[#4A2F95] text-white font-medium py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-sm active:scale-[0.99]"
+                        aria-pressed={false}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
-                          <path d="M4.5 20C3.95 20 3.475 19.8083 3.075 19.425C2.69167 19.025 2.5 18.55 2.5 18V6C2.5 5.45 2.69167 4.98333 3.075 4.6C3.475 4.2 3.95 4 4.5 4H16.5C17.05 4 17.5167 4.2 17.9 4.6C18.3 4.98333 18.5 5.45 18.5 6V10.5L22.5 6.5V17.5L18.5 13.5V18C18.5 18.55 18.3 19.025 17.9 19.425C17.5167 19.8083 17.05 20 16.5 20H4.5ZM4.5 18H16.5V6H4.5V18ZM4.5 18V6V18Z" fill="#239BCF" />
-                        </svg>
-                        <span>Start Telehealth</span>
+                        <span>{hraStarted ? 'Continue HRA Assessment' : 'Start HRA Assessment'}</span>
+                        <Folder className="w-5 h-5" />
                       </button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <button
-                      onClick={() => {
-                        // Prepare member data
-                        const memberData = {
-                          id: visitId,
-                          firstName: patientName.split(' ')[0] || '',
-                          lastName: patientName.split(' ').slice(1).join(' ') || '',
-                          address: address,
-                          phone: '',
-                          assessmentId: visitId,
-                          isStarted: outcomes['hra'] === 'completed',
-                          isCompleted: outcomes['hra'] === 'completed',
-                        }
-
-                        // Set member data in store
-                        setSelectedMember(memberData)
-
-                        // Mark HRA as completed
-                        handleOutcomeClick('hra', 'completed')
-
-                        // Navigate to HRA page with member data in state
-                        navigate('/hra', {
-                          state: { member: memberData }
-                        })
-                      }}
-                      className="w-full bg-[#5538A6] hover:bg-[#4A2F95] text-white font-medium py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-sm active:scale-[0.99]"
-                      aria-pressed={false}
-                    >
-                      <span>{visitStatus === 'in-progress' && !outcomes['hra'] ? 'Continue HRA Assessment' : 'Start HRA Assessment'}</span>
-                      <Folder className="w-5 h-5" />
-                    </button>
 
                     {/* Also show Start Telehealth alongside HRA for telehealth visits */}
                     {visitType === 'telehealth' && (
@@ -889,7 +956,8 @@ export default function VisitDetailsView() {
                       </button>
                     )}
                   </div>
-                )}
+                  )
+                })()}
               </div>
             </div>
           </div>
@@ -899,9 +967,22 @@ export default function VisitDetailsView() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {procedures
                 .filter((procedure) => {
-                  // Hide completed procedures, only show incomplete or not-started ones
-                  const outcome = outcomes[procedure.id]
-                  return outcome !== 'completed'
+                  // Hide only if procedure came from backend as completed
+                  // If user manually marked as completed, keep showing it
+                  const backendProcedure = visitProcedures.find((p: any) => {
+                    const procedureIdMap: Record<string, string> = {
+                      'A1C': 'a1c',
+                      'HbA1c Test': 'a1c', // Map HbA1c Test to same ID as A1C
+                      'Blood Pressure': 'blood-pressure',
+                      'Urine Sample': 'urine-sample',
+                      'Lipid Panel': 'lipid-panel' // Add Lipid Panel mapping
+                    }
+                    const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
+                    return procedureId === procedure.id
+                  })
+                  const isBackendCompleted = backendProcedure?.completed === true
+                  // Hide if backend says completed, but show if user manually completed
+                  return !isBackendCompleted
                 })
                 .map((procedure) => {
                   const outcome = outcomes[procedure.id]

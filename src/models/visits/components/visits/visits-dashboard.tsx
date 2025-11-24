@@ -2630,20 +2630,26 @@ function VisitCard({ visit }: { visit: Visit }) {
                   // Map procedure names to IDs used in visit details
                   const procedureIdMap: Record<string, string> = {
                     'A1C': 'a1c',
+                    'HbA1c Test': 'a1c', // Map HbA1c Test to same ID as A1C
                     'Blood Pressure': 'blood-pressure',
-                    'Urine Sample': 'urine-sample'
+                    'Urine Sample': 'urine-sample',
+                    'Lipid Panel': 'lipid-panel' // Add Lipid Panel mapping
                   }
                   const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
-                  // Hide completed procedures, only show incomplete or not-started ones
-                  const outcome = visitState?.outcomes?.[procedureId]
-                  return outcome !== 'completed'
+                  // Hide only if procedure came from backend as completed (p.completed === true)
+                  // If user manually marked as completed, keep showing it
+                  const isBackendCompleted = p.completed === true
+                  // Hide if backend says completed, but show if user manually completed
+                  return !isBackendCompleted
                 })
                 .map((p, i) => {
                 // Map procedure names to IDs used in visit details
                 const procedureIdMap: Record<string, string> = {
                   'A1C': 'a1c',
+                  'HbA1c Test': 'a1c', // Map HbA1c Test to same ID as A1C
                   'Blood Pressure': 'blood-pressure',
-                  'Urine Sample': 'urine-sample'
+                  'Urine Sample': 'urine-sample',
+                  'Lipid Panel': 'lipid-panel' // Add Lipid Panel mapping
                 }
 
                 const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')

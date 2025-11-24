@@ -235,10 +235,6 @@ export default function VisitOutcomesView() {
                       <h4 className="text-sm text-gray-500 mb-3">Visit Procedures:</h4>
                       <div className="flex flex-wrap gap-2">
                         {visit.completedProcedures
-                          .filter((procedure) => {
-                            // Hide completed procedures, only show incomplete or not-started ones
-                            return procedure.status !== 'completed'
-                          })
                           .map((procedure, index) => {
                           const isCompleted = procedure.status === 'completed'
                           return (
