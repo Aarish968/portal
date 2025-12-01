@@ -3,18 +3,8 @@ import { Clock, MapPin, Building, Phone, Check, X, Link } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
 import { StatusBadge, VisitTypeBadge } from './visit-badge'
-
-
-// Simple Card components (replacing shadcn/ui for demo)
-type SimpleProps = { children: React.ReactNode, className?: string, onClick?: () => void, style?: React.CSSProperties }
-const Card = ({ children, className = '', onClick, style }: SimpleProps) => (
-  <div className={`bg-white rounded-lg ${className}`} onClick={onClick} style={style}>{children}</div>
-)
-
-const CardContent = ({ children, className = '' }: SimpleProps) => (
-  <div className={className}>{children}</div>
-)
-
+import { Visit } from './types'
+import { Card, CardContent } from './ui/Card'
 
 // Video Camera Icon Component (Icons.Outlined.Videocam style)
 const VideocamIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
@@ -26,31 +16,6 @@ const VideocamIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
     <path d="M15 8v8H5V8h10m1-2H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4V7c0-.55-.45-1-1-1z" />
   </svg>
 )
-
-interface VisitProcedure {
-  name: string
-  completed?: boolean
-}
-
-interface ConsentForm {
-  name: string
-  completed?: boolean
-}
-
-interface Visit {
-  id: string
-  patientName: string
-  time: string
-  address: string
-  phone?: string
-  insurance: string
-  status: 'not-started' | 'in-progress' | 'completed' | 'ready-to-save'
-  visitType: 'in-home' | 'telehealth'
-  procedures: VisitProcedure[]
-  healthRiskAssessment: 'not-started' | 'in-progress' | 'completed'
-  consentForms: ConsentForm[]
-  date?: string
-}
 
 
 

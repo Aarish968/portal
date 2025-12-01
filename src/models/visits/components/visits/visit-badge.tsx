@@ -1,30 +1,5 @@
-import {Check} from 'lucide-react'
-
-
-interface VisitProcedure {
-  name: string
-  completed?: boolean
-}
-
-interface ConsentForm {
-  name: string
-  completed?: boolean
-}
-
-interface Visit {
-  id: string
-  patientName: string
-  time: string
-  address: string
-  phone?: string
-  insurance: string
-  status: 'not-started' | 'in-progress' | 'completed' | 'ready-to-save'
-  visitType: 'in-home' | 'telehealth'
-  procedures: VisitProcedure[]
-  healthRiskAssessment: 'not-started' | 'in-progress' | 'completed'
-  consentForms: ConsentForm[]
-  date?: string
-}
+import { Check } from 'lucide-react'
+import { Visit } from './types'
 
 
 export function StatusBadge({ status, visitState }: { status: Visit['status'], visitState?: any }) {
