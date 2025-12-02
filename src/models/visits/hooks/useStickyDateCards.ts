@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { TabType, Visit } from '../types'
-import { getHeaderHeight } from '../utils'
+import { TabType, Visit } from '../components/visits/types'
+import { getHeaderHeight } from '../components/visits/utils'
 
 export function useStickyDateCards(
   activeTab: TabType,

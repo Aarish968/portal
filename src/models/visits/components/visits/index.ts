@@ -17,10 +17,10 @@ export { DashboardHeader } from './ui/DashboardHeader'
 export { ConsentModals } from './ui/ConsentModals'
 
 // Hooks
-export { useVisitState } from './hooks/useVisitState'
-export { useConsentStatus } from './hooks/useConsentStatus'
-export { useStickyDateCards } from './hooks/useStickyDateCards'
-export { useTabUnderline } from './hooks/useTabUnderline'
+export { useVisitState } from '../../hooks/useVisitState'
+export { useConsentStatus } from '../../hooks/useConsentStatus'
+export { useStickyDateCards } from '../../hooks/useStickyDateCards'
+export { useTabUnderline } from '../../hooks/useTabUnderline'
 
 // Badges
 export { StatusBadge, VisitTypeBadge } from './visit-badge'
