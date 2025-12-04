@@ -1,4 +1,4 @@
-import { Visit } from './types'
+import { Visit } from '../types/types'
 
 export const cn = (...classes: (string | false | null | undefined)[]) => 
   classes.filter(Boolean).join(' ')

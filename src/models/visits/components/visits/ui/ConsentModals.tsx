@@ -1,5 +1,5 @@
 import { CheckCircle } from 'lucide-react'
-import { PendingConsentData, Visit } from '../types'
+import { PendingConsentData, Visit } from '../../../types/types'
 import ROUTES from '@/data/routing/routes'
 
 interface ConsentModalsProps {

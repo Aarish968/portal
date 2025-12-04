@@ -41,13 +41,6 @@ export const APP_ROUTES: AppRoutes = {
     menuDescription: 'View visit details',
     icon: 'ph:info',
   },
-  visitOutcomes: {
-    title: 'Visit Outcomes',
-    href: '/visit-outcomes',
-    metaDescription: 'View visit outcomes',
-    menuDescription: 'View visit outcomes',
-    icon: 'ph:chart-line',
-  },
   consentForms: {
     title: 'Consent Forms',
     href: '/consent-forms',

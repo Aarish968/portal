@@ -3,7 +3,7 @@ import { Clock, MapPin, Building, Phone, Check, X, Link } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
 import { StatusBadge, VisitTypeBadge } from './visit-badge'
-import { Visit } from './types'
+import { Visit } from '../../types/types'
 import { Card, CardContent } from './ui/Card'
 
 // Video Camera Icon Component (Icons.Outlined.Videocam style)

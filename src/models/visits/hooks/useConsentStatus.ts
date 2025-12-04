@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { PendingConsentData } from '../components/visits/types'
+import { PendingConsentData } from '../types/types'
 
 export function useConsentStatus(refreshVisitStates: () => void, setTime: (time: string) => void) {
   const [showConsentModal, setShowConsentModal] = useState(false)

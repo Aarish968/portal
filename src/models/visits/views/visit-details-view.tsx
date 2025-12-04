@@ -463,7 +463,7 @@ export default function VisitDetailsView() {
                   outcomes,
                   procedureReasons
                 }
-                navigate('/visit-outcomes', { state: { visitData }, replace: true })
+                navigate('', { state: { visitData }, replace: true })
               } else {
                 navigate('/visits', { replace: true })
               }

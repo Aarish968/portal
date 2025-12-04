@@ -2,13 +2,13 @@
 export { VisitsDashboard } from './visits-dashboard'
 
 // Types
-export * from './types'
+export * from '../../types/types'
 
 // Constants
-export * from './constants'
+export * from '../../constants/constants'
 
 // Utils
-export * from './utils'
+export * from '../../utils/utils'
 
 // UI Components
 export { Card, CardContent } from './ui/Card'

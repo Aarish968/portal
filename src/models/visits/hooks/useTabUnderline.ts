@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { TabType } from '../components/visits/types'
+import { TabType } from '../types/types'
 
 export function useTabUnderline(activeTab: TabType) {
   const todayTabRef = useRef<HTMLButtonElement>(null)

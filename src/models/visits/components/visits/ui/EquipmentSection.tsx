@@ -1,7 +1,7 @@
 import { ChevronDown } from 'lucide-react'
 import { Card, CardContent } from './Card'
-import { cn } from '../utils'
-import { EquipmentItem, TabType } from '../types'
+import { cn } from '../../../utils/utils'
+import { EquipmentItem, TabType } from '../../../types/types'
 
 interface EquipmentSectionProps {
   activeTab: TabType

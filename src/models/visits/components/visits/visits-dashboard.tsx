@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { VisitCard } from './visit-card'
 import ROUTES from '@/data/routing/routes'
-import { TabType, Visit } from './types'
+import { TabType, Visit } from '../../types/types'
 import { 
   mockVisitsToday, 
   mockVisitsTomorrow, 
@@ -9,8 +9,8 @@ import {
   equipmentDataToday,
   equipmentDataTomorrow,
   equipmentDataWeek
-} from './constants'
-import { groupVisitsByDate } from './utils'
+} from '../../constants/constants'
+import { groupVisitsByDate } from '../../utils/utils'
 import { DashboardHeader } from './ui/DashboardHeader'
 import { EquipmentSection } from './ui/EquipmentSection'
 import { ConsentModals } from './ui/ConsentModals'

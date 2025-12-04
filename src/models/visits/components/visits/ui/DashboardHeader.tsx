@@ -1,5 +1,5 @@
 import { Bell } from 'lucide-react'
-import { TabType } from '../types'
+import { TabType } from '../../../types/types'
 
 interface DashboardHeaderProps {
   time: string

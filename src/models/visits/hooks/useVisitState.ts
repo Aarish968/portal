@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { Visit } from '../components/visits/types'
+import { Visit } from '../types/types'
 
 export function useVisitState(initialVisits: Visit[]) {
   const [visits, setVisits] = useState<Visit[]>(initialVisits)

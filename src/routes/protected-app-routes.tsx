@@ -8,7 +8,6 @@ import SettingsPage from '@/models/settings/pages/settings-page'
 import HraActivityPage from '@/models/hra-activity/pages/hra-activity-page'
 import VisitsPage from '@/models/visits/pages/visits-page'
 import VisitDetailsPage from '@/models/visits/pages/visit-details-page'
-import VisitOutcomesPage from '@/models/visits/pages/visit-outcomes-page'
 import TestPage from '@/models/test/pages/test-page'
 import ProtectedRoute from '@/base_submod/components/auth/protected-route'
 import { ConsentFormsPage } from '@/models/visits/components/consent/consent-forms-page'
@@ -41,10 +40,6 @@ export const protectedRoutes: RouteObject[] = [
           {
             path: ROUTES.app.visitDetails.href,
             element: <VisitDetailsPage />,
-          },
-          {
-            path: ROUTES.app.visitOutcomes.href,
-            element: <VisitOutcomesPage />,
           },
           { 
             path: ROUTES.app.support.href,

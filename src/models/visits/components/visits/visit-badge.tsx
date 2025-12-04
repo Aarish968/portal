@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react'
-import { Visit } from './types'
+import { Visit } from '../../types/types'
 
 
 export function StatusBadge({ status, visitState }: { status: Visit['status'], visitState?: any }) {
