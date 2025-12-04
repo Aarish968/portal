@@ -1,0 +1,107 @@
+The get visits is still the same with a payload of 
+
+
+base url = https://0ku6tkr1e2.execute-api.us-east-2.amazonaws.com/prod/
+{
+    "username": "evan.blankenship@helloporter.com"
+}
+ 
+and a response of 
+[
+    {
+        "visitType": "Telehealth",
+        "visitTime": "12:30:00.000Z",
+        "visitDate": "2025-11-28",
+        "providerTimezone": "America/Detroit",
+        "message": "SUCCESS",
+        "MemberPhone": "4435551212",
+        "MemberPayer": "Carefirst",
+        "memberLastName": "Spring",
+        "memberFirstName": "Dennis",
+        "memberAddress": {
+            "zip": "21014",
+            "street": "696 Belair Road",
+            "state": "MD",
+            "city": "Bel Air"
+        },
+        "labs": [
+            {
+                "attributes": {
+                    "type": "PSC_Labs__c",
+                    "url": "/services/data/v65.0/sobjects/PSC_Labs__c/a0UO300000DVZq4MAH"
+                },
+                "PSC_Account__c": "001O300000SDK4DIAX",
+                "Id": "a0UO300000DVZq4MAH",
+                "PSC_Status__c": "Waiting",
+                "PSC_Lab_Type__c": "HbA1c"
+            }
+        ],
+        "IsStarted": false,
+        "IsCompletedFlag": false,
+        "gaps": [
+            {
+                "attributes": {
+                    "type": "PSC_Gap__c",
+                    "url": "/services/data/v65.0/sobjects/PSC_Gap__c/a1rO300005ByO6kIAF"
+                },
+                "Account__c": "001O300000SDK4DIAX",
+                "Id": "a1rO300005ByO6kIAF",
+                "PSC_Type__c": "Quality Measure",
+                "PSC_Status__c": "Open",
+                "PSC_Measure__c": "OMW"
+            }
+        ],
+        "consentURL": "www.example.com",
+        "consentToTreatment": false,
+        "consentToPrivacy": false,
+        "consentToHipaa": true,
+        "CompletedDate": null,
+        "caseNumber": "00042720",
+        "assessmentName": "Prapare-2025-CareFirst",
+        "assessmentID": "a0EO300000CIhxFMAT",
+        "appointmentDatetime": "2025-11-28T17:30:00.000Z"
+    }
+]
+ 
+The endpoint is /visits/get
+ 
+The update procedure has been split into two lambdas, one for gaps and one for labs
+ 
+The update lab endpoint is /labs. The payload should be in the format below:
+ 
+{
+    "PSC_Account__c": "001O300000SDK4DIAX",
+    "Id": "a0UO300000DVZq4MAH",
+    "PSC_Outcome__c": "Not Completed",
+    "PSC_Not_Completed_Reason": "Incomplete Consent"
+}
+ 
+The PSC_Outcome__c can only be enum of 'Completed' or 'Not Completed'. The PSC_Not_Completed_Reason is also on enum of the following values:
+Kit Left Behind
+Incomplete Consent
+Not Medically Indicated
+Patient Refused
+Safety Concerns
+Technical Issues
+Test Deferred
+ 
+The response will be in the format below, mainly showing if there is an error message:
+ 
+[
+    {
+        "Operation": "update",
+        "Id": "a0UO300000DVZq4MAH",
+        "ErrorMessage": null
+    }
+]
+ 
+The update gap enpoint is /gaps. The payload should be in the format below:
+ 
+{
+    "Id": "a1rO300005ByO6kIAF",
+    "PSC_Outcome__c": "Not Completed",
+    "PSC_Not_Completed_Reason__c": "Incomplete Consent"
+}
+ 
+The response and PSC_Outcome__c and PSC_Not_Completed_Reason__c are the same as the labs
+ 

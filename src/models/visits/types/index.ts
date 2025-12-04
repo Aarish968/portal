@@ -58,3 +58,16 @@ export const REASON_LABELS: Record<string, string> = {
   'incomplete-consent': 'Incomplete Consent',
   'safety-concerns': 'Safety Concerns'
 }
+
+// Export API types
+export type {
+  MemberAddress,
+  LabItem,
+  GapItem,
+  VisitApiResponse,
+  LabOutcome,
+  LabNotCompletedReason,
+  UpdateLabPayload,
+  UpdateGapPayload,
+  UpdateResponse,
+} from './types'

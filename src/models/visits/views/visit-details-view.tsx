@@ -4,8 +4,9 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ProcedureIncompleteDialog } from '../components/ProcedureIncompleteDialog'
 import { useToast } from '@/base_submod/hooks/use-toast'
 import { useMemberStore } from '@/models/member/stores/member-store'
-// TOAST TEST - Easy to remove: Delete this import and <ForceSaveErrorToggle /> below
 import { useForceSaveError, ForceSaveErrorToggle } from '../components/force-save-error-toggle'
+import { useVisitsApi } from '../hooks/useVisitsApi'
+import type { UpdateLabPayload, UpdateGapPayload, LabOutcome, LabNotCompletedReason } from '../types'
 
 const procedures = [
   { id: 'a1c', title: 'A1C' },
@@ -23,6 +24,16 @@ const reasonLabels: Record<string, string> = {
   'test-deferred': 'Test Deferred',
   'incomplete-consent': 'Incomplete Consent',
   'safety-concerns': 'Safety Concerns'
+}
+
+const reasonToApiReason: Record<string, LabNotCompletedReason> = {
+  'kit-left-behind': 'Kit Left Behind',
+  'incomplete-consent': 'Incomplete Consent',
+  'not-medically-indicated': 'Not Medically Indicated',
+  'patient-refused': 'Patient Refused',
+  'safety-concerns': 'Safety Concerns',
+  'technical-issues': 'Technical Issues',
+  'test-deferred': 'Test Deferred',
 }
 
 type OutcomeValue = 'completed' | 'not-completed'
@@ -48,9 +59,10 @@ export default function VisitDetailsView() {
   const [editingCardIds, setEditingCardIds] = React.useState<string[]>([])
   const [isInitialLoad, setIsInitialLoad] = React.useState(true)
   const [hraStarted, setHraStarted] = React.useState(false)
+  const [procedureMetadata, setProcedureMetadata] = React.useState<Record<string, { type: 'lab' | 'gap', apiId: string, accountId?: string }>>({})
 
-  // TOAST TEST - Easy to remove: Delete this hook and <ForceSaveErrorToggle /> below
   const { forceSaveError, toggleForceSaveError } = useForceSaveError()
+  const { updateLab, updateGap, loading: apiLoading } = useVisitsApi()
 
   // TEST FLAG: Set to true to simulate save errors for testing
   // TOAST TEST - Easy to remove: Delete this line and all FORCE_SAVE_ERROR checks
@@ -139,7 +151,33 @@ export default function VisitDetailsView() {
     } catch { }
   }, [visitId])
 
-  const handleOutcomeClick = (procedureId: string, outcome: OutcomeValue) => {
+  // Load procedure metadata from visit state (labs and gaps)
+  React.useEffect(() => {
+    if (visitFromState?.labs || visitFromState?.gaps) {
+      const metadata: Record<string, { type: 'lab' | 'gap', apiId: string, accountId?: string }> = {}
+      
+      visitFromState.labs?.forEach((lab: any) => {
+        const procedureId = lab.PSC_Lab_Type__c.toLowerCase().replace(/\s+/g, '-')
+        metadata[procedureId] = {
+          type: 'lab',
+          apiId: lab.Id,
+          accountId: lab.PSC_Account__c,
+        }
+      })
+
+      visitFromState.gaps?.forEach((gap: any) => {
+        const procedureId = `gap-${gap.PSC_Measure__c}`.toLowerCase()
+        metadata[procedureId] = {
+          type: 'gap',
+          apiId: gap.Id,
+        }
+      })
+
+      setProcedureMetadata(metadata)
+    }
+  }, [visitFromState])
+
+  const handleOutcomeClick = async (procedureId: string, outcome: OutcomeValue) => {
     if (outcome === 'not-completed') {
       const procedure = procedures.find(p => p.id === procedureId)
       if (procedure) {
@@ -147,16 +185,13 @@ export default function VisitDetailsView() {
         setDialogOpen(true)
       }
     } else {
-      // show per-procedure saving indicator briefly
       setSavingProcedureIds(prev => prev.includes(procedureId) ? prev : [...prev, procedureId])
 
-      // Build proposed outcomes but DON'T update UI yet (no optimistic update)
       const proposedOutcomes = {
         ...outcomes,
         [procedureId]: outcome
       }
 
-      // Save to local storage immediately
       const visitData = {
         id: visitId,
         patientName,
@@ -167,43 +202,57 @@ export default function VisitDetailsView() {
         outcomes: proposedOutcomes,
         procedureReasons
       }
+
       try {
         if (FORCE_SAVE_ERROR) {
           throw new Error('Test error - simulating save failure')
         }
+
+        const metadata = procedureMetadata[procedureId]
+        if (metadata) {
+          if (metadata.type === 'lab' && metadata.accountId) {
+            const payload: UpdateLabPayload = {
+              PSC_Account__c: metadata.accountId,
+              Id: metadata.apiId,
+              PSC_Outcome__c: 'Completed',
+            }
+            await updateLab(payload)
+          } else if (metadata.type === 'gap') {
+            const payload: UpdateGapPayload = {
+              Id: metadata.apiId,
+              PSC_Outcome__c: 'Completed',
+            }
+            await updateGap(payload)
+          }
+        }
+
         localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
-        // Only now update UI
         setOutcomes(proposedOutcomes)
         setSaveErrorIds(prev => prev.filter(id => id !== procedureId))
-        // When any outcome is set, change status to in-progress (only on success)
         if (visitStatus === 'not-started') {
           setVisitStatus('in-progress')
         }
       } catch {
-        // Do not change outcomes/state on error
         setSaveErrorIds(prev => prev.includes(procedureId) ? prev : [...prev, procedureId])
         toast({
           variant: 'destructive',
           title: 'Outcomes not saved',
           description: `Outcomes not saved for ${procedures.find(p => p.id === procedureId)?.title || 'Procedure'}. Please Try Again`,
-          duration: Infinity // Never auto-dismiss, user must close manually
+          duration: Infinity
         })
       }
 
-      // remove saving indicator after short delay
       setTimeout(() => {
         setSavingProcedureIds(prev => prev.filter(id => id !== procedureId))
       }, 700)
     }
   }
 
-  const handleDialogSave = (reason: string, description?: string) => {
+  const handleDialogSave = async (reason: string, description?: string) => {
     if (selectedProcedure) {
       console.log(`Procedure ${selectedProcedure.title} not completed:`, { reason, description })
-      // show per-procedure saving indicator
       setSavingProcedureIds(prev => prev.includes(selectedProcedure.id) ? prev : [...prev, selectedProcedure.id])
 
-      // Build proposed values (no optimistic update)
       const proposedOutcomes = {
         ...outcomes,
         [selectedProcedure.id]: 'not-completed' as OutcomeValue
@@ -213,7 +262,6 @@ export default function VisitDetailsView() {
         [selectedProcedure.id]: reason
       }
 
-      // Save to local storage immediately
       const visitData = {
         id: visitId,
         patientName,
@@ -224,30 +272,51 @@ export default function VisitDetailsView() {
         outcomes: proposedOutcomes,
         procedureReasons: proposedReasons
       }
+
       try {
         if (FORCE_SAVE_ERROR) {
           throw new Error('Test error - simulating save failure')
         }
+
+        const metadata = procedureMetadata[selectedProcedure.id]
+        const apiReason = reasonToApiReason[reason]
+        
+        if (metadata && apiReason) {
+          if (metadata.type === 'lab' && metadata.accountId) {
+            const payload: UpdateLabPayload = {
+              PSC_Account__c: metadata.accountId,
+              Id: metadata.apiId,
+              PSC_Outcome__c: 'Not Completed',
+              PSC_Not_Completed_Reason: apiReason,
+            }
+            await updateLab(payload)
+          } else if (metadata.type === 'gap') {
+            const payload: UpdateGapPayload = {
+              Id: metadata.apiId,
+              PSC_Outcome__c: 'Not Completed',
+              PSC_Not_Completed_Reason__c: apiReason,
+            }
+            await updateGap(payload)
+          }
+        }
+
         localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
-        // Only on success, update UI
         setOutcomes(proposedOutcomes)
         setProcedureReasons(proposedReasons)
         setSaveErrorIds(prev => prev.filter(id => id !== selectedProcedure.id))
-        // Change status to in-progress if not started (only on success)
         if (visitStatus === 'not-started') {
           setVisitStatus('in-progress')
         }
       } catch {
-        // Do not change outcomes/state on error
         setSaveErrorIds(prev => prev.includes(selectedProcedure.id) ? prev : [...prev, selectedProcedure.id])
         toast({
           variant: 'destructive',
           title: 'Outcomes not saved',
           description: `Outcomes not saved for ${selectedProcedure.title}. Please Try Again`,
-          duration: Infinity // Never auto-dismiss, user must close manually
+          duration: Infinity
         })
       }
-      // remove saving indicator after short delay
+
       setTimeout(() => {
         setSavingProcedureIds(prev => prev.filter(id => id !== selectedProcedure.id))
       }, 700)

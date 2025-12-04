@@ -19,12 +19,19 @@ import { useConsentStatus } from '../../hooks/useConsentStatus'
 import { useStickyDateCards } from '../../hooks/useStickyDateCards'
 import { useTabUnderline } from '../../hooks/useTabUnderline'
 import { dashboardStyles } from './styles/dashboard-styles'
+import { useVisitsApi } from '../../hooks/useVisitsApi'
+import { useAuthStore } from '@/models/auth/stores/auth-store'
+import type { VisitApiResponse } from '../../types'
 
 export function VisitsDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('today')
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
   const [time, setTime] = useState('')
+  const [apiVisits, setApiVisits] = useState<VisitApiResponse[]>([])
+  const [isLoadingVisits, setIsLoadingVisits] = useState(true)
 
+  const { getVisits, loading: apiLoading, error: apiError } = useVisitsApi()
+  const currentUser = useAuthStore(state => state.currentUser)
   const { visits: visitsToday, refreshVisitStates } = useVisitState(mockVisitsToday)
   
   const {
@@ -47,6 +54,20 @@ export function VisitsDashboard() {
 
   const groupedVisits = groupVisitsByDate(currentVisits)
   const { dateRefs, dateSectionRefs } = useStickyDateCards(activeTab, groupedVisits)
+
+  useEffect(() => {
+    const fetchVisits = async () => {
+      if (currentUser?.email) {
+        setIsLoadingVisits(true)
+        const data = await getVisits(currentUser.email)
+        if (data) {
+          setApiVisits(data)
+        }
+        setIsLoadingVisits(false)
+      }
+    }
+    fetchVisits()
+  }, [currentUser?.email])
 
   useEffect(() => {
     const updateTime = () => {
