@@ -22,17 +22,22 @@ import { dashboardStyles } from './styles/dashboard-styles'
 import { useVisitsApi } from '../../hooks/useVisitsApi'
 import { useAuthStore } from '@/models/auth/stores/auth-store'
 import type { VisitApiResponse } from '../../types'
+import { transformApiVisitToVisit } from '../../utils/visit-mapper'
 
 export function VisitsDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('today')
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
   const [time, setTime] = useState('')
   const [apiVisits, setApiVisits] = useState<VisitApiResponse[]>([])
+  const [transformedVisits, setTransformedVisits] = useState<Visit[]>([])
   const [isLoadingVisits, setIsLoadingVisits] = useState(true)
 
   const { getVisits, loading: apiLoading, error: apiError } = useVisitsApi()
   const currentUser = useAuthStore(state => state.currentUser)
-  const { visits: visitsToday, refreshVisitStates } = useVisitState(mockVisitsToday)
+  
+  // Use transformed API visits if available, otherwise use mock data
+  const visitsData = transformedVisits.length > 0 ? transformedVisits : mockVisitsToday
+  const { visits: visitsToday, refreshVisitStates } = useVisitState(visitsData)
   
   const {
     showConsentModal,
@@ -59,15 +64,26 @@ export function VisitsDashboard() {
     const fetchVisits = async () => {
       if (currentUser?.email) {
         setIsLoadingVisits(true)
+        console.log('Fetching visits for:', currentUser.email)
         const data = await getVisits(currentUser.email)
-        if (data) {
+        if (data && data.length > 0) {
+          console.log('API visits received:', data)
+          // Transform API response to Visit format
+          const transformed = data.map((apiVisit, index) => transformApiVisitToVisit(apiVisit, index))
+          console.log('Transformed visits:', transformed)
           setApiVisits(data)
+          setTransformedVisits(transformed)
+        } else {
+          console.log('No API data received or empty array, using mock data')
         }
+        setIsLoadingVisits(false)
+      } else {
+        console.log('No user email found, using mock data')
         setIsLoadingVisits(false)
       }
     }
     fetchVisits()
-  }, [currentUser?.email])
+  }, [currentUser?.email, getVisits])
 
   useEffect(() => {
     const updateTime = () => {
@@ -155,6 +171,15 @@ export function VisitsDashboard() {
           <h3 className="text-lg sm:text-xl font-medium mb-0" style={{ color: '#1b1b1b' }}>
             {getSectionTitle()}
           </h3>
+          {isLoadingVisits && (
+            <p className="text-sm text-gray-500 mt-2">Loading visits from API...</p>
+          )}
+          {apiError && (
+            <p className="text-sm text-red-600 mt-2">Error loading visits: {apiError}</p>
+          )}
+          {!isLoadingVisits && transformedVisits.length > 0 && (
+            <p className="text-sm text-green-600 mt-2">✓ Showing {transformedVisits.length} visit(s) from API</p>
+          )}
         </div>
 
         <div className="space-y-4 sm:space-y-6 w-full visits-section-container" style={{ maxWidth: '100%', overflow: 'hidden', boxSizing: 'border-box' }}>

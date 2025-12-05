@@ -1,4 +1,4 @@
-import type { VisitApiResponse, LabItem, GapItem } from '../types'
+import type { VisitApiResponse, Visit, VisitProcedure, ConsentForm, LabItem, GapItem } from '../types'
 
 export interface ProcedureItem {
     id: string
@@ -34,4 +34,72 @@ export function mapApiResponseToProcedures(visit: VisitApiResponse): ProcedureIt
     })
 
     return procedures
+}
+
+export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: number): Visit {
+    const procedures: VisitProcedure[] = []
+    
+    // Map labs to procedures
+    apiVisit.labs?.forEach((lab: LabItem) => {
+        procedures.push({
+            name: lab.PSC_Lab_Type__c,
+            completed: lab.PSC_Status__c === 'Completed',
+        })
+    })
+
+    // Map gaps to procedures
+    apiVisit.gaps?.forEach((gap: GapItem) => {
+        procedures.push({
+            name: gap.PSC_Measure__c,
+            completed: gap.PSC_Status__c === 'Completed',
+        })
+    })
+
+    const consentForms: ConsentForm[] = [
+        { name: 'HIPAA', completed: apiVisit.consentToHipaa },
+        { name: 'Privacy', completed: apiVisit.consentToPrivacy },
+        { name: 'Treatment', completed: apiVisit.consentToTreatment },
+    ]
+
+    // Determine visit status
+    let status: 'not-started' | 'in-progress' | 'completed' | 'ready-to-save' = 'not-started'
+    if (apiVisit.IsCompletedFlag) {
+        status = 'completed'
+    } else if (apiVisit.IsStarted) {
+        status = 'in-progress'
+    }
+
+    // Format address
+    const address = `${apiVisit.memberAddress.street}, ${apiVisit.memberAddress.city}, ${apiVisit.memberAddress.state} ${apiVisit.memberAddress.zip}`
+
+    // Format time from visitTime (HH:MM:SS.SSSZ format)
+    const formatTime = (timeStr: string): string => {
+        try {
+            const [hours, minutes] = timeStr.split(':')
+            const hour = parseInt(hours, 10)
+            const ampm = hour >= 12 ? 'PM' : 'AM'
+            const displayHour = hour % 12 || 12
+            return `${displayHour}:${minutes}${ampm}`
+        } catch {
+            return timeStr
+        }
+    }
+
+    return {
+        id: apiVisit.caseNumber || `visit-${index + 1}`,
+        patientName: `${apiVisit.memberFirstName} ${apiVisit.memberLastName}`,
+        time: formatTime(apiVisit.visitTime),
+        address,
+        phone: apiVisit.MemberPhone,
+        insurance: apiVisit.MemberPayer,
+        status,
+        visitType: apiVisit.visitType.toLowerCase() === 'telehealth' ? 'telehealth' : 'in-home',
+        procedures,
+        healthRiskAssessment: apiVisit.IsCompletedFlag ? 'completed' : apiVisit.IsStarted ? 'in-progress' : 'not-started',
+        consentForms,
+        date: apiVisit.visitDate,
+        // Store original API data for later use
+        labs: apiVisit.labs,
+        gaps: apiVisit.gaps,
+    } as Visit & { labs?: LabItem[], gaps?: GapItem[] }
 }
