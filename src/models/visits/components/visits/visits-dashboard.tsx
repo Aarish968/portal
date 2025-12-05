@@ -23,6 +23,7 @@ import { useVisitsApi } from '../../hooks/useVisitsApi'
 import { useAuthStore } from '@/models/auth/stores/auth-store'
 import type { VisitApiResponse } from '../../types'
 import { transformApiVisitToVisit } from '../../utils/visit-mapper'
+import { DebugAuthInfo } from './debug-auth-info'
 
 export function VisitsDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('today')
@@ -62,28 +63,43 @@ export function VisitsDashboard() {
 
   useEffect(() => {
     const fetchVisits = async () => {
-      if (currentUser?.email) {
+      console.log('=== VISITS API DEBUG ===')
+      console.log('Current User:', currentUser)
+      console.log('Current User Username:', currentUser?.username)
+      console.log('Auth Store State:', useAuthStore.getState())
+      
+      // Use username field instead of email
+      const userEmail = currentUser?.username || currentUser?.idTokenClaims?.preferred_username
+      
+      if (userEmail) {
         setIsLoadingVisits(true)
-        console.log('Fetching visits for:', currentUser.email)
-        const data = await getVisits(currentUser.email)
-        if (data && data.length > 0) {
-          console.log('API visits received:', data)
-          // Transform API response to Visit format
-          const transformed = data.map((apiVisit, index) => transformApiVisitToVisit(apiVisit, index))
-          console.log('Transformed visits:', transformed)
-          setApiVisits(data)
-          setTransformedVisits(transformed)
-        } else {
-          console.log('No API data received or empty array, using mock data')
+        console.log('✓ Fetching visits for:', userEmail)
+        try {
+          const data = await getVisits(userEmail)
+          console.log('API Response:', data)
+          if (data && data.length > 0) {
+            console.log('✓ API visits received:', data.length, 'visits')
+            // Transform API response to Visit format
+            const transformed = data.map((apiVisit, index) => transformApiVisitToVisit(apiVisit, index))
+            console.log('✓ Transformed visits:', transformed)
+            setApiVisits(data)
+            setTransformedVisits(transformed)
+          } else {
+            console.log('⚠ No API data received or empty array, using mock data')
+          }
+        } catch (error) {
+          console.error('✗ Error fetching visits:', error)
         }
         setIsLoadingVisits(false)
       } else {
-        console.log('No user email found, using mock data')
+        console.log('✗ No user email/username found, using mock data')
+        console.log('Current user object:', JSON.stringify(currentUser, null, 2))
         setIsLoadingVisits(false)
       }
+      console.log('======================')
     }
     fetchVisits()
-  }, [currentUser?.email, getVisits])
+  }, [currentUser, getVisits])
 
   useEffect(() => {
     const updateTime = () => {
@@ -146,6 +162,9 @@ export function VisitsDashboard() {
   return (
     <div className="min-h-screen bg-gray-85 w-full overflow-x-hidden">
       <style>{dashboardStyles}</style>
+      
+      {/* Temporary debug component - remove after fixing */}
+      <DebugAuthInfo />
 
       <DashboardHeader
         time={time}
