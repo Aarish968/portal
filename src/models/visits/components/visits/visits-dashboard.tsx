@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { VisitCard } from './visit-card'
 import ROUTES from '@/data/routing/routes'
-import { TabType, Visit } from '../../types/types'
+import type { TabType, Visit } from '../../types/types'
 import { 
   mockVisitsToday, 
   mockVisitsTomorrow, 
@@ -21,7 +21,6 @@ import { useTabUnderline } from '../../hooks/useTabUnderline'
 import { dashboardStyles } from './styles/dashboard-styles'
 import { useVisitsApi } from '../../hooks/useVisitsApi'
 import { useAuthStore } from '@/models/auth/stores/auth-store'
-import type { VisitApiResponse } from '../../types'
 import { transformApiVisitToVisit } from '../../utils/visit-mapper'
 import { DebugAuthInfo } from './debug-auth-info'
 
@@ -29,11 +28,10 @@ export function VisitsDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('today')
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
   const [time, setTime] = useState('')
-  const [apiVisits, setApiVisits] = useState<VisitApiResponse[]>([])
   const [transformedVisits, setTransformedVisits] = useState<Visit[]>([])
   const [isLoadingVisits, setIsLoadingVisits] = useState(true)
 
-  const { getVisits, loading: apiLoading, error: apiError } = useVisitsApi()
+  const { getVisits, error: apiError } = useVisitsApi()
   const currentUser = useAuthStore(state => state.currentUser)
   
   // Use transformed API visits if available, otherwise use mock data
@@ -50,6 +48,9 @@ export function VisitsDashboard() {
     handleConsentConfirmation,
     handleCloseConsentConfirmation
   } = useConsentStatus(refreshVisitStates, setTime)
+  
+  const [localConsentLoading, setLocalConsentLoading] = useState(false)
+  const [localConsentSuccess, setLocalConsentSuccess] = useState(false)
 
   const { todayTabRef, tomorrowTabRef, weekTabRef, underlineStyle } = useTabUnderline(activeTab)
 
@@ -63,40 +64,31 @@ export function VisitsDashboard() {
 
   useEffect(() => {
     const fetchVisits = async () => {
-      console.log('=== VISITS API DEBUG ===')
-      console.log('Current User:', currentUser)
-      console.log('Current User Username:', currentUser?.username)
-      console.log('Auth Store State:', useAuthStore.getState())
-      
       // Use username field instead of email
       const userEmail = currentUser?.username || currentUser?.idTokenClaims?.preferred_username
       
-      if (userEmail) {
+      if (userEmail && !isLoadingVisits) {
         setIsLoadingVisits(true)
-        console.log('✓ Fetching visits for:', userEmail)
+        console.log('Fetching visits for:', userEmail)
         try {
           const data = await getVisits(userEmail)
-          console.log('API Response:', data)
           if (data && data.length > 0) {
-            console.log('✓ API visits received:', data.length, 'visits')
+            console.log('API visits received:', data.length, 'visits')
             // Transform API response to Visit format
             const transformed = data.map((apiVisit, index) => transformApiVisitToVisit(apiVisit, index))
-            console.log('✓ Transformed visits:', transformed)
-            setApiVisits(data)
             setTransformedVisits(transformed)
           } else {
-            console.log('⚠ No API data received or empty array, using mock data')
+            console.log('No API data received, using mock data')
           }
         } catch (error) {
-          console.error('✗ Error fetching visits:', error)
+          console.error('Error fetching visits:', error)
+        } finally {
+          setIsLoadingVisits(false)
         }
-        setIsLoadingVisits(false)
-      } else {
-        console.log('✗ No user email/username found, using mock data')
-        console.log('Current user object:', JSON.stringify(currentUser, null, 2))
+      } else if (!userEmail) {
+        console.log('No user found, using mock data')
         setIsLoadingVisits(false)
       }
-      console.log('======================')
     }
     fetchVisits()
   }, [currentUser, getVisits])
@@ -141,14 +133,14 @@ export function VisitsDashboard() {
 
   const handleRetryCheck = () => {
     setShowConsentModal(false)
-    setShowConsentLoading(true)
+    setLocalConsentLoading(true)
 
     setTimeout(() => {
-      setShowConsentLoading(false)
-      setShowConsentSuccess(true)
+      setLocalConsentLoading(false)
+      setLocalConsentSuccess(true)
 
       setTimeout(() => {
-        setShowConsentSuccess(false)
+        setLocalConsentSuccess(false)
       }, 1000)
     }, 2000)
   }
@@ -245,8 +237,8 @@ export function VisitsDashboard() {
         <ConsentModals
           showConsentModal={showConsentModal}
           showConsentConfirmation={showConsentConfirmation}
-          showConsentLoading={showConsentLoading}
-          showConsentSuccess={showConsentSuccess}
+          showConsentLoading={localConsentLoading || showConsentLoading}
+          showConsentSuccess={localConsentSuccess || showConsentSuccess}
           pendingConsentData={pendingConsentData}
           currentVisits={currentVisits}
           onCloseConsentModal={() => setShowConsentModal(false)}

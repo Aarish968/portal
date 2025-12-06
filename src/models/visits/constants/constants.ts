@@ -1,4 +1,4 @@
-import { Visit, EquipmentItem } from '../components/visits/types'
+import { Visit, EquipmentItem } from '../types/types'
 
 export const equipmentDataToday: EquipmentItem[] = [
   { name: 'HbA1c Kit', visits: 3 },

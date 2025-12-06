@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { VisitApiService } from '../services/visit-api.service'
 import type { 
   VisitApiResponse, 
@@ -11,7 +11,7 @@ export function useVisitsApi() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const getVisits = async (username: string): Promise<VisitApiResponse[] | null> => {
+  const getVisits = useCallback(async (username: string): Promise<VisitApiResponse[] | null> => {
     setLoading(true)
     setError(null)
     try {
@@ -25,9 +25,9 @@ export function useVisitsApi() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const updateLab = async (payload: UpdateLabPayload): Promise<UpdateResponse[] | null> => {
+  const updateLab = useCallback(async (payload: UpdateLabPayload): Promise<UpdateResponse[] | null> => {
     setLoading(true)
     setError(null)
     try {
@@ -41,9 +41,9 @@ export function useVisitsApi() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const updateGap = async (payload: UpdateGapPayload): Promise<UpdateResponse[] | null> => {
+  const updateGap = useCallback(async (payload: UpdateGapPayload): Promise<UpdateResponse[] | null> => {
     setLoading(true)
     setError(null)
     try {
@@ -57,7 +57,7 @@ export function useVisitsApi() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   return {
     getVisits,

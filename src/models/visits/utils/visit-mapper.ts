@@ -1,4 +1,4 @@
-import type { VisitApiResponse, Visit, VisitProcedure, ConsentForm, LabItem, GapItem } from '../types'
+import type { VisitApiResponse, Visit, VisitProcedure, ConsentForm, LabItem, GapItem } from '../types/types'
 
 export interface ProcedureItem {
     id: string
