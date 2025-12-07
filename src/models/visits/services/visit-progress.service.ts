@@ -56,7 +56,7 @@ export class VisitProgressService {
   static needsSaving(visitState: VisitState): boolean {
     const { status, outcomes } = visitState
     const allOutcomesSet = this.areAllOutcomesSet(outcomes)
-    
+
     return (status === 'in-progress' || status === 'ready-to-save') && allOutcomesSet
   }
 
@@ -64,25 +64,25 @@ export class VisitProgressService {
    * Get next status based on current state
    */
   static getNextStatus(
-    currentStatus: VisitState['status'], 
+    currentStatus: VisitState['status'],
     outcomes: Record<string, OutcomeValue>,
     isInitialLoad: boolean = false
   ): VisitState['status'] {
     if (isInitialLoad) return currentStatus
-    
+
     const allOutcomesSet = this.areAllOutcomesSet(outcomes)
     const hasAnyOutcome = this.getTotalOutcomesSet(outcomes) > 0
-    
+
     // If all outcomes are set, move to ready-to-save
     if (allOutcomesSet && (currentStatus === 'not-started' || currentStatus === 'in-progress')) {
       return 'ready-to-save'
     }
-    
+
     // If any outcome is set and status is not-started, move to in-progress
     if (hasAnyOutcome && currentStatus === 'not-started') {
       return 'in-progress'
     }
-    
+
     return currentStatus
   }
 }

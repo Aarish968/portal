@@ -67,7 +67,7 @@ export function VisitsDashboard() {
       // Use username field instead of email
       const userEmail = currentUser?.username || currentUser?.idTokenClaims?.preferred_username
       
-      if (userEmail && !isLoadingVisits) {
+      if (userEmail) {
         setIsLoadingVisits(true)
         console.log('Fetching visits for:', userEmail)
         try {
@@ -85,7 +85,7 @@ export function VisitsDashboard() {
         } finally {
           setIsLoadingVisits(false)
         }
-      } else if (!userEmail) {
+      } else {
         console.log('No user found, using mock data')
         setIsLoadingVisits(false)
       }
