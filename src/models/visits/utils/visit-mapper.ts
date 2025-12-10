@@ -99,6 +99,30 @@ export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: numb
         }
     }
 
+    // Format date - check if it's today
+    const formatDate = (dateStr: string): string => {
+        try {
+            const visitDate = new Date(dateStr)
+            const today = new Date()
+            
+            // Compare dates (ignore time)
+            const isToday = visitDate.toDateString() === today.toDateString()
+            
+            if (isToday) {
+                return 'Today'
+            }
+            
+            // Format as readable date
+            return visitDate.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'short', 
+                day: 'numeric' 
+            })
+        } catch {
+            return dateStr
+        }
+    }
+
     return {
         id: apiVisit.caseNumber || `visit-${index + 1}`,
         patientName: `${apiVisit.memberFirstName} ${apiVisit.memberLastName}`,
@@ -111,7 +135,7 @@ export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: numb
         procedures,
         healthRiskAssessment: apiVisit.IsCompletedFlag ? 'completed' : apiVisit.IsStarted ? 'in-progress' : 'not-started',
         consentForms,
-        date: apiVisit.visitDate,
+        date: formatDate(apiVisit.visitDate),
         // Store original API data for later use
         labs: apiVisit.labs,
         gaps: apiVisit.gaps,

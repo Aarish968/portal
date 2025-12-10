@@ -48,7 +48,26 @@ export function VisitsDashboard() {
 
   const { todayTabRef, tomorrowTabRef, weekTabRef, underlineStyle } = useTabUnderline(activeTab)
 
-  const currentVisits = activeTab === 'today' ? visitsToday : []
+  // Filter visits based on active tab
+  const getCurrentVisits = () => {
+    if (activeTab === 'today') {
+      return visitsToday.filter(v => v.date === 'Today')
+    } else if (activeTab === 'tomorrow') {
+      const tomorrow = new Date()
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      const tomorrowStr = tomorrow.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'short', 
+        day: 'numeric' 
+      })
+      return visitsToday.filter(v => v.date === tomorrowStr)
+    } else {
+      // Week view - show all visits
+      return visitsToday
+    }
+  }
+  
+  const currentVisits = getCurrentVisits()
   const currentEquipment = activeTab === 'today' ? equipmentDataToday : []
   const equipmentCount = currentEquipment.length
   const visitCount = currentVisits.length
@@ -229,11 +248,17 @@ export function VisitsDashboard() {
             </>
           ) : (
             <div className="visits-grid-today">
-              {currentVisits.map((visit) => (
-                <div key={visit.id}>
-                  <VisitCard visit={visit} />
+              {currentVisits.length === 0 ? (
+                <div className="bg-gray-100 p-8 rounded-lg text-center">
+                  <p className="text-gray-600">No visits found for today</p>
                 </div>
-              ))}
+              ) : (
+                currentVisits.map((visit) => (
+                  <div key={visit.id}>
+                    <VisitCard visit={visit} />
+                  </div>
+                ))
+              )}
             </div>
           )}
         </div>
