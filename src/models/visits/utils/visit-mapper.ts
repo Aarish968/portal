@@ -114,46 +114,32 @@ export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: numb
     // Format date - check if it's today using Atlanta timezone
     const formatDate = (dateStr: string): string => {
         try {
-            console.log('=== DATE FORMATTING DEBUG ===')
-            console.log('Input date string:', dateStr)
-            
             // Parse the visit date (assuming it's in YYYY-MM-DD format)
             const visitDate = new Date(dateStr + 'T00:00:00')
-            console.log('Parsed visit date:', visitDate)
             
             // Get current date in Atlanta timezone
             const now = new Date()
             const atlantaToday = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}))
-            console.log('Atlanta today:', atlantaToday)
             
             // Create date objects for comparison (set time to midnight to compare only dates)
             const visitDateOnly = new Date(visitDate.getFullYear(), visitDate.getMonth(), visitDate.getDate())
             const todayOnly = new Date(atlantaToday.getFullYear(), atlantaToday.getMonth(), atlantaToday.getDate())
             
-            console.log('Visit date only:', visitDateOnly)
-            console.log('Today only:', todayOnly)
-            
             // Calculate difference in days
             const diffTime = visitDateOnly.getTime() - todayOnly.getTime()
             const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
             
-            console.log('Difference in days:', diffDays)
-            
             if (diffDays === 0) {
-                console.log('Returning: Today')
                 return 'Today'
             } else if (diffDays === 1) {
-                console.log('Returning: Tomorrow')
                 return 'Tomorrow'
             } else {
                 // Format as readable date for other days
-                const formatted = visitDate.toLocaleDateString('en-US', { 
+                return visitDate.toLocaleDateString('en-US', { 
                     weekday: 'long', 
                     month: 'short', 
                     day: 'numeric'
                 })
-                console.log('Returning formatted date:', formatted)
-                return formatted
             }
         } catch (error) {
             console.log('Date formatting error:', error, 'for date:', dateStr)
