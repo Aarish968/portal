@@ -86,9 +86,21 @@ export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: numb
     // Format address
     const address = `${apiVisit.memberAddress.street}, ${apiVisit.memberAddress.city}, ${apiVisit.memberAddress.state} ${apiVisit.memberAddress.zip}`
 
-    // Format time from visitTime (HH:MM:SS.SSSZ format)
-    const formatTime = (timeStr: string): string => {
+    // Format time using Atlanta timezone and appointmentDatetime if available
+    const formatTime = (timeStr: string, appointmentDatetime?: string): string => {
         try {
+            // If we have appointmentDatetime, use that for more accurate timezone conversion
+            if (appointmentDatetime) {
+                const appointmentDate = new Date(appointmentDatetime)
+                return appointmentDate.toLocaleTimeString('en-US', {
+                    timeZone: 'America/New_York',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                })
+            }
+            
+            // Fallback to original time parsing
             const [hours, minutes] = timeStr.split(':')
             const hour = parseInt(hours, 10)
             const ampm = hour >= 12 ? 'PM' : 'AM'
@@ -99,24 +111,38 @@ export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: numb
         }
     }
 
-    // Format date - check if it's today
+    // Format date - check if it's today using Atlanta timezone
     const formatDate = (dateStr: string): string => {
         try {
             const visitDate = new Date(dateStr)
             const today = new Date()
             
+            // Convert both dates to Atlanta timezone for comparison
+            const atlantaVisitDate = new Date(visitDate.toLocaleString("en-US", {timeZone: "America/New_York"}))
+            const atlantaToday = new Date(today.toLocaleString("en-US", {timeZone: "America/New_York"}))
+            
             // Compare dates (ignore time)
-            const isToday = visitDate.toDateString() === today.toDateString()
+            const isToday = atlantaVisitDate.toDateString() === atlantaToday.toDateString()
             
             if (isToday) {
                 return 'Today'
             }
             
+            // Check if it's tomorrow
+            const tomorrow = new Date(atlantaToday)
+            tomorrow.setDate(tomorrow.getDate() + 1)
+            const isTomorrow = atlantaVisitDate.toDateString() === tomorrow.toDateString()
+            
+            if (isTomorrow) {
+                return 'Tomorrow'
+            }
+            
             // Format as readable date
-            return visitDate.toLocaleDateString('en-US', { 
+            return atlantaVisitDate.toLocaleDateString('en-US', { 
                 weekday: 'long', 
                 month: 'short', 
-                day: 'numeric' 
+                day: 'numeric',
+                timeZone: 'America/New_York'
             })
         } catch {
             return dateStr
@@ -126,7 +152,7 @@ export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: numb
     return {
         id: apiVisit.caseNumber || `visit-${index + 1}`,
         patientName: `${apiVisit.memberFirstName} ${apiVisit.memberLastName}`,
-        time: formatTime(apiVisit.visitTime),
+        time: formatTime(apiVisit.visitTime, apiVisit.appointmentDatetime),
         address,
         phone: apiVisit.MemberPhone,
         insurance: apiVisit.MemberPayer,

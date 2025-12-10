@@ -49,7 +49,7 @@ export const mockVisitsToday: Visit[] = [
     visitType: 'in-home',
     procedures: [
       { name: 'A1C' },
-      { name: 'Blood Pressure', completed: true},
+      { name: 'Blood Pressure', completed: true },
       { name: 'Urine Sample' },
     ],
     healthRiskAssessment: 'not-started',

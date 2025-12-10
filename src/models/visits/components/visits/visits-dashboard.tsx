@@ -1,11 +1,8 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { VisitCard } from './visit-card'
 import ROUTES from '@/data/routing/routes'
 import type { TabType, Visit } from '../../types/types'
-import { 
-  equipmentDataToday
-} from '../../constants/constants'
-import { groupVisitsByDate } from '../../utils/utils'
+import { groupVisitsByDate, generateEquipmentFromVisits } from '../../utils/utils'
 import { DashboardHeader } from './ui/DashboardHeader'
 import { EquipmentSection } from './ui/EquipmentSection'
 import { ConsentModals } from './ui/ConsentModals'
@@ -53,14 +50,7 @@ export function VisitsDashboard() {
     if (activeTab === 'today') {
       return visitsToday.filter(v => v.date === 'Today')
     } else if (activeTab === 'tomorrow') {
-      const tomorrow = new Date()
-      tomorrow.setDate(tomorrow.getDate() + 1)
-      const tomorrowStr = tomorrow.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        month: 'short', 
-        day: 'numeric' 
-      })
-      return visitsToday.filter(v => v.date === tomorrowStr)
+      return visitsToday.filter(v => v.date === 'Tomorrow')
     } else {
       // Week view - show all visits
       return visitsToday
@@ -68,7 +58,19 @@ export function VisitsDashboard() {
   }
   
   const currentVisits = getCurrentVisits()
-  const currentEquipment = activeTab === 'today' ? equipmentDataToday : []
+  
+  // Generate equipment data from actual visits
+  const currentEquipment = React.useMemo(() => {
+    if (activeTab === 'today') {
+      return generateEquipmentFromVisits(currentVisits)
+    } else if (activeTab === 'tomorrow') {
+      return generateEquipmentFromVisits(currentVisits)
+    } else {
+      // Week view - use all visits
+      return generateEquipmentFromVisits(visitsToday)
+    }
+  }, [activeTab, currentVisits, visitsToday])
+  
   const equipmentCount = currentEquipment.length
   const visitCount = currentVisits.length
 

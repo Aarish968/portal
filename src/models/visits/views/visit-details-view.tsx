@@ -8,11 +8,7 @@ import { useForceSaveError, ForceSaveErrorToggle } from '../components/force-sav
 import { useVisitsApi } from '../hooks/useVisitsApi'
 import type { UpdateLabPayload, UpdateGapPayload, LabOutcome, LabNotCompletedReason } from '../types'
 
-const procedures = [
-  { id: 'a1c', title: 'A1C' },
-  { id: 'blood-pressure', title: 'Blood Pressure' },
-  { id: 'urine-sample', title: 'Urine Sample' },
-]
+// This will be dynamically generated from API data
 
 const reasonLabels: Record<string, string> = {
   'connectivity': 'Connectivity',
@@ -405,6 +401,48 @@ export default function VisitDetailsView() {
   const completedCount = Object.values(outcomes).filter(o => o === 'completed').length
   // Count all outcomes (completed + not-completed) for progress bar
   const totalOutcomesSet = Object.values(outcomes).filter(o => o === 'completed' || o === 'not-completed').length
+  // Generate procedures from API data
+  const procedures = React.useMemo(() => {
+    const procs: { id: string; title: string }[] = []
+    
+    // Add labs as procedures
+    if (visitFromState?.labs) {
+      visitFromState.labs.forEach((lab: any) => {
+        const labName = lab.Mapped_Lab_Term && lab.Mapped_Lab_Term.length > 0 
+          ? lab.Mapped_Lab_Term.join(', ') 
+          : lab.PSC_Lab_Type__c
+        
+        procs.push({
+          id: lab.PSC_Lab_Type__c.toLowerCase().replace(/\s+/g, '-'),
+          title: labName
+        })
+      })
+    }
+    
+    // Add gaps as procedures
+    if (visitFromState?.gaps) {
+      visitFromState.gaps.forEach((gap: any) => {
+        const gapName = gap.Mapped_Gap_Term || gap.PSC_Measure__c
+        
+        procs.push({
+          id: `gap-${gap.PSC_Measure__c}`.toLowerCase(),
+          title: gapName
+        })
+      })
+    }
+    
+    // Fallback to demo procedures if no API data
+    if (procs.length === 0) {
+      procs.push(
+        { id: 'a1c', title: 'A1C' },
+        { id: 'blood-pressure', title: 'Blood Pressure' },
+        { id: 'urine-sample', title: 'Urine Sample' }
+      )
+    }
+    
+    return procs
+  }, [visitFromState])
+
   // Total outcomes include procedures plus HRA start action
   const totalOutcomes = procedures.length + 1
   const progressPercent = Math.min(100, Math.round((totalOutcomesSet / totalOutcomes) * 100))
@@ -815,30 +853,83 @@ export default function VisitDetailsView() {
                     color: '#1B1B1B'
                   }}>Equipment Needed</h4>
                   <div className="flex flex-wrap gap-2">
-                    {[
-                      { name: 'A1C Kit', procedureId: 'a1c' },
-                      { name: 'Blood Pressure Monitor', procedureId: 'blood-pressure' },
-                      { name: 'Urine Collection Kit', procedureId: 'urine-sample' }
-                    ]
-                      .filter((equipment) => {
-                        // Hide equipment only if procedure came from backend as completed
-                        // If user manually marked as completed, keep showing the equipment
-                        const backendProcedure = visitProcedures.find((p: any) => {
-                          const procedureIdMap: Record<string, string> = {
-                            'A1C': 'a1c',
-                            'HbA1c Test': 'a1c', // Map HbA1c Test to same ID as A1C
-                            'Blood Pressure': 'blood-pressure',
-                            'Urine Sample': 'urine-sample',
-                            'Lipid Panel': 'lipid-panel' // Add Lipid Panel mapping
+                    {(() => {
+                      const equipment: { name: string; procedureId: string }[] = []
+                      
+                      // Generate equipment from labs
+                      if (visitFromState?.labs) {
+                        visitFromState.labs.forEach((lab: any) => {
+                          const labType = lab.PSC_Lab_Type__c
+                          let equipmentName = ''
+                          let procedureId = ''
+                          
+                          switch (labType) {
+                            case 'KED':
+                              equipmentName = 'Kidney Function Kit'
+                              procedureId = 'ked'
+                              break
+                            case 'HbA1c':
+                            case 'A1C':
+                              equipmentName = 'HbA1c Kit'
+                              procedureId = 'a1c'
+                              break
+                            case 'Lipid Panel':
+                              equipmentName = 'Lipid Panel Kit'
+                              procedureId = 'lipid-panel'
+                              break
+                            default:
+                              equipmentName = `${labType} Kit`
+                              procedureId = labType.toLowerCase().replace(/\s+/g, '-')
                           }
-                          const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
-                          return procedureId === equipment.procedureId
+                          
+                          // Only show if not completed by backend
+                          const isBackendCompleted = lab.PSC_Status__c === 'Completed'
+                          if (!isBackendCompleted) {
+                            equipment.push({ name: equipmentName, procedureId })
+                          }
                         })
-                        const isBackendCompleted = backendProcedure?.completed === true
-                        // Hide if backend says completed, but show if user manually completed
-                        return !isBackendCompleted
-                      })
-                      .map((equipment, index) => (
+                      }
+                      
+                      // Generate equipment from gaps
+                      if (visitFromState?.gaps) {
+                        visitFromState.gaps.forEach((gap: any) => {
+                          const gapType = gap.PSC_Measure__c
+                          let equipmentName = ''
+                          let procedureId = ''
+                          
+                          switch (gapType) {
+                            case 'EED':
+                              equipmentName = 'Retinal Camera'
+                              procedureId = 'eed'
+                              break
+                            case 'EKG':
+                            case 'ECG':
+                              equipmentName = 'Portable ECG/EKG'
+                              procedureId = 'ekg'
+                              break
+                            default:
+                              equipmentName = `${gapType} Equipment`
+                              procedureId = gapType.toLowerCase().replace(/\s+/g, '-')
+                          }
+                          
+                          // Only show if not completed by backend
+                          const isBackendCompleted = gap.PSC_Status__c === 'Completed'
+                          if (!isBackendCompleted) {
+                            equipment.push({ name: equipmentName, procedureId })
+                          }
+                        })
+                      }
+                      
+                      // Fallback to demo equipment if no API data
+                      if (equipment.length === 0) {
+                        equipment.push(
+                          { name: 'A1C Kit', procedureId: 'a1c' },
+                          { name: 'Blood Pressure Monitor', procedureId: 'blood-pressure' },
+                          { name: 'Urine Collection Kit', procedureId: 'urine-sample' }
+                        )
+                      }
+                      
+                      return equipment.map((equip, index) => (
                         <span
                           key={index}
                           className="px-3 py-1.5 bg-white border border-gray-300 rounded-full text-xs"
@@ -847,9 +938,10 @@ export default function VisitDetailsView() {
                             color: '#1B1B1B'
                           }}
                         >
-                          {equipment.name}
+                          {equip.name}
                         </span>
-                      ))}
+                      ))
+                    })()}
                   </div>
                 </div>
               </div>
