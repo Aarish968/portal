@@ -102,34 +102,23 @@ export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: numb
     // Format date - check if it's today
     const formatDate = (dateStr: string): string => {
         try {
-            console.log('=== DATE FORMATTING ===')
-            console.log('Input date string:', dateStr)
-            
             const visitDate = new Date(dateStr)
             const today = new Date()
             
-            console.log('Visit date:', visitDate.toDateString())
-            console.log('Today date:', today.toDateString())
-            
             // Compare dates (ignore time)
             const isToday = visitDate.toDateString() === today.toDateString()
-            console.log('Is today?', isToday)
             
             if (isToday) {
-                console.log('Returning: Today')
                 return 'Today'
             }
             
             // Format as readable date
-            const formatted = visitDate.toLocaleDateString('en-US', { 
+            return visitDate.toLocaleDateString('en-US', { 
                 weekday: 'long', 
                 month: 'short', 
                 day: 'numeric' 
             })
-            console.log('Returning formatted:', formatted)
-            return formatted
-        } catch (error) {
-            console.log('Date formatting error:', error)
+        } catch {
             return dateStr
         }
     }

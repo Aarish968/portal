@@ -50,14 +50,8 @@ export function VisitsDashboard() {
 
   // Filter visits based on active tab
   const getCurrentVisits = () => {
-    console.log('=== FILTERING VISITS ===')
-    console.log('Active tab:', activeTab)
-    console.log('All visits:', visitsToday.map(v => ({ id: v.id, date: v.date, patientName: v.patientName })))
-    
     if (activeTab === 'today') {
-      const todayVisits = visitsToday.filter(v => v.date === 'Today')
-      console.log('Today visits:', todayVisits)
-      return todayVisits
+      return visitsToday.filter(v => v.date === 'Today')
     } else if (activeTab === 'tomorrow') {
       const tomorrow = new Date()
       tomorrow.setDate(tomorrow.getDate() + 1)
@@ -66,13 +60,9 @@ export function VisitsDashboard() {
         month: 'short', 
         day: 'numeric' 
       })
-      console.log('Tomorrow string:', tomorrowStr)
-      const tomorrowVisits = visitsToday.filter(v => v.date === tomorrowStr)
-      console.log('Tomorrow visits:', tomorrowVisits)
-      return tomorrowVisits
+      return visitsToday.filter(v => v.date === tomorrowStr)
     } else {
       // Week view - show all visits
-      console.log('Week visits:', visitsToday)
       return visitsToday
     }
   }

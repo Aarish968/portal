@@ -4,6 +4,11 @@ import type { Visit } from '../types/types'
 export function useVisitState(initialVisits: Visit[]) {
   const [visits, setVisits] = useState<Visit[]>(initialVisits)
 
+  // Update visits when initialVisits changes
+  useEffect(() => {
+    setVisits(initialVisits)
+  }, [initialVisits])
+
   const refreshVisitStates = useCallback(() => {
     try {
       setVisits(prev => prev.map(v => {
@@ -22,8 +27,10 @@ export function useVisitState(initialVisits: Visit[]) {
   }, [])
 
   useEffect(() => {
-    refreshVisitStates()
-  }, [refreshVisitStates])
+    if (visits.length > 0) {
+      refreshVisitStates()
+    }
+  }, [refreshVisitStates, visits.length])
 
   return { visits, refreshVisitStates }
 }
