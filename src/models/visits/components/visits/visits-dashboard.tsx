@@ -119,7 +119,12 @@ export function VisitsDashboard() {
   useEffect(() => {
     const updateTime = () => {
       const now = new Date()
-      const options: any = { hour: '2-digit', minute: '2-digit', hour12: true }
+      const options: any = { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        hour12: true,
+        timeZone: 'America/New_York' // Atlanta is in Eastern Time
+      }
       setTime(now.toLocaleTimeString('en-US', options))
     }
     updateTime()

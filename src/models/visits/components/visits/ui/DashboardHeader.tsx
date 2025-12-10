@@ -20,6 +20,18 @@ export function DashboardHeader({
   underlineStyle,
   onTabChange
 }: DashboardHeaderProps) {
+  // Get current date in Atlanta timezone
+  const getCurrentDate = () => {
+    const now = new Date()
+    return now.toLocaleDateString('en-US', {
+      timeZone: 'America/New_York', // Atlanta is in Eastern Time
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
+
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm mobile-header">
       <div className="px-4 sm:px-6 py-4 pb-0">
@@ -35,7 +47,7 @@ export function DashboardHeader({
               Visit Outcomes
             </h1>
             <p className="mt-1 text-sm" style={{ color: '#939090' }}>
-              Friday, October 10, 2025
+              {getCurrentDate()}
             </p>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
