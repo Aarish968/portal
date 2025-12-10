@@ -59,6 +59,7 @@ export interface LabItem {
   Id: string
   PSC_Status__c: string
   PSC_Lab_Type__c: string
+  Mapped_Lab_Term?: string[]
 }
 
 export interface GapItem {
@@ -71,6 +72,9 @@ export interface GapItem {
   PSC_Type__c: string
   PSC_Status__c: string
   PSC_Measure__c: string
+  PSC_Sub_Type__c?: string
+  PSC_Measurement_Year__c?: string
+  Mapped_Gap_Term?: string
 }
 
 export interface VisitApiResponse {

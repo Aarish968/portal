@@ -3,12 +3,7 @@ import { VisitCard } from './visit-card'
 import ROUTES from '@/data/routing/routes'
 import type { TabType, Visit } from '../../types/types'
 import { 
-  mockVisitsToday, 
-  mockVisitsTomorrow, 
-  mockVisitsWeek,
-  equipmentDataToday,
-  equipmentDataTomorrow,
-  equipmentDataWeek
+  equipmentDataToday
 } from '../../constants/constants'
 import { groupVisitsByDate } from '../../utils/utils'
 import { DashboardHeader } from './ui/DashboardHeader'
@@ -22,7 +17,7 @@ import { dashboardStyles } from './styles/dashboard-styles'
 import { useVisitsApi } from '../../hooks/useVisitsApi'
 import { useAuthStore } from '@/models/auth/stores/auth-store'
 import { transformApiVisitToVisit } from '../../utils/visit-mapper'
-import { DebugAuthInfo } from './debug-auth-info'
+
 
 export function VisitsDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('today')
@@ -34,9 +29,8 @@ export function VisitsDashboard() {
   const { getVisits, error: apiError } = useVisitsApi()
   const currentUser = useAuthStore(state => state.currentUser)
   
-  // Use transformed API visits if available, otherwise use mock data
-  const visitsData = transformedVisits.length > 0 ? transformedVisits : mockVisitsToday
-  const { visits: visitsToday, refreshVisitStates } = useVisitState(visitsData)
+  // Use only API visits
+  const { visits: visitsToday, refreshVisitStates } = useVisitState(transformedVisits)
   
   const {
     showConsentModal,
@@ -54,8 +48,8 @@ export function VisitsDashboard() {
 
   const { todayTabRef, tomorrowTabRef, weekTabRef, underlineStyle } = useTabUnderline(activeTab)
 
-  const currentVisits = activeTab === 'today' ? visitsToday : activeTab === 'tomorrow' ? mockVisitsTomorrow : mockVisitsWeek
-  const currentEquipment = activeTab === 'today' ? equipmentDataToday : activeTab === 'tomorrow' ? equipmentDataTomorrow : equipmentDataWeek
+  const currentVisits = activeTab === 'today' ? visitsToday : []
+  const currentEquipment = activeTab === 'today' ? equipmentDataToday : []
   const equipmentCount = currentEquipment.length
   const visitCount = currentVisits.length
 
@@ -69,25 +63,33 @@ export function VisitsDashboard() {
       
       if (userEmail) {
         setIsLoadingVisits(true)
+        console.log('=== VISITS API DEBUG ===')
         console.log('Fetching visits for:', userEmail)
         try {
           const data = await getVisits(userEmail)
+          console.log('Raw API response:', data)
+          
           if (data && data.length > 0) {
-            console.log('API visits received:', data.length, 'visits')
+            console.log('✓ API visits received:', data.length, 'visits')
             // Transform API response to Visit format
             const transformed = data.map((apiVisit, index) => transformApiVisitToVisit(apiVisit, index))
+            console.log('✓ Transformed visits:', transformed)
             setTransformedVisits(transformed)
           } else {
-            console.log('No API data received, using mock data')
+            console.log('No API data received')
+            setTransformedVisits([])
           }
         } catch (error) {
           console.error('Error fetching visits:', error)
+          setTransformedVisits([])
         } finally {
           setIsLoadingVisits(false)
+          console.log('======================')
         }
       } else {
-        console.log('No user found, using mock data')
+        console.log('No user found')
         setIsLoadingVisits(false)
+        setTransformedVisits([])
       }
     }
     fetchVisits()
@@ -155,8 +157,7 @@ export function VisitsDashboard() {
     <div className="min-h-screen bg-gray-85 w-full overflow-x-hidden">
       <style>{dashboardStyles}</style>
       
-      {/* Temporary debug component - remove after fixing */}
-      <DebugAuthInfo />
+
 
       <DashboardHeader
         time={time}
@@ -188,8 +189,11 @@ export function VisitsDashboard() {
           {apiError && (
             <p className="text-sm text-red-600 mt-2">Error loading visits: {apiError}</p>
           )}
-          {!isLoadingVisits && transformedVisits.length > 0 && (
+          {!isLoadingVisits && !apiError && transformedVisits.length > 0 && (
             <p className="text-sm text-green-600 mt-2">✓ Showing {transformedVisits.length} visit(s) from API</p>
+          )}
+          {!isLoadingVisits && !apiError && transformedVisits.length === 0 && (
+            <p className="text-sm text-gray-500 mt-2">No visits found for today</p>
           )}
         </div>
 

@@ -13,9 +13,13 @@ export function mapApiResponseToProcedures(visit: VisitApiResponse): ProcedureIt
     const procedures: ProcedureItem[] = []
 
     visit.labs?.forEach((lab: LabItem) => {
+        const labName = lab.Mapped_Lab_Term && lab.Mapped_Lab_Term.length > 0 
+            ? lab.Mapped_Lab_Term.join(', ') 
+            : lab.PSC_Lab_Type__c
+            
         procedures.push({
             id: lab.PSC_Lab_Type__c.toLowerCase().replace(/\s+/g, '-'),
-            title: lab.PSC_Lab_Type__c,
+            title: labName,
             type: 'lab',
             apiId: lab.Id,
             accountId: lab.PSC_Account__c,
@@ -24,9 +28,11 @@ export function mapApiResponseToProcedures(visit: VisitApiResponse): ProcedureIt
     })
 
     visit.gaps?.forEach((gap: GapItem) => {
+        const gapName = gap.Mapped_Gap_Term || gap.PSC_Measure__c
+        
         procedures.push({
             id: `gap-${gap.PSC_Measure__c}`.toLowerCase(),
-            title: gap.PSC_Measure__c,
+            title: gapName,
             type: 'gap',
             apiId: gap.Id,
             status: gap.PSC_Status__c,
@@ -41,16 +47,24 @@ export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: numb
     
     // Map labs to procedures
     apiVisit.labs?.forEach((lab: LabItem) => {
+        // Use Mapped_Lab_Term if available, otherwise use PSC_Lab_Type__c
+        const labName = lab.Mapped_Lab_Term && lab.Mapped_Lab_Term.length > 0 
+            ? lab.Mapped_Lab_Term.join(', ') 
+            : lab.PSC_Lab_Type__c
+        
         procedures.push({
-            name: lab.PSC_Lab_Type__c,
+            name: labName,
             completed: lab.PSC_Status__c === 'Completed',
         })
     })
 
     // Map gaps to procedures
     apiVisit.gaps?.forEach((gap: GapItem) => {
+        // Use Mapped_Gap_Term if available, otherwise use PSC_Measure__c
+        const gapName = gap.Mapped_Gap_Term || gap.PSC_Measure__c
+        
         procedures.push({
-            name: gap.PSC_Measure__c,
+            name: gapName,
             completed: gap.PSC_Status__c === 'Completed',
         })
     })
