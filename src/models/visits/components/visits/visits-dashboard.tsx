@@ -47,12 +47,21 @@ export function VisitsDashboard() {
 
   // Filter visits based on active tab
   const getCurrentVisits = () => {
+    console.log('=== FILTERING DEBUG ===')
+    console.log('Active tab:', activeTab)
+    console.log('All visits:', visitsToday.map(v => ({ id: v.id, patientName: v.patientName, date: v.date })))
+    
     if (activeTab === 'today') {
-      return visitsToday.filter(v => v.date === 'Today')
+      const todayVisits = visitsToday.filter(v => v.date === 'Today')
+      console.log('Today visits filtered:', todayVisits.map(v => ({ id: v.id, patientName: v.patientName, date: v.date })))
+      return todayVisits
     } else if (activeTab === 'tomorrow') {
-      return visitsToday.filter(v => v.date === 'Tomorrow')
+      const tomorrowVisits = visitsToday.filter(v => v.date === 'Tomorrow')
+      console.log('Tomorrow visits filtered:', tomorrowVisits.map(v => ({ id: v.id, patientName: v.patientName, date: v.date })))
+      return tomorrowVisits
     } else {
       // Week view - show all visits
+      console.log('Week visits (all):', visitsToday.map(v => ({ id: v.id, patientName: v.patientName, date: v.date })))
       return visitsToday
     }
   }
