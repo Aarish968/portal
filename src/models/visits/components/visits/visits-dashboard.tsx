@@ -14,6 +14,7 @@ import { dashboardStyles } from './styles/dashboard-styles'
 import { useVisitsApi } from '../../hooks/useVisitsApi'
 import { useAuthStore } from '@/models/auth/stores/auth-store'
 import { transformApiVisitToVisit } from '../../utils/visit-mapper'
+import { STORAGE_KEYS } from '../../constants'
 
 
 export function VisitsDashboard() {
@@ -95,6 +96,25 @@ export function VisitsDashboard() {
             // Transform API response to Visit format
             const transformed = data.map((apiVisit, index) => transformApiVisitToVisit(apiVisit, index))
             console.log('✓ Transformed visits:', transformed)
+            
+            // Sync API consent data to localStorage for each visit
+            transformed.forEach(visit => {
+              if (visit.consentForms && visit.consentForms.length > 0) {
+                const consentStatus = {
+                  hipaa: visit.consentForms.find(cf => cf.name === 'HIPAA')?.completed || false,
+                  privacy: visit.consentForms.find(cf => cf.name === 'Privacy')?.completed || false,
+                  treatment: visit.consentForms.find(cf => cf.name === 'Treatment')?.completed || false
+                }
+                
+                // Only update localStorage if we have consent data from API
+                const hasApiConsentData = visit.consentForms.some(cf => cf.completed === true)
+                if (hasApiConsentData) {
+                  localStorage.setItem(STORAGE_KEYS.CONSENT_STATUS(visit.id), JSON.stringify(consentStatus))
+                  console.log(`✓ Synced consent data for visit ${visit.id}:`, consentStatus)
+                }
+              }
+            })
+            
             setTransformedVisits(transformed)
           } else {
             console.log('No API data received')

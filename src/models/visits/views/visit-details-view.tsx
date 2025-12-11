@@ -151,7 +151,7 @@ export default function VisitDetailsView() {
   React.useEffect(() => {
     if (visitFromState?.labs || visitFromState?.gaps) {
       const metadata: Record<string, { type: 'lab' | 'gap', apiId: string, accountId?: string }> = {}
-      
+
       visitFromState.labs?.forEach((lab: any) => {
         const procedureId = lab.PSC_Lab_Type__c.toLowerCase().replace(/\s+/g, '-')
         metadata[procedureId] = {
@@ -276,7 +276,7 @@ export default function VisitDetailsView() {
 
         const metadata = procedureMetadata[selectedProcedure.id]
         const apiReason = reasonToApiReason[reason]
-        
+
         if (metadata && apiReason) {
           if (metadata.type === 'lab' && metadata.accountId) {
             const payload: UpdateLabPayload = {
@@ -404,33 +404,33 @@ export default function VisitDetailsView() {
   // Generate procedures from API data
   const procedures = React.useMemo(() => {
     const procs: { id: string; title: string }[] = []
-    
+
     // Add labs as procedures
     if (visitFromState?.labs) {
       visitFromState.labs.forEach((lab: any) => {
-        const labName = lab.Mapped_Lab_Term && lab.Mapped_Lab_Term.length > 0 
-          ? lab.Mapped_Lab_Term.join(', ') 
+        const labName = lab.Mapped_Lab_Term && lab.Mapped_Lab_Term.length > 0
+          ? lab.Mapped_Lab_Term.join(', ')
           : lab.PSC_Lab_Type__c
-        
+
         procs.push({
           id: lab.PSC_Lab_Type__c.toLowerCase().replace(/\s+/g, '-'),
           title: labName
         })
       })
     }
-    
+
     // Add gaps as procedures
     if (visitFromState?.gaps) {
       visitFromState.gaps.forEach((gap: any) => {
         const gapName = gap.Mapped_Gap_Term || gap.PSC_Measure__c
-        
+
         procs.push({
           id: `gap-${gap.PSC_Measure__c}`.toLowerCase(),
           title: gapName
         })
       })
     }
-    
+
     // Fallback to demo procedures if no API data
     if (procs.length === 0) {
       procs.push(
@@ -439,7 +439,7 @@ export default function VisitDetailsView() {
         { id: 'urine-sample', title: 'Urine Sample' }
       )
     }
-    
+
     return procs
   }, [visitFromState])
 
@@ -855,14 +855,14 @@ export default function VisitDetailsView() {
                   <div className="flex flex-wrap gap-2">
                     {(() => {
                       const equipment: { name: string; procedureId: string }[] = []
-                      
+
                       // Generate equipment from labs
                       if (visitFromState?.labs) {
                         visitFromState.labs.forEach((lab: any) => {
                           const labType = lab.PSC_Lab_Type__c
                           let equipmentName = ''
                           let procedureId = ''
-                          
+
                           switch (labType) {
                             case 'KED':
                               equipmentName = 'Kidney Function Kit'
@@ -881,7 +881,7 @@ export default function VisitDetailsView() {
                               equipmentName = `${labType} Kit`
                               procedureId = labType.toLowerCase().replace(/\s+/g, '-')
                           }
-                          
+
                           // Only show if not completed by backend
                           const isBackendCompleted = lab.PSC_Status__c === 'Completed'
                           if (!isBackendCompleted) {
@@ -889,14 +889,14 @@ export default function VisitDetailsView() {
                           }
                         })
                       }
-                      
+
                       // Generate equipment from gaps
                       if (visitFromState?.gaps) {
                         visitFromState.gaps.forEach((gap: any) => {
                           const gapType = gap.PSC_Measure__c
                           let equipmentName = ''
                           let procedureId = ''
-                          
+
                           switch (gapType) {
                             case 'EED':
                               equipmentName = 'Retinal Camera'
@@ -911,7 +911,7 @@ export default function VisitDetailsView() {
                               equipmentName = `${gapType} Equipment`
                               procedureId = gapType.toLowerCase().replace(/\s+/g, '-')
                           }
-                          
+
                           // Only show if not completed by backend
                           const isBackendCompleted = gap.PSC_Status__c === 'Completed'
                           if (!isBackendCompleted) {
@@ -919,7 +919,7 @@ export default function VisitDetailsView() {
                           }
                         })
                       }
-                      
+
                       // Fallback to demo equipment if no API data
                       if (equipment.length === 0) {
                         equipment.push(
@@ -928,7 +928,7 @@ export default function VisitDetailsView() {
                           { name: 'Urine Collection Kit', procedureId: 'urine-sample' }
                         )
                       }
-                      
+
                       return equipment.map((equip, index) => (
                         <span
                           key={index}
@@ -1033,7 +1033,7 @@ export default function VisitDetailsView() {
                               'hra': 'not-completed' as OutcomeValue // Mark as not-completed initially to update progress
                             }
                             setOutcomes(updatedOutcomes)
-                            
+
                             // Save to localStorage
                             const visitData = {
                               id: visitId,
@@ -1048,7 +1048,7 @@ export default function VisitDetailsView() {
                             try {
                               localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
                             } catch { }
-                            
+
                             // Update visit status if needed
                             if (visitStatus === 'not-started') {
                               setVisitStatus('in-progress')
@@ -1082,41 +1082,41 @@ export default function VisitDetailsView() {
                         <Folder className="w-5 h-5" />
                       </button>
 
-                    {/* Also show Start Telehealth alongside HRA for telehealth visits */}
-                    {visitType === 'telehealth' && (
-                      <button
-                        onClick={() => {
-                          console.log('Starting telehealth session...')
-                        }}
-                        className="w-full flex items-center justify-center gap-2 font-semibold transition-all duration-250 ease-out mt-4"
-                        style={{
-                          fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                          fontSize: '0.875rem',
-                          lineHeight: '1.75',
-                          minWidth: '64px',
-                          minHeight: '44px',
-                          backgroundColor: 'transparent',
-                          color: 'rgb(35, 155, 207)',
-                          textTransform: 'none',
-                          fontWeight: '600',
-                          outline: '0px',
-                          margin: '12px 0 0 0',
-                          textDecoration: 'none',
-                          padding: '12px 15px',
-                          borderWidth: '1px',
-                          borderStyle: 'solid',
-                          borderColor: 'rgb(35, 155, 207)',
-                          borderRadius: '18px',
-                          transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)'
-                        }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
-                          <path d="M4.5 20C3.95 20 3.475 19.8083 3.075 19.425C2.69167 19.025 2.5 18.55 2.5 18V6C2.5 5.45 2.69167 4.98333 3.075 4.6C3.475 4.2 3.95 4 4.5 4H16.5C17.05 4 17.5167 4.2 17.9 4.6C18.3 4.98333 18.5 5.45 18.5 6V10.5L22.5 6.5V17.5L18.5 13.5V18C18.5 18.55 18.3 19.025 17.9 19.425C17.5167 19.8083 17.05 20 16.5 20H4.5ZM4.5 18H16.5V6H4.5V18ZM4.5 18V6V18Z" fill="#239BCF" />
-                        </svg>
-                        <span>Start Telehealth</span>
-                      </button>
-                    )}
-                  </div>
+                      {/* Also show Start Telehealth alongside HRA for telehealth visits */}
+                      {visitType === 'telehealth' && (
+                        <button
+                          onClick={() => {
+                            console.log('Starting telehealth session...')
+                          }}
+                          className="w-full flex items-center justify-center gap-2 font-semibold transition-all duration-250 ease-out mt-4"
+                          style={{
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                            fontSize: '0.875rem',
+                            lineHeight: '1.75',
+                            minWidth: '64px',
+                            minHeight: '44px',
+                            backgroundColor: 'transparent',
+                            color: 'rgb(35, 155, 207)',
+                            textTransform: 'none',
+                            fontWeight: '600',
+                            outline: '0px',
+                            margin: '12px 0 0 0',
+                            textDecoration: 'none',
+                            padding: '12px 15px',
+                            borderWidth: '1px',
+                            borderStyle: 'solid',
+                            borderColor: 'rgb(35, 155, 207)',
+                            borderRadius: '18px',
+                            transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)'
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" viewBox="0 0 25 24" fill="none">
+                            <path d="M4.5 20C3.95 20 3.475 19.8083 3.075 19.425C2.69167 19.025 2.5 18.55 2.5 18V6C2.5 5.45 2.69167 4.98333 3.075 4.6C3.475 4.2 3.95 4 4.5 4H16.5C17.05 4 17.5167 4.2 17.9 4.6C18.3 4.98333 18.5 5.45 18.5 6V10.5L22.5 6.5V17.5L18.5 13.5V18C18.5 18.55 18.3 19.025 17.9 19.425C17.5167 19.8083 17.05 20 16.5 20H4.5ZM4.5 18H16.5V6H4.5V18ZM4.5 18V6V18Z" fill="#239BCF" />
+                          </svg>
+                          <span>Start Telehealth</span>
+                        </button>
+                      )}
+                    </div>
                   )
                 })()}
               </div>
