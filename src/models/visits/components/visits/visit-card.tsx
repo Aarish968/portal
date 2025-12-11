@@ -83,20 +83,14 @@ export function VisitCard({ visit }: { visit: Visit }) {
               treatment: consent.treatment === true
             }
             setConsentStatus(newStatus)
-            console.log(`Updated consent status for visit ${visit.id}:`, newStatus)
           }
         } catch (error) {
           console.error('Error reading consent status:', error)
         }
       }
 
-      // Check immediately
+      // Check once when component mounts or visit.id changes
       updateConsentStatus()
-
-      // Set up a polling mechanism to check for changes
-      const interval = setInterval(updateConsentStatus, 500)
-
-      return () => clearInterval(interval)
     }, [visit.id])
 
     const completedCount = Object.values(consentStatus).filter(Boolean).length

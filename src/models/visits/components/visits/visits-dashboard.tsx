@@ -85,76 +85,31 @@ export function VisitsDashboard() {
       
       if (userEmail) {
         setIsLoadingVisits(true)
-        console.log('=== VISITS API DEBUG ===')
-        console.log('Fetching visits for:', userEmail)
         try {
-          // Clear any existing consent data to avoid conflicts
-          console.log('Clearing existing consent data from localStorage...')
-          for (let i = localStorage.length - 1; i >= 0; i--) {
-            const key = localStorage.key(i)
-            if (key?.startsWith('consentFormsStatus-')) {
-              localStorage.removeItem(key)
-              console.log(`Removed: ${key}`)
-            }
-          }
-          
           const data = await getVisits(userEmail)
-          console.log('Raw API response:', data)
-          
-          // Debug: Check the raw consent data from API
-          if (data && data.length > 0) {
-            data.forEach((apiVisit, index) => {
-              console.log(`API Visit ${index} consent data:`, {
-                consentToTreatment: apiVisit.consentToTreatment,
-                consentToPrivacy: apiVisit.consentToPrivacy,
-                consentToHipaa: apiVisit.consentToHipaa
-              })
-            })
-          }
           
           if (data && data.length > 0) {
             console.log('✓ API visits received:', data.length, 'visits')
             // Transform API response to Visit format
             const transformed = data.map((apiVisit, index) => transformApiVisitToVisit(apiVisit, index))
-            console.log('✓ Transformed visits:', transformed)
-            
-            // Debug: Check transformed consent forms
-            transformed.forEach((visit, index) => {
-              console.log(`Transformed Visit ${index} consent forms:`, visit.consentForms)
-            })
             
             // Sync API consent data to localStorage for each visit
             transformed.forEach(visit => {
-              console.log(`Processing visit ${visit.id} consent forms:`, visit.consentForms)
-              
               if (visit.consentForms && visit.consentForms.length > 0) {
                 const consentStatus = {
                   hipaa: visit.consentForms.find(cf => cf.name === 'HIPAA')?.completed || false,
                   privacy: visit.consentForms.find(cf => cf.name === 'Privacy')?.completed || false,
-                  treatment: visit.consentForms.find(cf => cf.name === 'Treatment')?.completed || false
+                  treatment: visit.consentForms.find(cf => cf.name === 'Treatment')?.completed || false,
+                  submitted: true // Mark as submitted since this data comes from API
                 }
                 
-                console.log(`Calculated consent status for visit ${visit.id}:`, consentStatus)
-                
-                // Always update localStorage with API consent data (even if all false)
+                // Always update localStorage with API consent data
                 localStorage.setItem(STORAGE_KEYS.CONSENT_STATUS(visit.id), JSON.stringify(consentStatus))
-                console.log(`✓ Synced consent data for visit ${visit.id} to localStorage`)
-                
-                // Verify it was stored
-                const stored = localStorage.getItem(STORAGE_KEYS.CONSENT_STATUS(visit.id))
-                console.log(`Verification - stored data:`, stored)
-              } else {
-                console.log(`No consent forms found for visit ${visit.id}`)
+                console.log(`✓ Synced consent data for visit ${visit.id}:`, consentStatus)
               }
             })
             
             setTransformedVisits(transformed)
-            
-            // Force a re-render of visit cards after consent data is synced
-            setTimeout(() => {
-              console.log('Forcing visit state refresh...')
-              refreshVisitStates()
-            }, 100)
           } else {
             console.log('No API data received')
             setTransformedVisits([])
@@ -164,7 +119,6 @@ export function VisitsDashboard() {
           setTransformedVisits([])
         } finally {
           setIsLoadingVisits(false)
-          console.log('======================')
         }
       } else {
         console.log('No user found')
