@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import { Clock, MapPin, Building, Phone, Check, X, Link } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
@@ -86,43 +86,23 @@ export function VisitCard({ visit }: { visit: Visit }) {
       sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
       sessionStorage.setItem('currentVisitId', visit.id)
 
-      // Determine base URL based on environment
-      const getBaseUrl = () => {
-        const hostname = window.location.hostname
-        const protocol = window.location.protocol
-        const port = window.location.port
-
-        // Local development
-        if (hostname === 'localhost' || hostname === '127.0.0.1') {
-          return `${protocol}//${hostname}${port ? `:${port}` : ''}`
-        }
-
-        // QA environment (you can adjust this pattern based on your QA URL)
-        if (hostname.includes('qa') || hostname.includes('staging') || hostname.includes('dev')) {
-          return `${protocol}//${hostname}`
-        }
-
-        // Production environment
-        return `${protocol}//${hostname}`
-      }
-
-      const baseUrl = getBaseUrl()
-      const consentLink = `${baseUrl}${ROUTES.app.consentForms.href}?visitId=${visit.id}`
+      // Use consentURL from API response
+      const consentLink = visit.consentURL || `${window.location.origin}${ROUTES.app.consentForms.href}?visitId=${visit.id}`
 
       navigator.clipboard.writeText(consentLink).then(() => {
         // Change button state to show success
         setIsLinkCopied(true)
-        console.log('Consent link copied to clipboard:', consentLink)
 
         // Reset button state after 2 seconds
         setTimeout(() => {
           setIsLinkCopied(false)
         }, 2000)
       }).catch(() => {
-        console.error('Failed to copy consent link')
         // Could show error state here if needed
       })
     }
+
+
 
 
 
@@ -168,7 +148,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
                   sessionStorage.setItem('fromConsentPage', 'true')
                   sessionStorage.setItem('currentVisitId', visit.id)
                   sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
-                  window.open(`${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
+                  window.open(visit.consentURL || `${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
                 }}
                 className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
                 style={{
@@ -367,7 +347,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
                   sessionStorage.setItem('fromConsentPage', 'true')
                   sessionStorage.setItem('currentVisitId', visit.id)
                   sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
-                  window.open(`${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
+                  window.open(visit.consentURL || `${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
                 }}
                 className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
                 style={{
@@ -537,7 +517,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
         </button>
       )
     } else if (displayStatus === 'in-progress') {
-      // In-progress status → Continue button
+      // In-progress status â†’ Continue button
       // Check if HIPAA or Privacy are missing
       const hipaaOrPrivacyMissing = !consentStatus.hipaa || !consentStatus.privacy
 
@@ -589,7 +569,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
                   sessionStorage.setItem('fromConsentPage', 'true')
                   sessionStorage.setItem('currentVisitId', visit.id)
                   sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
-                  window.open(`${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
+                  window.open(visit.consentURL || `${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
                 }}
                 className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
                 style={{
@@ -759,7 +739,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
         </button>
       )
     } else if (areAllConsentFormsCompleted) {
-      // All consent forms completed → Log Outcomes button
+      // All consent forms completed â†’ Log Outcomes button
       return (
         <button
           onClick={handleVisitClick}
@@ -800,7 +780,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
         </button>
       )
     } else if (hipaaAndPrivacyCollectedButTreatmentMissing && visit.visitType === 'in-home') {
-      // HIPAA + Privacy collected (Treatment missing) → Show only Collect Consent button (In-Home only)
+      // HIPAA + Privacy collected (Treatment missing) â†’ Show only Collect Consent button (In-Home only)
       return (
         <button
           onClick={() => {
@@ -808,7 +788,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
             sessionStorage.setItem('currentVisitId', visit.id)
             // Store visit data for later use
             sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
-            window.open(`${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
+            window.open(visit.consentURL || `${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
           }}
           className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
           style={{
@@ -847,7 +827,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
         </button>
       )
     } else if (onlyTreatmentConsentCollected && visit.visitType === 'in-home') {
-      // Only Treatment Consent collected → Show both Log Outcomes and Collect Consent buttons (In-Home only)
+      // Only Treatment Consent collected â†’ Show both Log Outcomes and Collect Consent buttons (In-Home only)
       return (
         <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
           <button
@@ -894,7 +874,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
               sessionStorage.setItem('currentVisitId', visit.id)
               // Store visit data for later use
               sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
-              window.open(`${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
+              window.open(visit.consentURL || `${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
             }}
             className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
             style={{
@@ -935,11 +915,11 @@ export function VisitCard({ visit }: { visit: Visit }) {
         </div>
       )
     } else if (hasOneOrTwoConsentsCompleted) {
-      // 1 or 2 consents completed → Different buttons based on visit type and which consents are collected
+      // 1 or 2 consents completed â†’ Different buttons based on visit type and which consents are collected
       if (visit.visitType === 'telehealth') {
         // Telehealth: Check specific consent combinations
 
-        // Only Treatment Consent collected → Show both Log Outcomes and Copy Consent Link buttons
+        // Only Treatment Consent collected â†’ Show both Log Outcomes and Copy Consent Link buttons
         if (consentStatus.treatment && !consentStatus.hipaa && !consentStatus.privacy) {
           return (
             <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
@@ -1027,9 +1007,9 @@ export function VisitCard({ visit }: { visit: Visit }) {
           )
         }
 
-        // HIPAA + Privacy collected (Treatment missing) → Show only Copy Consent Link button
+        // HIPAA + Privacy collected (Treatment missing) â†’ Show only Copy Consent Link button
         if (consentStatus.hipaa && consentStatus.privacy && !consentStatus.treatment) {
-          // HIPAA + Privacy collected, Treatment missing → Show only Copy Consent Link button
+          // HIPAA + Privacy collected, Treatment missing â†’ Show only Copy Consent Link button
           return (
             <div className="flex flex-col gap-1" style={{ alignItems: 'flex-end' }}>
               <button
@@ -1078,7 +1058,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
           )
         }
 
-        // Only HIPAA OR only Privacy collected (Treatment missing) → Show only Copy Consent Link button
+        // Only HIPAA OR only Privacy collected (Treatment missing) â†’ Show only Copy Consent Link button
         if ((consentStatus.hipaa && !consentStatus.privacy && !consentStatus.treatment) ||
           (!consentStatus.hipaa && consentStatus.privacy && !consentStatus.treatment)) {
           return (
@@ -1129,9 +1109,9 @@ export function VisitCard({ visit }: { visit: Visit }) {
           )
         }
 
-        // Treatment + HIPAA OR Treatment + Privacy (but not both) → Show both Log Outcomes and Copy Consent Link buttons
+        // Treatment + HIPAA OR Treatment + Privacy (but not both) â†’ Show both Log Outcomes and Copy Consent Link buttons
         if (consentStatus.treatment && ((consentStatus.hipaa && !consentStatus.privacy) || (!consentStatus.hipaa && consentStatus.privacy))) {
-          // Treatment collected with one of HIPAA or Privacy → Show both Log Outcomes and Copy Consent Link buttons
+          // Treatment collected with one of HIPAA or Privacy â†’ Show both Log Outcomes and Copy Consent Link buttons
           return (
             <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
               <button
@@ -1217,7 +1197,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
             </div>
           )
         } else {
-          // Fallback for other combinations → Show both buttons (original behavior)
+          // Fallback for other combinations â†’ Show both buttons (original behavior)
           return (
             <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
               <button
@@ -1306,7 +1286,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
       } else if (visit.visitType === 'in-home') {
         // In-home: Check specific consent combinations
 
-        // Only Treatment Consent collected → Show both Log Outcomes and Collect Consent buttons
+        // Only Treatment Consent collected â†’ Show both Log Outcomes and Collect Consent buttons
         if (consentStatus.treatment && !consentStatus.hipaa && !consentStatus.privacy) {
           return (
             <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
@@ -1353,7 +1333,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
                   sessionStorage.setItem('fromConsentPage', 'true')
                   sessionStorage.setItem('currentVisitId', visit.id)
                   sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
-                  window.open(`${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
+                  window.open(visit.consentURL || `${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
                 }}
                 className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
                 style={{
@@ -1395,9 +1375,9 @@ export function VisitCard({ visit }: { visit: Visit }) {
           )
         }
 
-        // HIPAA + Privacy collected (Treatment missing) → Show only Collect Consent button
+        // HIPAA + Privacy collected (Treatment missing) â†’ Show only Collect Consent button
         if (consentStatus.hipaa && consentStatus.privacy && !consentStatus.treatment) {
-          // HIPAA + Privacy collected, Treatment missing → Show only Collect Consent button
+          // HIPAA + Privacy collected, Treatment missing â†’ Show only Collect Consent button
           return (
             <button
               onClick={() => {
@@ -1405,7 +1385,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
                 sessionStorage.setItem('currentVisitId', visit.id)
                 // Store visit data for later use
                 sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
-                window.open(`${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
+                window.open(visit.consentURL || `${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
               }}
               className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
               style={{
@@ -1445,7 +1425,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
           )
         }
 
-        // Only HIPAA OR only Privacy collected (Treatment missing) → Show only Collect Consent button
+        // Only HIPAA OR only Privacy collected (Treatment missing) â†’ Show only Collect Consent button
         if ((consentStatus.hipaa && !consentStatus.privacy && !consentStatus.treatment) ||
           (!consentStatus.hipaa && consentStatus.privacy && !consentStatus.treatment)) {
           return (
@@ -1454,7 +1434,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
                 sessionStorage.setItem('fromConsentPage', 'true')
                 sessionStorage.setItem('currentVisitId', visit.id)
                 sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
-                window.open(`${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
+                window.open(visit.consentURL || `${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
               }}
               className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
               style={{
@@ -1494,9 +1474,9 @@ export function VisitCard({ visit }: { visit: Visit }) {
           )
         }
 
-        // Treatment + HIPAA OR Treatment + Privacy (but not both) → Show both Log Outcomes and Collect Consent buttons
+        // Treatment + HIPAA OR Treatment + Privacy (but not both) â†’ Show both Log Outcomes and Collect Consent buttons
         if (consentStatus.treatment && ((consentStatus.hipaa && !consentStatus.privacy) || (!consentStatus.hipaa && consentStatus.privacy))) {
-          // Treatment + HIPAA OR Treatment + Privacy (but not both) → Show both Log Outcomes and Collect Consent buttons
+          // Treatment + HIPAA OR Treatment + Privacy (but not both) â†’ Show both Log Outcomes and Collect Consent buttons
           return (
             <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
               <button
@@ -1543,7 +1523,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
                   sessionStorage.setItem('currentVisitId', visit.id)
                   // Store visit data for later use
                   sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
-                  window.open(`${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
+                  window.open(visit.consentURL || `${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
                 }}
                 className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
                 style={{
@@ -1648,7 +1628,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
               sessionStorage.setItem('currentVisitId', visit.id)
               // Store visit data for later use
               sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
-              window.open(ROUTES.app.consentForms.href, '_blank')
+              window.open(visit.consentURL || ROUTES.app.consentForms.href, '_blank')
             }}
             className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
             style={{
@@ -2062,4 +2042,5 @@ export function VisitCard({ visit }: { visit: Visit }) {
     </Card>
   )
 }
+
 

@@ -21,6 +21,7 @@ export interface Visit {
   procedures: VisitProcedure[]
   healthRiskAssessment: 'not-started' | 'in-progress' | 'completed'
   consentForms: ConsentForm[]
+  consentURL?: string
   date?: string
 }
 

@@ -86,14 +86,12 @@ export function VisitsDashboard() {
       const userEmail = currentUser?.username || currentUser?.idTokenClaims?.preferred_username
       
       if (userEmail && !hasLoadedOnce) {
-        console.log('Starting API fetch for:', userEmail)
         setIsLoadingVisits(true)
         setHasLoadedOnce(true)
         try {
           const data = await getVisits(userEmail)
           
           if (data && data.length > 0) {
-            console.log('✓ API visits received:', data.length, 'visits')
             // Transform API response to Visit format
             const transformed = data.map((apiVisit, index) => transformApiVisitToVisit(apiVisit, index))
             
@@ -109,7 +107,6 @@ export function VisitsDashboard() {
                 
                 // Always update localStorage with API consent data
                 localStorage.setItem(STORAGE_KEYS.CONSENT_STATUS(visit.id), JSON.stringify(consentStatus))
-                console.log(`✓ Synced consent data for visit ${visit.id}:`, consentStatus)
               }
             })
             
@@ -120,17 +117,14 @@ export function VisitsDashboard() {
             }, 50)
 
           } else {
-            console.log('No API data received')
             setTransformedVisits([])
           }
         } catch (error) {
-          console.error('Error fetching visits:', error)
           setTransformedVisits([])
         } finally {
           setIsLoadingVisits(false)
         }
       } else if (!userEmail) {
-        console.log('No user found')
         setIsLoadingVisits(false)
         setTransformedVisits([])
       }
@@ -237,11 +231,8 @@ export function VisitsDashboard() {
           {apiError && (
             <p className="text-sm text-red-600 mt-2">Error loading visits: {apiError}</p>
           )}
-          {!isLoadingVisits && !apiError && transformedVisits.length > 0 && (
-            <p className="text-sm text-green-600 mt-2">✓ Showing {transformedVisits.length} visit(s) from API</p>
-          )}
           {!isLoadingVisits && !apiError && transformedVisits.length === 0 && (
-            <p className="text-sm text-gray-500 mt-2">No visits found for today</p>
+            <p className="text-sm text-gray-500 mt-2">No visits found</p>
           )}
         </div>
 

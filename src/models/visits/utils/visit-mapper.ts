@@ -159,6 +159,7 @@ export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: numb
         procedures,
         healthRiskAssessment: apiVisit.IsCompletedFlag ? 'completed' : apiVisit.IsStarted ? 'in-progress' : 'not-started',
         consentForms,
+        consentURL: apiVisit.consentURL,
         date: formatDate(apiVisit.visitDate),
         // Store original API data for later use
         labs: apiVisit.labs,
