@@ -22,6 +22,7 @@ export interface Visit {
   healthRiskAssessment: 'not-started' | 'in-progress' | 'completed'
   consentForms: ConsentForm[]
   consentURL?: string
+  assessmentID?: string
   date?: string
 }
 

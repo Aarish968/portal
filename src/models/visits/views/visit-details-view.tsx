@@ -73,6 +73,7 @@ export default function VisitDetailsView() {
   const insurance = visitFromState?.insurance || 'UHC'
   const visitType = visitFromState?.visitType || 'in-home'
   const visitProcedures = visitFromState?.procedures || []
+  const assessmentID = visitFromState?.assessmentID || visitId // Use API assessmentID or fallback to visitId
 
   // Redirect if visitId is missing from URL params (route mismatch)
   React.useEffect(() => {
@@ -1062,7 +1063,7 @@ export default function VisitDetailsView() {
                             lastName: patientName.split(' ').slice(1).join(' ') || '',
                             address: address,
                             phone: '',
-                            assessmentId: visitId,
+                            assessmentId: assessmentID, // Use the correct assessmentID from API
                             isStarted: hraStarted || hraCompleted || outcomes['hra'] === 'not-completed',
                             isCompleted: hraCompleted,
                           }
