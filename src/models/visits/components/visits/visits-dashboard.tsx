@@ -23,6 +23,7 @@ export function VisitsDashboard() {
   const [time, setTime] = useState('')
   const [transformedVisits, setTransformedVisits] = useState<Visit[]>([])
   const [isLoadingVisits, setIsLoadingVisits] = useState(true)
+  const [renderKey, setRenderKey] = useState(0)
 
   const { getVisits, error: apiError } = useVisitsApi()
   const currentUser = useAuthStore(state => state.currentUser)
@@ -109,7 +110,12 @@ export function VisitsDashboard() {
               }
             })
             
-            setTransformedVisits(transformed)
+            // Force a small delay to ensure localStorage is updated before rendering
+            setTimeout(() => {
+              setTransformedVisits(transformed)
+              setRenderKey(prev => prev + 1) // Force re-render of VisitCards
+            }, 50)
+
           } else {
             console.log('No API data received')
             setTransformedVisits([])
@@ -127,7 +133,7 @@ export function VisitsDashboard() {
       }
     }
     fetchVisits()
-  }, [currentUser, getVisits])
+  }, [currentUser])
 
   useEffect(() => {
     const updateTime = () => {
@@ -257,7 +263,7 @@ export function VisitsDashboard() {
                   <div className="w-full bg-white rounded-lg shadow-sm white-container" style={{ maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden', padding: 'clamp(0.75rem, 2vw, 1.5rem)' }}>
                     <div className="visits-grid-week" style={{ maxWidth: '100%', width: '100%' }}>
                       {visits.map(v => (
-                        <div key={v.id} style={{ maxWidth: '100%', width: '100%' }}>
+                        <div key={`${v.id}-${renderKey}`} style={{ maxWidth: '100%', width: '100%' }}>
                           <VisitCard visit={v} />
                         </div>
                       ))}
@@ -274,7 +280,7 @@ export function VisitsDashboard() {
                 </div>
               ) : (
                 currentVisits.map((visit) => (
-                  <div key={visit.id}>
+                  <div key={`${visit.id}-${renderKey}`}>
                     <VisitCard visit={visit} />
                   </div>
                 ))
