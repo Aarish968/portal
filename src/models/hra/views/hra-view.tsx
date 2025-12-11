@@ -17,6 +17,7 @@ import BasePractitionerView from '@/components/layout/views/base-practitioner-vi
 import HRAQuestionCard from '@/models/hra/components/hra-questions/hra-question-card'
 import HRAQuestionNextButton from '@/models/hra/components/hra-questions/hra-question-next-button'
 import HRAQuestionPreviousButton from '@/models/hra/components/hra-questions/hra-question-previous-button'
+import ROUTES from '@/data/routing/routes'
 
 function HRAView() {
   const navigate = useNavigate()
@@ -97,7 +98,12 @@ function HRAView() {
       })
       setIsNavigating(true)
       await new Promise(resolve => setTimeout(resolve, 3500))
-      pendingLocationRef.current = { pathname: '/hra-activity', search: '', hash: '' }
+      // Redirect to Visit Details page if visitId is available, otherwise fallback to HRA Activity
+      const visitId = selectedMember?.id
+      const redirectPath = visitId 
+        ? ROUTES.app.visitDetails.href.replace(':visitId', visitId)
+        : '/hra-activity'
+      pendingLocationRef.current = { pathname: redirectPath, search: '', hash: '' }
     }
     catch (error) {
       toast({
@@ -138,7 +144,12 @@ function HRAView() {
           hra={hra}
           onSubmit={handleHRASubmit}
           onSubmitNavigate={() => {
-            navigate('/hra-activity', { replace: true })
+            // Redirect to Visit Details page if visitId is available, otherwise fallback to HRA Activity
+            const visitId = selectedMember?.id
+            const redirectPath = visitId 
+              ? ROUTES.app.visitDetails.href.replace(':visitId', visitId)
+              : '/hra-activity'
+            navigate(redirectPath, { replace: true })
           }}
         />
         <HRAConfirmationModal

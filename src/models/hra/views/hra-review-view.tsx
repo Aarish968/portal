@@ -9,6 +9,7 @@ import BasePractitionerView from '@/components/layout/views/base-practitioner-vi
 import { HRAReviewEditButton } from '../components/hra-review/hra-review-edit-button'
 import { transformHRAData } from '../utils/hra-store-utils'
 import { useMemberStore } from '@/models/member/stores/member-store'
+import ROUTES from '@/data/routing/routes'
 
 interface HRAReviewViewProps {
   hra: HRA
@@ -59,7 +60,12 @@ function HRAReviewView({ hra, onSubmit, onSubmitNavigate }: HRAReviewViewProps) 
         onSubmitNavigate()
       }
       else {
-        navigate('/hra-activity')
+        // Redirect to Visit Details page if visitId is available, otherwise fallback to HRA Activity
+        const visitId = selectedMember?.id
+        const redirectPath = visitId 
+          ? ROUTES.app.visitDetails.href.replace(':visitId', visitId)
+          : '/hra-activity'
+        navigate(redirectPath)
       }
     }, 100)
   }
