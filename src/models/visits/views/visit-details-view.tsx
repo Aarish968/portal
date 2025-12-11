@@ -105,10 +105,17 @@ export default function VisitDetailsView() {
       }
     } catch { }
 
-    // Check if HRA has been started (from localStorage flag or HRA store)
+    // Check if HRA has been started (from localStorage flag or outcomes)
     try {
       const hraStartedFlag = localStorage.getItem(`hra-started-${visitId}`)
-      if (hraStartedFlag === 'true') {
+      const stored = localStorage.getItem(`visit-state-${visitId}`)
+      if (stored) {
+        const visitData = JSON.parse(stored)
+        // Check if HRA is in progress (not-completed) or if the flag is set
+        if (visitData.outcomes?.['hra'] === 'not-completed' || hraStartedFlag === 'true') {
+          setHraStarted(true)
+        }
+      } else if (hraStartedFlag === 'true') {
         setHraStarted(true)
       }
     } catch { }
@@ -144,9 +151,20 @@ export default function VisitDetailsView() {
   React.useEffect(() => {
     try {
       const hraStartedFlag = localStorage.getItem(`hra-started-${visitId}`)
-      setHraStarted(hraStartedFlag === 'true')
+      const stored = localStorage.getItem(`visit-state-${visitId}`)
+      if (stored) {
+        const visitData = JSON.parse(stored)
+        // Check if HRA is in progress (not-completed) or if the flag is set
+        if (visitData.outcomes?.['hra'] === 'not-completed' || hraStartedFlag === 'true') {
+          setHraStarted(true)
+        } else {
+          setHraStarted(false)
+        }
+      } else {
+        setHraStarted(hraStartedFlag === 'true')
+      }
     } catch { }
-  }, [visitId])
+  }, [visitId, outcomes])
 
   // Load procedure metadata from visit state (labs and gaps)
   React.useEffect(() => {
@@ -959,6 +977,8 @@ export default function VisitDetailsView() {
                 }}>Health Risk Assessment questionnaire</p>
                 {(() => {
                   const hraCompleted = outcomes['hra'] === 'completed'
+                  const hraNotCompleted = outcomes['hra'] === 'not-completed'
+                  const hraInProgress = hraStarted || hraNotCompleted
                   return hraCompleted ? (
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 font-medium" style={{ color: 'rgb(25, 154, 146)' }}>
@@ -1079,7 +1099,7 @@ export default function VisitDetailsView() {
                         className="w-full bg-[#5538A6] hover:bg-[#4A2F95] text-white font-medium py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-sm active:scale-[0.99]"
                         aria-pressed={false}
                       >
-                        <span>{hraStarted ? 'Continue HRA Assessment' : 'Start HRA Assessment'}</span>
+                        <span>{hraInProgress ? 'Continue HRA Assessment' : 'Start HRA Assessment'}</span>
                         <Folder className="w-5 h-5" />
                       </button>
 
