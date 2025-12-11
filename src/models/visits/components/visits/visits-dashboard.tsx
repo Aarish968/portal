@@ -149,6 +149,12 @@ export function VisitsDashboard() {
             })
             
             setTransformedVisits(transformed)
+            
+            // Force a re-render of visit cards after consent data is synced
+            setTimeout(() => {
+              console.log('Forcing visit state refresh...')
+              refreshVisitStates()
+            }, 100)
           } else {
             console.log('No API data received')
             setTransformedVisits([])

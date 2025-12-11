@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Clock, MapPin, Building, Phone, Check, X, Link } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
@@ -44,8 +44,8 @@ export function VisitCard({ visit }: { visit: Visit }) {
       displayStatus = visitState.status
     }
 
-    // Check consent forms completion status
-    const consentStatus = (() => {
+    // Check consent forms completion status - make it reactive to localStorage changes
+    const [consentStatus, setConsentStatus] = useState(() => {
       try {
         const consentData = localStorage.getItem(`consentFormsStatus-${visit.id}`)
         if (consentData) {
@@ -68,7 +68,36 @@ export function VisitCard({ visit }: { visit: Visit }) {
         privacy: false,
         treatment: false
       }
-    })()
+    })
+
+    // Listen for localStorage changes and update consent status
+    useEffect(() => {
+      const updateConsentStatus = () => {
+        try {
+          const consentData = localStorage.getItem(`consentFormsStatus-${visit.id}`)
+          if (consentData) {
+            const consent = JSON.parse(consentData)
+            const newStatus = {
+              hipaa: consent.hipaa === true,
+              privacy: consent.privacy === true,
+              treatment: consent.treatment === true
+            }
+            setConsentStatus(newStatus)
+            console.log(`Updated consent status for visit ${visit.id}:`, newStatus)
+          }
+        } catch (error) {
+          console.error('Error reading consent status:', error)
+        }
+      }
+
+      // Check immediately
+      updateConsentStatus()
+
+      // Set up a polling mechanism to check for changes
+      const interval = setInterval(updateConsentStatus, 500)
+
+      return () => clearInterval(interval)
+    }, [visit.id])
 
     const completedCount = Object.values(consentStatus).filter(Boolean).length
     const areAllConsentFormsCompleted = completedCount === 3
