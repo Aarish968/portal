@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Clock, MapPin, Building, Phone, Check, X, Link } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
@@ -1979,71 +1979,71 @@ export function VisitCard({ visit }: { visit: Visit }) {
                   return !isBackendCompleted
                 })
                 .map((p, i) => {
-                // Map procedure names to IDs used in visit details
-                const procedureIdMap: Record<string, string> = {
-                  'A1C': 'a1c',
-                  'HbA1c Test': 'a1c', // Map HbA1c Test to same ID as A1C
-                  'Blood Pressure': 'blood-pressure',
-                  'Urine Sample': 'urine-sample',
-                  'Lipid Panel': 'lipid-panel' // Add Lipid Panel mapping
-                }
+                  // Map procedure names to IDs used in visit details
+                  const procedureIdMap: Record<string, string> = {
+                    'A1C': 'a1c',
+                    'HbA1c Test': 'a1c', // Map HbA1c Test to same ID as A1C
+                    'Blood Pressure': 'blood-pressure',
+                    'Urine Sample': 'urine-sample',
+                    'Lipid Panel': 'lipid-panel' // Add Lipid Panel mapping
+                  }
 
-                const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
-                // Determine status: completed, not-completed, or pending (no outcome yet)
-                const outcome = visitState?.outcomes?.[procedureId]
-                const isCompleted = outcome === 'completed'
-                const isNotCompleted = outcome === 'not-completed'
+                  const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
+                  // Determine status: completed, not-completed, or pending (no outcome yet)
+                  const outcome = visitState?.outcomes?.[procedureId]
+                  const isCompleted = outcome === 'completed'
+                  const isNotCompleted = outcome === 'not-completed'
 
-                return (
-                  <div
-                    key={i}
-                    className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full"
-                    style={{
-                      maxWidth: '100%',
-                      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      lineHeight: '1.5',
-                      cursor: 'unset',
-                      verticalAlign: 'middle',
-                      boxSizing: 'border-box',
-                      height: '26px',
-                      fontWeight: '500',
-                      fontSize: '0.75rem',
-                      backgroundColor: isCompleted ? 'rgb(25, 154, 146)' : (isNotCompleted ? 'rgb(207, 35, 35)' : 'white'),
-                      color: isCompleted || isNotCompleted ? 'rgb(255, 255, 255)' : '#1B1B1B',
-                      whiteSpace: 'nowrap',
-                      transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
-                      outline: '0px',
-                      textDecoration: 'none',
-                      border: isCompleted || isNotCompleted ? '0px' : '1px solid rgb(229, 231, 235)',
-                      padding: '0px 12px',
-                      borderRadius: '999px'
-                    }}
-                  >
-                    {isCompleted ? (
-                      <>
-                        <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center flex-shrink-0">
-                          <Check className="w-3 h-3" style={{ color: 'rgb(25, 154, 146)' }} />
-                        </div>
-                        <span>{p.name}</span>
-                      </>
-                    ) : isNotCompleted ? (
-                      <>
-                        <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center flex-shrink-0">
-                          <X className="w-3 h-3" style={{ color: 'rgb(207, 35, 35)' }} />
-                        </div>
-                        <span>{p.name}</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>{p.name}</span>
-                      </>
-                    )}
-                  </div>
-                )
-              })}
+                  return (
+                    <div
+                      key={i}
+                      className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full"
+                      style={{
+                        maxWidth: '100%',
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        lineHeight: '1.5',
+                        cursor: 'unset',
+                        verticalAlign: 'middle',
+                        boxSizing: 'border-box',
+                        height: '26px',
+                        fontWeight: '500',
+                        fontSize: '0.75rem',
+                        backgroundColor: isCompleted ? 'rgb(25, 154, 146)' : (isNotCompleted ? 'rgb(207, 35, 35)' : 'white'),
+                        color: isCompleted || isNotCompleted ? 'rgb(255, 255, 255)' : '#1B1B1B',
+                        whiteSpace: 'nowrap',
+                        transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                        outline: '0px',
+                        textDecoration: 'none',
+                        border: isCompleted || isNotCompleted ? '0px' : '1px solid rgb(229, 231, 235)',
+                        padding: '0px 12px',
+                        borderRadius: '999px'
+                      }}
+                    >
+                      {isCompleted ? (
+                        <>
+                          <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+                            <Check className="w-3 h-3" style={{ color: 'rgb(25, 154, 146)' }} />
+                          </div>
+                          <span>{p.name}</span>
+                        </>
+                      ) : isNotCompleted ? (
+                        <>
+                          <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+                            <X className="w-3 h-3" style={{ color: 'rgb(207, 35, 35)' }} />
+                          </div>
+                          <span>{p.name}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>{p.name}</span>
+                        </>
+                      )}
+                    </div>
+                  )
+                })}
             </div>
           </div>
 
@@ -2063,4 +2063,3 @@ export function VisitCard({ visit }: { visit: Visit }) {
   )
 }
 
- 

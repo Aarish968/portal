@@ -70,9 +70,9 @@ export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: numb
     })
 
     const consentForms: ConsentForm[] = [
-        { name: 'HIPAA', completed: apiVisit.consentToHipaa },
-        { name: 'Privacy', completed: apiVisit.consentToPrivacy },
-        { name: 'Treatment', completed: apiVisit.consentToTreatment },
+        { name: 'HIPAA Authorization', completed: apiVisit.consentToHipaa },
+        { name: 'Notice of Privacy Practices', completed: apiVisit.consentToPrivacy },
+        { name: 'Treatment Consent', completed: apiVisit.consentToTreatment },
     ]
 
     // Determine visit status

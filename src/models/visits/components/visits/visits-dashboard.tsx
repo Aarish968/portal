@@ -24,6 +24,7 @@ export function VisitsDashboard() {
   const [transformedVisits, setTransformedVisits] = useState<Visit[]>([])
   const [isLoadingVisits, setIsLoadingVisits] = useState(true)
   const [renderKey, setRenderKey] = useState(0)
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false)
 
   const { getVisits, error: apiError } = useVisitsApi()
   const currentUser = useAuthStore(state => state.currentUser)
@@ -84,8 +85,10 @@ export function VisitsDashboard() {
       // Use username field instead of email
       const userEmail = currentUser?.username || currentUser?.idTokenClaims?.preferred_username
       
-      if (userEmail) {
+      if (userEmail && !hasLoadedOnce) {
+        console.log('Starting API fetch for:', userEmail)
         setIsLoadingVisits(true)
+        setHasLoadedOnce(true)
         try {
           const data = await getVisits(userEmail)
           
@@ -98,9 +101,9 @@ export function VisitsDashboard() {
             transformed.forEach(visit => {
               if (visit.consentForms && visit.consentForms.length > 0) {
                 const consentStatus = {
-                  hipaa: visit.consentForms.find(cf => cf.name === 'HIPAA')?.completed || false,
-                  privacy: visit.consentForms.find(cf => cf.name === 'Privacy')?.completed || false,
-                  treatment: visit.consentForms.find(cf => cf.name === 'Treatment')?.completed || false,
+                  hipaa: visit.consentForms.find(cf => cf.name === 'HIPAA Authorization')?.completed || false,
+                  privacy: visit.consentForms.find(cf => cf.name === 'Notice of Privacy Practices')?.completed || false,
+                  treatment: visit.consentForms.find(cf => cf.name === 'Treatment Consent')?.completed || false,
                   submitted: true // Mark as submitted since this data comes from API
                 }
                 
@@ -126,14 +129,14 @@ export function VisitsDashboard() {
         } finally {
           setIsLoadingVisits(false)
         }
-      } else {
+      } else if (!userEmail) {
         console.log('No user found')
         setIsLoadingVisits(false)
         setTransformedVisits([])
       }
     }
     fetchVisits()
-  }, [currentUser])
+  }, [currentUser, hasLoadedOnce])
 
   useEffect(() => {
     const updateTime = () => {
