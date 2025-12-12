@@ -1971,21 +1971,50 @@ export function VisitCard({ visit }: { visit: Visit }) {
             <div className="flex flex-wrap gap-2 procedures-mobile" style={{ maxWidth: '100%' }}>
               {visit.procedures
                 .map((p, i) => {
-                  // Map procedure names to IDs used in visit details
-                  const procedureIdMap: Record<string, string> = {
+                  // Try multiple possible procedure ID formats to find a match (same as useVisitState)
+                  const possibleIds = [
+                    p.name.toLowerCase().replace(/\s+/g, '-'), // Standard format
+                    `gap-${p.name.toLowerCase().replace(/\s+/g, '-')}`, // Gap format
+                    'ked', // KED lab
+                    'gap-eed', // EED gap
+                    'a1c', // A1C lab
+                    'hba1c' // HbA1c lab
+                  ]
+                  
+                  // Special mappings for common procedure names
+                  const specialMappings: Record<string, string> = {
+                    'GFR, UACR': 'ked',
+                    'Fundospopic Imaging': 'gap-eed',
                     'A1C': 'a1c',
-                    'HbA1c Test': 'a1c', // Map HbA1c Test to same ID as A1C
-                    'Blood Pressure': 'blood-pressure',
-                    'Urine Sample': 'urine-sample',
-                    'Lipid Panel': 'lipid-panel' // Add Lipid Panel mapping
+                    'HbA1c': 'hba1c'
                   }
-
-                  const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
+                  
+                  // Find the first matching outcome
+                  let outcome = null
+                  for (const id of possibleIds) {
+                    if (visitState?.outcomes?.[id]) {
+                      outcome = visitState.outcomes[id]
+                      break
+                    }
+                  }
+                  
+                  // Try special mappings if no match found
+                  if (!outcome) {
+                    const specialId = specialMappings[p.name]
+                    if (specialId && visitState?.outcomes?.[specialId]) {
+                      outcome = visitState.outcomes[specialId]
+                    }
+                  }
+                  
                   // Determine status: completed, not-completed, or pending (no outcome yet)
-                  const outcome = visitState?.outcomes?.[procedureId]
                   const isBackendCompleted = p.completed === true
                   const isCompleted = isBackendCompleted || outcome === 'completed'
                   const isNotCompleted = !isBackendCompleted && outcome === 'not-completed'
+                  
+                  // Debug logging (remove in production)
+                  if (visitState?.outcomes && Object.keys(visitState.outcomes).length > 0) {
+                    console.log(`Visit Card - Procedure: "${p.name}", Outcome: "${outcome}", Backend: ${isBackendCompleted}, Final: completed=${isCompleted}, not-completed=${isNotCompleted}`)
+                  }
 
                   return (
                     <div
