@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { VisitCard } from './visit-card'
 import ROUTES from '@/data/routing/routes'
 import type { TabType, Visit } from '../../types/types'
@@ -18,6 +19,7 @@ import { STORAGE_KEYS } from '../../constants'
 
 
 export function VisitsDashboard() {
+  const location = useLocation()
   const [activeTab, setActiveTab] = useState<TabType>('today')
   const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
   const [time, setTime] = useState('')
@@ -79,6 +81,11 @@ export function VisitsDashboard() {
 
   const groupedVisits = groupVisitsByDate(currentVisits)
   const { dateRefs, dateSectionRefs } = useStickyDateCards(activeTab, groupedVisits)
+
+  // Force re-render when navigating back to dashboard
+  useEffect(() => {
+    setRenderKey(prev => prev + 1)
+  }, [location.pathname])
 
   useEffect(() => {
     const fetchVisits = async () => {
@@ -150,11 +157,33 @@ export function VisitsDashboard() {
 
   useEffect(() => {
     const handleFocus = () => {
-      // Placeholder for focus handling
+      // Force re-render of visit cards when window gains focus (user navigates back)
+      setRenderKey(prev => prev + 1)
+    }
+
+    const handleVisibilityChange = () => {
+      // Force re-render when page becomes visible (user navigates back)
+      if (!document.hidden) {
+        setRenderKey(prev => prev + 1)
+      }
+    }
+
+    const handleLocalStorageChange = (e: CustomEvent) => {
+      // Force re-render when visit state changes
+      if (e.detail.key && e.detail.key.startsWith('visit-state-')) {
+        setRenderKey(prev => prev + 1)
+      }
     }
 
     window.addEventListener('focus', handleFocus)
-    return () => window.removeEventListener('focus', handleFocus)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('localStorageChange', handleLocalStorageChange as EventListener)
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('localStorageChange', handleLocalStorageChange as EventListener)
+    }
   }, [])
 
   const handleCollectConsent = () => {

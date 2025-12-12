@@ -64,6 +64,19 @@ export default function VisitDetailsView() {
   // TOAST TEST - Easy to remove: Delete this line and all FORCE_SAVE_ERROR checks
   const FORCE_SAVE_ERROR = forceSaveError
 
+  // Helper function to update localStorage and notify other components
+  const updateVisitState = (visitData: any) => {
+    try {
+      localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+      // Dispatch custom event to notify other components (like visit cards)
+      window.dispatchEvent(new CustomEvent('localStorageChange', {
+        detail: { key: `visit-state-${visitId}`, value: visitData }
+      }))
+    } catch {
+      // Handle localStorage errors silently
+    }
+  }
+
   // Extract visit either from navigation state or fallback to param id
   const visitFromState = (location.state as any)?.visit
   const visitId = visitFromState?.id || params.visitId || '1'
@@ -128,9 +141,7 @@ export default function VisitDetailsView() {
         outcomes: {},
         procedureReasons: {}
       }
-      try {
-        localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(initialVisitData))
-      } catch { }
+      updateVisitState(initialVisitData)
     } else if (!localStorage.getItem(`visit-state-${visitId}`)) {
       // Default to not-started if no saved data and no navigation state
       // Don't save to local storage to avoid overriding dashboard display
@@ -223,7 +234,7 @@ export default function VisitDetailsView() {
           }
         }
 
-        localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+        updateVisitState(visitData)
         setOutcomes(proposedOutcomes)
         setSaveErrorIds(prev => prev.filter(id => id !== procedureId))
         if (visitStatus === 'not-started') {
@@ -297,7 +308,7 @@ export default function VisitDetailsView() {
           }
         }
 
-        localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+        updateVisitState(visitData)
         setOutcomes(proposedOutcomes)
         setProcedureReasons(proposedReasons)
         setSaveErrorIds(prev => prev.filter(id => id !== selectedProcedure.id))
@@ -480,9 +491,7 @@ export default function VisitDetailsView() {
       outcomes,
       procedureReasons
     }
-    try {
-      localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
-    } catch { }
+    updateVisitState(visitData)
   }, [visitStatus, outcomes, procedureReasons, visitId, patientName, address, time, insurance, isInitialLoad])
 
   const handleSaveVisit = () => {
@@ -507,9 +516,7 @@ export default function VisitDetailsView() {
         procedureReasons
       }
       // Persist for other pages (e.g., Visits dashboard)
-      try {
-        localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
-      } catch { }
+      updateVisitState(visitData)
     }, 1000) // Show "Saving" for 1 second
   }
 
@@ -533,9 +540,7 @@ export default function VisitDetailsView() {
         outcomes,
         procedureReasons
       }
-      try {
-        localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
-      } catch { }
+      updateVisitState(visitData)
     }, 1000) // Show "Reopening" for 1 second
   }
 
@@ -1046,9 +1051,7 @@ export default function VisitDetailsView() {
                               outcomes: updatedOutcomes,
                               procedureReasons
                             }
-                            try {
-                              localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
-                            } catch { }
+                            updateVisitState(visitData)
 
                             // Update visit status if needed
                             if (visitStatus === 'not-started') {

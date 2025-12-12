@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import { Clock, MapPin, Building, Phone, Check, X, Link } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
@@ -22,20 +22,48 @@ const VideocamIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 export function VisitCard({ visit }: { visit: Visit }) {
   const navigate = useNavigate()
   const [isLinkCopied, setIsLinkCopied] = useState(false)
+  const [visitState, setVisitState] = useState<any>(null)
 
   const handleVisitClick = () => {
     navigate(ROUTES.app.visitDetails.href.replace(':visitId', visit.id), { state: { visit } })
   }
 
-  // Get visit state from local storage (shared across tabs)
-  const visitState = (() => {
-    try {
-      const stored = localStorage.getItem(`visit-state-${visit.id}`)
-      return stored ? JSON.parse(stored) : null
-    } catch {
-      return null
+  // Get visit state from local storage (shared across tabs) - make it reactive
+  useEffect(() => {
+    const loadVisitState = () => {
+      try {
+        const stored = localStorage.getItem(`visit-state-${visit.id}`)
+        setVisitState(stored ? JSON.parse(stored) : null)
+      } catch {
+        setVisitState(null)
+      }
     }
-  })()
+
+    // Load initial state
+    loadVisitState()
+
+    // Listen for storage changes (when user navigates back from visit details)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === `visit-state-${visit.id}`) {
+        loadVisitState()
+      }
+    }
+
+    // Listen for custom events (for same-tab updates)
+    const handleCustomStorageChange = (e: CustomEvent) => {
+      if (e.detail.key === `visit-state-${visit.id}`) {
+        loadVisitState()
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('localStorageChange', handleCustomStorageChange as EventListener)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('localStorageChange', handleCustomStorageChange as EventListener)
+    }
+  }, [visit.id])
 
   const getActionButton = () => {
     // Get the actual visit status from session storage (same logic as StatusBadge)
