@@ -21,34 +21,53 @@ export function useVisitState(initialVisits: Visit[]) {
         
         // Update procedures with individual outcomes
         const updatedProcedures = v.procedures.map(p => {
-          // Try multiple possible procedure ID formats to find a match
-          const possibleIds = [
-            p.name.toLowerCase().replace(/\s+/g, '-'), // Standard format
-            `gap-${p.name.toLowerCase().replace(/\s+/g, '-')}`, // Gap format
-            'ked', // KED lab
-            'gap-eed', // EED gap
-            'a1c', // A1C lab
-            'hba1c' // HbA1c lab
-          ]
-          
-          // Find the first matching outcome
           let outcome = null
           let matchedId = null
-          for (const id of possibleIds) {
-            if (outcomes[id]) {
-              outcome = outcomes[id]
-              matchedId = id
-              break
+          
+          // First try the exact procedureId if available (most reliable)
+          if (p.procedureId && outcomes[p.procedureId]) {
+            outcome = outcomes[p.procedureId]
+            matchedId = p.procedureId
+          } else {
+            // Fallback to trying multiple possible procedure ID formats
+            const possibleIds = [
+              // First try exact name match (most common)
+              p.name.toLowerCase().replace(/\s+/g, '-'),
+              // Then try gap format
+              `gap-${p.name.toLowerCase().replace(/\s+/g, '-')}`,
+              // Then try common abbreviations
+              p.name.toLowerCase().replace(/[^a-z0-9]/g, ''), // Remove all non-alphanumeric
+              // Then try first word only
+              p.name.split(' ')[0].toLowerCase(),
+              // Then try last word only  
+              p.name.split(' ').pop()?.toLowerCase() || '',
+            ]
+            
+            // Find the first matching outcome
+            for (const id of possibleIds) {
+              if (outcomes[id]) {
+                outcome = outcomes[id]
+                matchedId = id
+                break
+              }
             }
           }
           
-          // Special mappings for common procedure names
+          // Special mappings for common procedure names (based on API response)
           if (!outcome) {
             const specialMappings: Record<string, string> = {
-              'GFR, UACR': 'ked',
-              'Fundospopic Imaging': 'gap-eed',
+              // Lab mappings (Mapped_Lab_Term -> PSC_Lab_Type__c.toLowerCase())
+              'GFR, UACR': 'ked', // KED lab
               'A1C': 'a1c',
-              'HbA1c': 'hba1c'
+              'HbA1c': 'hba1c',
+              'Lipid Panel': 'lipid-panel',
+              
+              // Gap mappings (Mapped_Gap_Term -> gap-PSC_Measure__c.toLowerCase())
+              'Fundospopic Imaging': 'gap-eed', // EED gap
+              
+              // Fallback mappings
+              'Blood Pressure': 'blood-pressure',
+              'Urine Sample': 'urine-sample'
             }
             const specialId = specialMappings[p.name]
             if (specialId && outcomes[specialId]) {
@@ -59,7 +78,8 @@ export function useVisitState(initialVisits: Visit[]) {
           
           // Debug logging (remove in production)
           if (Object.keys(outcomes).length > 0) {
-            console.log(`Procedure: "${p.name}", Matched ID: "${matchedId}", Outcome: "${outcome}", Available outcomes:`, Object.keys(outcomes))
+            console.log(`useVisitState - Procedure: "${p.name}", ProcedureId: "${p.procedureId}", Matched ID: "${matchedId}", Outcome: "${outcome}"`)
+            console.log(`useVisitState - Available outcomes:`, outcomes)
           }
           
           // If user has set an outcome, use it; otherwise keep original status

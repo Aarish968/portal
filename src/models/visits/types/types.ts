@@ -3,6 +3,7 @@ export interface VisitProcedure {
   name: string
   completed?: boolean
   status?: string
+  procedureId?: string // The actual ID used for localStorage outcomes
 }
 
 export interface ConsentForm {

@@ -1973,36 +1973,55 @@ export function VisitCard({ visit }: { visit: Visit }) {
                 .map((p, i) => {
                   // Try multiple possible procedure ID formats to find a match (same as useVisitState)
                   const possibleIds = [
-                    p.name.toLowerCase().replace(/\s+/g, '-'), // Standard format
-                    `gap-${p.name.toLowerCase().replace(/\s+/g, '-')}`, // Gap format
-                    'ked', // KED lab
-                    'gap-eed', // EED gap
-                    'a1c', // A1C lab
-                    'hba1c' // HbA1c lab
+                    // First try exact name match (most common)
+                    p.name.toLowerCase().replace(/\s+/g, '-'),
+                    // Then try gap format
+                    `gap-${p.name.toLowerCase().replace(/\s+/g, '-')}`,
+                    // Then try common abbreviations
+                    p.name.toLowerCase().replace(/[^a-z0-9]/g, ''), // Remove all non-alphanumeric
+                    // Then try first word only
+                    p.name.split(' ')[0].toLowerCase(),
+                    // Then try last word only  
+                    p.name.split(' ').pop()?.toLowerCase() || '',
                   ]
                   
-                  // Special mappings for common procedure names
+                  // Special mappings for common procedure names (based on API response)
                   const specialMappings: Record<string, string> = {
-                    'GFR, UACR': 'ked',
-                    'Fundospopic Imaging': 'gap-eed',
+                    // Lab mappings (Mapped_Lab_Term -> PSC_Lab_Type__c.toLowerCase())
+                    'GFR, UACR': 'ked', // KED lab
                     'A1C': 'a1c',
-                    'HbA1c': 'hba1c'
+                    'HbA1c': 'hba1c',
+                    'Lipid Panel': 'lipid-panel',
+                    
+                    // Gap mappings (Mapped_Gap_Term -> gap-PSC_Measure__c.toLowerCase())
+                    'Fundospopic Imaging': 'gap-eed', // EED gap
+                    
+                    // Fallback mappings
+                    'Blood Pressure': 'blood-pressure',
+                    'Urine Sample': 'urine-sample'
                   }
                   
                   // Find the first matching outcome
                   let outcome = null
-                  for (const id of possibleIds) {
-                    if (visitState?.outcomes?.[id]) {
-                      outcome = visitState.outcomes[id]
-                      break
-                    }
-                  }
                   
-                  // Try special mappings if no match found
-                  if (!outcome) {
-                    const specialId = specialMappings[p.name]
-                    if (specialId && visitState?.outcomes?.[specialId]) {
-                      outcome = visitState.outcomes[specialId]
+                  // First try the exact procedureId if available (most reliable)
+                  if (p.procedureId && visitState?.outcomes?.[p.procedureId]) {
+                    outcome = visitState.outcomes[p.procedureId]
+                  } else {
+                    // Fallback to trying multiple possible IDs
+                    for (const id of possibleIds) {
+                      if (visitState?.outcomes?.[id]) {
+                        outcome = visitState.outcomes[id]
+                        break
+                      }
+                    }
+                    
+                    // Try special mappings if no match found
+                    if (!outcome) {
+                      const specialId = specialMappings[p.name]
+                      if (specialId && visitState?.outcomes?.[specialId]) {
+                        outcome = visitState.outcomes[specialId]
+                      }
                     }
                   }
                   
@@ -2013,7 +2032,9 @@ export function VisitCard({ visit }: { visit: Visit }) {
                   
                   // Debug logging (remove in production)
                   if (visitState?.outcomes && Object.keys(visitState.outcomes).length > 0) {
-                    console.log(`Visit Card - Procedure: "${p.name}", Outcome: "${outcome}", Backend: ${isBackendCompleted}, Final: completed=${isCompleted}, not-completed=${isNotCompleted}`)
+                    console.log(`Visit Card - Procedure: "${p.name}", ProcedureId: "${p.procedureId}", Outcome: "${outcome}", Backend: ${isBackendCompleted}`)
+                    console.log(`Visit Card - Available outcomes:`, visitState.outcomes)
+                    console.log(`Visit Card - Final status: completed=${isCompleted}, not-completed=${isNotCompleted}`)
                   }
 
                   return (
