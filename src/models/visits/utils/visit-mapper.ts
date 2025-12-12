@@ -55,6 +55,7 @@ export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: numb
         procedures.push({
             name: labName,
             completed: lab.PSC_Status__c === 'Completed',
+            status: lab.PSC_Status__c,
         })
     })
 
@@ -66,6 +67,7 @@ export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: numb
         procedures.push({
             name: gapName,
             completed: gap.PSC_Status__c === 'Completed',
+            status: gap.PSC_Status__c,
         })
     })
 

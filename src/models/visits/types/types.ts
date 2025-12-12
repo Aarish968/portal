@@ -2,6 +2,7 @@
 export interface VisitProcedure {
   name: string
   completed?: boolean
+  status?: string
 }
 
 export interface ConsentForm {

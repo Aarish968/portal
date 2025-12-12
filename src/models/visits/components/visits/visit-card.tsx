@@ -1942,22 +1942,6 @@ export function VisitCard({ visit }: { visit: Visit }) {
             </h4>
             <div className="flex flex-wrap gap-2 procedures-mobile" style={{ maxWidth: '100%' }}>
               {visit.procedures
-                .filter((p) => {
-                  // Map procedure names to IDs used in visit details
-                  const procedureIdMap: Record<string, string> = {
-                    'A1C': 'a1c',
-                    'HbA1c Test': 'a1c', // Map HbA1c Test to same ID as A1C
-                    'Blood Pressure': 'blood-pressure',
-                    'Urine Sample': 'urine-sample',
-                    'Lipid Panel': 'lipid-panel' // Add Lipid Panel mapping
-                  }
-                  const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
-                  // Hide only if procedure came from backend as completed (p.completed === true)
-                  // If user manually marked as completed, keep showing it
-                  const isBackendCompleted = p.completed === true
-                  // Hide if backend says completed, but show if user manually completed
-                  return !isBackendCompleted
-                })
                 .map((p, i) => {
                   // Map procedure names to IDs used in visit details
                   const procedureIdMap: Record<string, string> = {
@@ -1971,8 +1955,9 @@ export function VisitCard({ visit }: { visit: Visit }) {
                   const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
                   // Determine status: completed, not-completed, or pending (no outcome yet)
                   const outcome = visitState?.outcomes?.[procedureId]
-                  const isCompleted = outcome === 'completed'
-                  const isNotCompleted = outcome === 'not-completed'
+                  const isBackendCompleted = p.completed === true
+                  const isCompleted = isBackendCompleted || outcome === 'completed'
+                  const isNotCompleted = !isBackendCompleted && outcome === 'not-completed'
 
                   return (
                     <div
@@ -2008,6 +1993,9 @@ export function VisitCard({ visit }: { visit: Visit }) {
                             <Check className="w-3 h-3" style={{ color: 'rgb(25, 154, 146)' }} />
                           </div>
                           <span>{p.name}</span>
+                          {isBackendCompleted && (
+                            <span className="text-[10px] opacity-75 ml-1">(System)</span>
+                          )}
                         </>
                       ) : isNotCompleted ? (
                         <>
