@@ -25,7 +25,8 @@ export interface Visit {
   consentForms: ConsentForm[]
   consentURL?: string
   assessmentID?: string
-  date?: string
+  date?: string // Display date (Today, Tomorrow, or formatted date)
+  visitDate?: string // Original date in YYYY-MM-DD format for comparison
 }
 
 export interface EquipmentItem {

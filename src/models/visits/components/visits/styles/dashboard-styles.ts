@@ -325,6 +325,20 @@ export const dashboardStyles = `
       overflow-wrap: normal !important;
       word-break: normal !important;
     }
+    
+    /* Tablet: Make visit details vertical (stacked) */
+    .visit-details-mobile {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 0.5rem !important;
+    }
+    
+    .visit-details-mobile > div {
+      width: 100% !important;
+      max-width: 100% !important;
+      flex: none !important;
+    }
   }
   
   /* Desktop: maintain current layout (above 64rem / 1024px) */

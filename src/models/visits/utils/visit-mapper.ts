@@ -116,8 +116,12 @@ export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: numb
     }
 
     // Format date - check if it's today using Atlanta timezone
-    const formatDate = (dateStr: string): string => {
+    // Returns both display date and original date for comparison
+    const formatDate = (dateStr: string): { displayDate: string; originalDate: string } => {
         try {
+            // Store original date in YYYY-MM-DD format
+            const originalDate = dateStr
+            
             // Parse the visit date (assuming it's in YYYY-MM-DD format)
             const visitDate = new Date(dateStr + 'T00:00:00')
             
@@ -133,24 +137,29 @@ export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: numb
             const diffTime = visitDateOnly.getTime() - todayOnly.getTime()
             const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24))
             
+            let displayDate: string
             if (diffDays === 0) {
-                return 'Today'
+                displayDate = 'Today'
             } else if (diffDays === 1) {
-                return 'Tomorrow'
+                displayDate = 'Tomorrow'
             } else {
                 // Format as readable date for other days
-                return visitDate.toLocaleDateString('en-US', { 
+                displayDate = visitDate.toLocaleDateString('en-US', { 
                     weekday: 'long', 
                     month: 'short', 
                     day: 'numeric'
                 })
             }
+            
+            return { displayDate, originalDate }
         } catch (error) {
             console.log('Date formatting error:', error, 'for date:', dateStr)
-            return dateStr
+            return { displayDate: dateStr, originalDate: dateStr }
         }
     }
 
+    const dateInfo = formatDate(apiVisit.visitDate)
+    
     return {
         id: apiVisit.caseNumber || `visit-${index + 1}`,
         patientName: `${apiVisit.memberFirstName} ${apiVisit.memberLastName}`,
@@ -165,7 +174,8 @@ export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: numb
         consentForms,
         consentURL: apiVisit.consentURL,
         assessmentID: apiVisit.assessmentID,
-        date: formatDate(apiVisit.visitDate),
+        date: dateInfo.displayDate, // Display date for UI
+        visitDate: dateInfo.originalDate, // Original date in YYYY-MM-DD format for comparison
         // Store original API data for later use
         labs: apiVisit.labs,
         gaps: apiVisit.gaps,

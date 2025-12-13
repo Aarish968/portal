@@ -50,15 +50,45 @@ export function VisitsDashboard() {
 
   const { todayTabRef, tomorrowTabRef, weekTabRef, underlineStyle } = useTabUnderline(activeTab)
 
-  // Filter visits based on active tab
+  // Get today and tomorrow dates in Atlanta timezone for filtering
+  const getTodayAndTomorrowDates = () => {
+    const now = new Date()
+    const atlantaToday = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}))
+    const todayDate = new Date(atlantaToday.getFullYear(), atlantaToday.getMonth(), atlantaToday.getDate())
+    const tomorrowDate = new Date(todayDate)
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1)
+    
+    // Format as YYYY-MM-DD for comparison
+    const formatDateString = (date: Date): string => {
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
+    
+    return {
+      today: formatDateString(todayDate),
+      tomorrow: formatDateString(tomorrowDate)
+    }
+  }
+
+  // Filter visits based on active tab using actual dates
   const getCurrentVisits = () => {
+    const { today, tomorrow } = getTodayAndTomorrowDates()
+    
     if (activeTab === 'today') {
-      return visitsToday.filter(v => v.date === 'Today')
+      // Show visits for today's actual date (e.g., 2024-01-13)
+      return visitsToday.filter(v => v.visitDate === today)
     } else if (activeTab === 'tomorrow') {
-      return visitsToday.filter(v => v.date === 'Tomorrow')
+      // Show visits for tomorrow's actual date (e.g., 2024-01-14)
+      return visitsToday.filter(v => v.visitDate === tomorrow)
     } else {
-      // Week view - show visits that are NOT today or tomorrow (i.e., after tomorrow)
-      return visitsToday.filter(v => v.date !== 'Today' && v.date !== 'Tomorrow')
+      // Week view - show visits for dates after tomorrow (e.g., 2024-01-15, 2024-01-16, etc.)
+      return visitsToday.filter(v => {
+        if (!v.visitDate) return false
+        // Compare dates: visit date should be after tomorrow
+        return v.visitDate > tomorrow
+      })
     }
   }
   
@@ -283,46 +313,49 @@ export function VisitsDashboard() {
           {apiError && (
             <p className="text-sm text-red-600 mt-2">Error loading visits: {apiError}</p>
           )}
-          {!isLoadingVisits && !apiError && transformedVisits.length === 0 && (
-            <p className="text-sm text-gray-500 mt-2">No visits found</p>
-          )}
         </div>
 
         <div className="space-y-4 sm:space-y-6 w-full visits-section-container" style={{ maxWidth: '100%', overflow: 'hidden', boxSizing: 'border-box' }}>
           {activeTab === 'week' ? (
             <>
-              {Object.entries(groupedVisits).map(([date, visits]) => (
-                <div key={date} className="w-full date-section-container" ref={el => dateSectionRefs.current[date] = el} style={{ maxWidth: '100%', overflow: 'hidden' }}>
-                  <div className="date-card-wrapper" style={{ minHeight: 'fit-content', maxWidth: '100%' }}>
-                    <div
-                      ref={el => dateRefs.current[date] = el}
-                      className="date-card rounded-lg px-3 sm:px-4 py-3 w-full"
-                      style={{ maxWidth: '100%', boxSizing: 'border-box' }}
-                    >
-                      <h4 className="text-sm font-medium mb-1">{date}</h4>
-                      <span className="text-xs font-medium" style={{ color: '#939090' }}>
-                        {visits.length} {visits.length === 1 ? 'Visit' : 'Visits'} Scheduled
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="w-full bg-white rounded-lg shadow-sm white-container" style={{ maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden', padding: 'clamp(0.75rem, 2vw, 1.5rem)' }}>
-                    <div className="visits-grid-week" style={{ maxWidth: '100%', width: '100%' }}>
-                      {visits.map(v => (
-                        <div key={`${v.id}-${renderKey}`} style={{ maxWidth: '100%', width: '100%' }}>
-                          <VisitCard visit={v} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+              {!isLoadingVisits && Object.keys(groupedVisits).length === 0 ? (
+                <div className="bg-gray-100 p-8 rounded-lg text-center">
+                  <p className="text-gray-600">No data found</p>
                 </div>
-              ))}
+              ) : (
+                Object.entries(groupedVisits).map(([date, visits]) => (
+                  <div key={date} className="w-full date-section-container" ref={el => dateSectionRefs.current[date] = el} style={{ maxWidth: '100%', overflow: 'hidden' }}>
+                    <div className="date-card-wrapper" style={{ minHeight: 'fit-content', maxWidth: '100%' }}>
+                      <div
+                        ref={el => dateRefs.current[date] = el}
+                        className="date-card rounded-lg px-3 sm:px-4 py-3 w-full"
+                        style={{ maxWidth: '100%', boxSizing: 'border-box' }}
+                      >
+                        <h4 className="text-sm font-medium mb-1">{date}</h4>
+                        <span className="text-xs font-medium" style={{ color: '#939090' }}>
+                          {visits.length} {visits.length === 1 ? 'Visit' : 'Visits'} Scheduled
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="w-full bg-white rounded-lg shadow-sm white-container" style={{ maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden', padding: 'clamp(0.75rem, 2vw, 1.5rem)' }}>
+                      <div className="visits-grid-week" style={{ maxWidth: '100%', width: '100%' }}>
+                        {visits.map(v => (
+                          <div key={`${v.id}-${renderKey}`} style={{ maxWidth: '100%', width: '100%' }}>
+                            <VisitCard visit={v} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </>
           ) : (
             <div className="visits-grid-today">
-              {currentVisits.length === 0 ? (
+              {!isLoadingVisits && currentVisits.length === 0 ? (
                 <div className="bg-gray-100 p-8 rounded-lg text-center">
-                  <p className="text-gray-600">No visits found for today</p>
+                  <p className="text-gray-600">No data found</p>
                 </div>
               ) : (
                 currentVisits.map((visit) => (
