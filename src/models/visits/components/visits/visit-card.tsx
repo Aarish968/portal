@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import { Clock, MapPin, Building, Phone, Check, X, Link } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
@@ -22,20 +22,48 @@ const VideocamIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 export function VisitCard({ visit }: { visit: Visit }) {
   const navigate = useNavigate()
   const [isLinkCopied, setIsLinkCopied] = useState(false)
+  const [visitState, setVisitState] = useState<any>(null)
 
   const handleVisitClick = () => {
     navigate(ROUTES.app.visitDetails.href.replace(':visitId', visit.id), { state: { visit } })
   }
 
-  // Get visit state from local storage (shared across tabs)
-  const visitState = (() => {
-    try {
-      const stored = localStorage.getItem(`visit-state-${visit.id}`)
-      return stored ? JSON.parse(stored) : null
-    } catch {
-      return null
+  // Get visit state from local storage (shared across tabs) - make it reactive
+  useEffect(() => {
+    const loadVisitState = () => {
+      try {
+        const stored = localStorage.getItem(`visit-state-${visit.id}`)
+        setVisitState(stored ? JSON.parse(stored) : null)
+      } catch {
+        setVisitState(null)
+      }
     }
-  })()
+
+    // Load initial state
+    loadVisitState()
+
+    // Listen for storage changes (when user navigates back from visit details)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === `visit-state-${visit.id}`) {
+        loadVisitState()
+      }
+    }
+
+    // Listen for custom events (for same-tab updates)
+    const handleCustomStorageChange = (e: CustomEvent) => {
+      if (e.detail.key === `visit-state-${visit.id}`) {
+        loadVisitState()
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('localStorageChange', handleCustomStorageChange as EventListener)
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('localStorageChange', handleCustomStorageChange as EventListener)
+    }
+  }, [visit.id])
 
   const getActionButton = () => {
     // Get the actual visit status from session storage (same logic as StatusBadge)
@@ -1942,37 +1970,72 @@ export function VisitCard({ visit }: { visit: Visit }) {
             </h4>
             <div className="flex flex-wrap gap-2 procedures-mobile" style={{ maxWidth: '100%' }}>
               {visit.procedures
-                .filter((p) => {
-                  // Map procedure names to IDs used in visit details
-                  const procedureIdMap: Record<string, string> = {
-                    'A1C': 'a1c',
-                    'HbA1c Test': 'a1c', // Map HbA1c Test to same ID as A1C
-                    'Blood Pressure': 'blood-pressure',
-                    'Urine Sample': 'urine-sample',
-                    'Lipid Panel': 'lipid-panel' // Add Lipid Panel mapping
-                  }
-                  const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
-                  // Hide only if procedure came from backend as completed (p.completed === true)
-                  // If user manually marked as completed, keep showing it
-                  const isBackendCompleted = p.completed === true
-                  // Hide if backend says completed, but show if user manually completed
-                  return !isBackendCompleted
-                })
                 .map((p, i) => {
-                  // Map procedure names to IDs used in visit details
-                  const procedureIdMap: Record<string, string> = {
+                  // Try multiple possible procedure ID formats to find a match (same as useVisitState)
+                  const possibleIds = [
+                    // First try exact name match (most common)
+                    p.name.toLowerCase().replace(/\s+/g, '-'),
+                    // Then try gap format
+                    `gap-${p.name.toLowerCase().replace(/\s+/g, '-')}`,
+                    // Then try common abbreviations
+                    p.name.toLowerCase().replace(/[^a-z0-9]/g, ''), // Remove all non-alphanumeric
+                    // Then try first word only
+                    p.name.split(' ')[0].toLowerCase(),
+                    // Then try last word only  
+                    p.name.split(' ').pop()?.toLowerCase() || '',
+                  ]
+                  
+                  // Special mappings for common procedure names (based on API response)
+                  const specialMappings: Record<string, string> = {
+                    // Lab mappings (Mapped_Lab_Term -> PSC_Lab_Type__c.toLowerCase())
+                    'GFR, UACR': 'ked', // KED lab
                     'A1C': 'a1c',
-                    'HbA1c Test': 'a1c', // Map HbA1c Test to same ID as A1C
+                    'HbA1c': 'hba1c',
+                    'Lipid Panel': 'lipid-panel',
+                    
+                    // Gap mappings (Mapped_Gap_Term -> gap-PSC_Measure__c.toLowerCase())
+                    'Fundospopic Imaging': 'gap-eed', // EED gap
+                    
+                    // Fallback mappings
                     'Blood Pressure': 'blood-pressure',
-                    'Urine Sample': 'urine-sample',
-                    'Lipid Panel': 'lipid-panel' // Add Lipid Panel mapping
+                    'Urine Sample': 'urine-sample'
                   }
-
-                  const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
+                  
+                  // Find the first matching outcome
+                  let outcome = null
+                  
+                  // First try the exact procedureId if available (most reliable)
+                  if (p.procedureId && visitState?.outcomes?.[p.procedureId]) {
+                    outcome = visitState.outcomes[p.procedureId]
+                  } else {
+                    // Fallback to trying multiple possible IDs
+                    for (const id of possibleIds) {
+                      if (visitState?.outcomes?.[id]) {
+                        outcome = visitState.outcomes[id]
+                        break
+                      }
+                    }
+                    
+                    // Try special mappings if no match found
+                    if (!outcome) {
+                      const specialId = specialMappings[p.name]
+                      if (specialId && visitState?.outcomes?.[specialId]) {
+                        outcome = visitState.outcomes[specialId]
+                      }
+                    }
+                  }
+                  
                   // Determine status: completed, not-completed, or pending (no outcome yet)
-                  const outcome = visitState?.outcomes?.[procedureId]
-                  const isCompleted = outcome === 'completed'
-                  const isNotCompleted = outcome === 'not-completed'
+                  const isBackendCompleted = p.completed === true
+                  const isCompleted = isBackendCompleted || outcome === 'completed'
+                  const isNotCompleted = !isBackendCompleted && outcome === 'not-completed'
+                  
+                  // Debug logging (remove in production)
+                  if (visitState?.outcomes && Object.keys(visitState.outcomes).length > 0) {
+                    console.log(`Visit Card - Procedure: "${p.name}", ProcedureId: "${p.procedureId}", Outcome: "${outcome}", Backend: ${isBackendCompleted}`)
+                    console.log(`Visit Card - Available outcomes:`, visitState.outcomes)
+                    console.log(`Visit Card - Final status: completed=${isCompleted}, not-completed=${isNotCompleted}`)
+                  }
 
                   return (
                     <div
@@ -2008,6 +2071,9 @@ export function VisitCard({ visit }: { visit: Visit }) {
                             <Check className="w-3 h-3" style={{ color: 'rgb(25, 154, 146)' }} />
                           </div>
                           <span>{p.name}</span>
+                          {isBackendCompleted && (
+                            <span className="text-[10px] opacity-75 ml-1">(System)</span>
+                          )}
                         </>
                       ) : isNotCompleted ? (
                         <>

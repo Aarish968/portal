@@ -64,6 +64,19 @@ export default function VisitDetailsView() {
   // TOAST TEST - Easy to remove: Delete this line and all FORCE_SAVE_ERROR checks
   const FORCE_SAVE_ERROR = forceSaveError
 
+  // Helper function to update localStorage and notify other components
+  const updateVisitState = (visitData: any) => {
+    try {
+      localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+      // Dispatch custom event to notify other components (like visit cards)
+      window.dispatchEvent(new CustomEvent('localStorageChange', {
+        detail: { key: `visit-state-${visitId}`, value: visitData }
+      }))
+    } catch {
+      // Handle localStorage errors silently
+    }
+  }
+
   // Extract visit either from navigation state or fallback to param id
   const visitFromState = (location.state as any)?.visit
   const visitId = visitFromState?.id || params.visitId || '1'
@@ -128,9 +141,7 @@ export default function VisitDetailsView() {
         outcomes: {},
         procedureReasons: {}
       }
-      try {
-        localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(initialVisitData))
-      } catch { }
+      updateVisitState(initialVisitData)
     } else if (!localStorage.getItem(`visit-state-${visitId}`)) {
       // Default to not-started if no saved data and no navigation state
       // Don't save to local storage to avoid overriding dashboard display
@@ -223,7 +234,7 @@ export default function VisitDetailsView() {
           }
         }
 
-        localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+        updateVisitState(visitData)
         setOutcomes(proposedOutcomes)
         setSaveErrorIds(prev => prev.filter(id => id !== procedureId))
         if (visitStatus === 'not-started') {
@@ -297,7 +308,7 @@ export default function VisitDetailsView() {
           }
         }
 
-        localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
+        updateVisitState(visitData)
         setOutcomes(proposedOutcomes)
         setProcedureReasons(proposedReasons)
         setSaveErrorIds(prev => prev.filter(id => id !== selectedProcedure.id))
@@ -480,9 +491,7 @@ export default function VisitDetailsView() {
       outcomes,
       procedureReasons
     }
-    try {
-      localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
-    } catch { }
+    updateVisitState(visitData)
   }, [visitStatus, outcomes, procedureReasons, visitId, patientName, address, time, insurance, isInitialLoad])
 
   const handleSaveVisit = () => {
@@ -507,9 +516,7 @@ export default function VisitDetailsView() {
         procedureReasons
       }
       // Persist for other pages (e.g., Visits dashboard)
-      try {
-        localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
-      } catch { }
+      updateVisitState(visitData)
     }, 1000) // Show "Saving" for 1 second
   }
 
@@ -533,9 +540,7 @@ export default function VisitDetailsView() {
         outcomes,
         procedureReasons
       }
-      try {
-        localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
-      } catch { }
+      updateVisitState(visitData)
     }, 1000) // Show "Reopening" for 1 second
   }
 
@@ -1046,9 +1051,7 @@ export default function VisitDetailsView() {
                               outcomes: updatedOutcomes,
                               procedureReasons
                             }
-                            try {
-                              localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
-                            } catch { }
+                            updateVisitState(visitData)
 
                             // Update visit status if needed
                             if (visitStatus === 'not-started') {
@@ -1128,27 +1131,26 @@ export default function VisitDetailsView() {
           <div data-procedures-section>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {procedures
-                .filter((procedure) => {
-                  // Hide only if procedure came from backend as completed
-                  // If user manually marked as completed, keep showing it
+                .map((procedure) => {
+                  const outcome = outcomes[procedure.id]
+                  const reason = procedureReasons[procedure.id]
+                  
+                  // Check if this procedure is completed from backend
                   const backendProcedure = visitProcedures.find((p: any) => {
                     const procedureIdMap: Record<string, string> = {
                       'A1C': 'a1c',
-                      'HbA1c Test': 'a1c', // Map HbA1c Test to same ID as A1C
+                      'HbA1c Test': 'a1c',
                       'Blood Pressure': 'blood-pressure',
                       'Urine Sample': 'urine-sample',
-                      'Lipid Panel': 'lipid-panel' // Add Lipid Panel mapping
+                      'Lipid Panel': 'lipid-panel'
                     }
                     const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
                     return procedureId === procedure.id
                   })
                   const isBackendCompleted = backendProcedure?.completed === true
-                  // Hide if backend says completed, but show if user manually completed
-                  return !isBackendCompleted
-                })
-                .map((procedure) => {
-                  const outcome = outcomes[procedure.id]
-                  const reason = procedureReasons[procedure.id]
+                  
+                  // Use backend status if available, otherwise use local outcome
+                  const displayOutcome = isBackendCompleted ? 'completed' : outcome
 
                   return (
                     <div key={procedure.id} className={`bg-white rounded-2xl shadow-sm p-6 transition-shadow duration-300 hover:shadow-md relative ${editingCardIds.includes(procedure.id) ? 'flex flex-col' : ''}`}>
@@ -1162,7 +1164,7 @@ export default function VisitDetailsView() {
                         <h3 className="text-base font-semibold text-gray-900">{procedure.title}</h3>
                         <div className="flex items-center gap-2">
                           {/* Status Badge - show when outcome exists */}
-                          {outcome && !editingCardIds.includes(procedure.id) && (
+                          {displayOutcome && !editingCardIds.includes(procedure.id) && (
                             <div
                               className="inline-flex items-center justify-center gap-2 px-4"
                               style={{
@@ -1174,7 +1176,7 @@ export default function VisitDetailsView() {
                                 boxSizing: 'border-box',
                                 height: '24px',
                                 fontSize: '0.75rem',
-                                backgroundColor: outcome === 'completed' ? 'rgb(25, 154, 146)' : 'rgb(207, 35, 35)',
+                                backgroundColor: displayOutcome === 'completed' ? 'rgb(25, 154, 146)' : 'rgb(207, 35, 35)',
                                 color: 'rgb(255, 255, 255)',
                                 fontWeight: '500',
                                 whiteSpace: 'nowrap',
@@ -1184,12 +1186,12 @@ export default function VisitDetailsView() {
                                 padding: '0px',
                                 borderWidth: '1px',
                                 borderStyle: 'solid',
-                                borderColor: outcome === 'completed' ? 'rgba(25, 154, 146, 0.7)' : 'rgba(207, 35, 35, 0.7)',
+                                borderColor: displayOutcome === 'completed' ? 'rgba(25, 154, 146, 0.7)' : 'rgba(207, 35, 35, 0.7)',
                                 borderRadius: '24px',
                                 minWidth: '120px'
                               }}
                             >
-                              {outcome === 'completed' ? (
+                              {displayOutcome === 'completed' ? (
                                 <>
                                   <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="none">
@@ -1210,6 +1212,38 @@ export default function VisitDetailsView() {
                               )}
                             </div>
                           )}
+                          
+                          {/* Backend Completed Indicator */}
+                          {isBackendCompleted && (
+                            <div
+                              className="inline-flex items-center justify-center text-xs font-medium whitespace-nowrap px-3"
+                              style={{
+                                maxWidth: '100%',
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                                lineHeight: '1.5',
+                                cursor: 'unset',
+                                verticalAlign: 'middle',
+                                boxSizing: 'border-box',
+                                height: '24px',
+                                fontSize: '0.75rem',
+                                fontWeight: '500',
+                                backgroundColor: 'rgb(243, 244, 246)',
+                                color: 'rgb(107, 114, 128)',
+                                transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                                outline: '0px',
+                                textDecoration: 'none',
+                                padding: '0px',
+                                borderWidth: '1px',
+                                borderStyle: 'solid',
+                                borderRadius: '24px',
+                                borderColor: 'rgb(209, 213, 219)',
+                                minWidth: '80px'
+                              }}
+                            >
+                              System Completed
+                            </div>
+                          )}
+                          
                           {/* Saving indicator - show briefly after outcome selection */}
 
 
@@ -1243,8 +1277,8 @@ export default function VisitDetailsView() {
                               Editing
                             </div>
                           )}
-                          {/* Edit/Close Button - show when Save button is visible at top and procedure has outcome */}
-                          {(visitStatus === 'in-progress' || visitStatus === 'ready-to-save' || needsSaving) && outcome && !editingCardIds.includes(procedure.id) && (
+                          {/* Edit/Close Button - show when Save button is visible at top and procedure has outcome, but not for backend completed */}
+                          {(visitStatus === 'in-progress' || visitStatus === 'ready-to-save' || needsSaving) && displayOutcome && !editingCardIds.includes(procedure.id) && !isBackendCompleted && (
                             savingProcedureIds.includes(procedure.id)
                               ? (
                                 <div
@@ -1295,15 +1329,15 @@ export default function VisitDetailsView() {
                       )}
 
                       {/* Show reason for not completed procedures */}
-                      {outcome === 'not-completed' && reason && (
+                      {displayOutcome === 'not-completed' && reason && (
                         <div className="mb-4">
                           <p className="text-sm text-gray-500 mb-1">Reason:</p>
                           <p className="text-sm text-gray-700">{reasonLabels[reason] || reason}</p>
                         </div>
                       )}
 
-                      {/* Action buttons - show when this card is being edited or when no outcome set */}
-                      {(editingCardIds.includes(procedure.id) || !outcome) && (
+                      {/* Action buttons - show when this card is being edited or when no outcome set, but not for backend completed */}
+                      {(editingCardIds.includes(procedure.id) || (!displayOutcome && !isBackendCompleted)) && (
                         <div>
                           <div>
                             <p className="text-sm text-gray-600 mb-3">Outcome:</p>
@@ -1331,15 +1365,15 @@ export default function VisitDetailsView() {
                                   userSelect: 'none',
                                   fontWeight: '500',
                                   fontSize: '0.75rem',
-                                  backgroundColor: outcome === 'completed' ? 'rgb(25, 154, 146)' : 'white',
-                                  color: outcome === 'completed' ? 'rgb(255, 255, 255)' : 'rgb(107, 114, 128)',
+                                  backgroundColor: displayOutcome === 'completed' ? 'rgb(25, 154, 146)' : 'white',
+                                  color: displayOutcome === 'completed' ? 'rgb(255, 255, 255)' : 'rgb(107, 114, 128)',
                                   cursor: 'pointer',
                                   margin: '0px',
                                   whiteSpace: 'nowrap',
                                   transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
                                   outline: '0px',
                                   textDecoration: 'none',
-                                  border: outcome === 'completed' ? '0px' : '1px solid rgb(209, 213, 219)',
+                                  border: displayOutcome === 'completed' ? '0px' : '1px solid rgb(209, 213, 219)',
                                   padding: '0px',
                                   borderRadius: '999px'
                                 }}
@@ -1369,15 +1403,15 @@ export default function VisitDetailsView() {
                                   userSelect: 'none',
                                   fontWeight: '500',
                                   fontSize: '0.75rem',
-                                  backgroundColor: outcome === 'not-completed' ? 'rgb(207, 35, 35)' : 'white',
-                                  color: outcome === 'not-completed' ? 'rgb(255, 255, 255)' : 'rgb(107, 114, 128)',
+                                  backgroundColor: displayOutcome === 'not-completed' ? 'rgb(207, 35, 35)' : 'white',
+                                  color: displayOutcome === 'not-completed' ? 'rgb(255, 255, 255)' : 'rgb(107, 114, 128)',
                                   cursor: 'pointer',
                                   margin: '0px',
                                   whiteSpace: 'nowrap',
                                   transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
                                   outline: '0px',
                                   textDecoration: 'none',
-                                  border: outcome === 'not-completed' ? '0px' : '1px solid rgb(209, 213, 219)',
+                                  border: displayOutcome === 'not-completed' ? '0px' : '1px solid rgb(209, 213, 219)',
                                   padding: '0px',
                                   borderRadius: '999px'
                                 }}
