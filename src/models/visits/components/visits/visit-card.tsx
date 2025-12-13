@@ -416,11 +416,111 @@ export function VisitCard({ visit }: { visit: Visit }) {
 
     // Button logic based on badge status (after checking specific consent combinations)
     if (displayStatus === 'completed') {
-      // Check if HIPAA or Privacy are missing
+      // Check if Treatment Consent is collected - View Summary only shows if Treatment is collected
+      if (!consentStatus.treatment) {
+        // Treatment not collected - show only Collect Consent button (no View Summary)
+        if (visit.visitType === 'in-home') {
+          return (
+            <button
+              onClick={() => {
+                sessionStorage.setItem('fromConsentPage', 'true')
+                sessionStorage.setItem('currentVisitId', visit.id)
+                sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
+                window.open(visit.consentURL || `${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
+              }}
+              className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                boxSizing: 'border-box',
+                cursor: 'pointer',
+                userSelect: 'none',
+                verticalAlign: 'middle',
+                appearance: 'none',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                fontSize: '0.875rem',
+                lineHeight: '1.75',
+                minWidth: '64px',
+                textTransform: 'none',
+                fontWeight: '500',
+                boxShadow: 'none',
+                minHeight: '48px',
+                backgroundColor: 'rgb(228, 118, 0)',
+                color: 'rgb(255, 255, 255)',
+                outline: '0px',
+                margin: '0px',
+                textDecoration: 'none',
+                padding: '10px 24px',
+                borderWidth: '0px',
+                borderStyle: 'initial',
+                borderColor: 'initial',
+                borderImage: 'initial',
+                transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+                borderRadius: '12px',
+                width: '100%'
+              }}
+            >
+              Collect Consent
+            </button>
+          )
+        } else {
+          // Telehealth - show only Copy Consent Link
+          return (
+            <div className="flex flex-col gap-1" style={{ alignItems: 'flex-end' }}>
+              <button
+                onClick={handleCopyConsentLink}
+                className="inline-flex items-center justify-center gap-2 relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                  boxSizing: 'border-box',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  verticalAlign: 'middle',
+                  appearance: 'none',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                  fontSize: '0.875rem',
+                  lineHeight: '1.75',
+                  minWidth: '64px',
+                  textTransform: 'none',
+                  fontWeight: '500',
+                  boxShadow: 'none',
+                  minHeight: '48px',
+                  backgroundColor: 'rgb(85, 56, 166)',
+                  color: 'rgb(255, 255, 255)',
+                  outline: '0px',
+                  margin: '0px',
+                  textDecoration: 'none',
+                  padding: '10px 24px',
+                  borderWidth: '0px',
+                  borderStyle: 'initial',
+                  borderColor: 'initial',
+                  borderImage: 'initial',
+                  borderRadius: '12px',
+                  width: '100%',
+                  transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+              >
+                {isLinkCopied ? 'Link Copied!' : 'Copy Consent Link'}
+                <Link className="w-4 h-4" />
+              </button>
+              <p className="text-xs text-gray-500" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', marginTop: '2px' }}>
+                Copies link to paste in Telehealth chat
+              </p>
+            </div>
+          )
+        }
+      }
+      
+      // Treatment Consent is collected - now check if HIPAA or Privacy are missing
       const hipaaOrPrivacyMissing = !consentStatus.hipaa || !consentStatus.privacy
 
       if (hipaaOrPrivacyMissing) {
-        // Show View Summary + additional consent button
+        // Show View Summary + additional consent button (Treatment is collected)
         if (visit.visitType === 'in-home') {
           return (
             <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
@@ -574,7 +674,8 @@ export function VisitCard({ visit }: { visit: Visit }) {
         }
       }
 
-      // All consents collected - show only View Summary
+      // All consents collected (including Treatment) - show only View Summary
+      // Note: This case only reaches here if Treatment is collected (checked above)
       return (
         <button
           onClick={handleVisitClick}
