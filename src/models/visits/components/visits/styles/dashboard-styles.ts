@@ -281,7 +281,7 @@ export const dashboardStyles = `
     }
     
     .mobile-content {
-      padding-top: 10rem !important;
+      padding-top: 7rem !important;
       padding-left: 3rem !important;
       padding-right: 1.5rem !important;
       margin-left: 1rem !important;
@@ -331,13 +331,71 @@ export const dashboardStyles = `
       display: flex !important;
       flex-direction: column !important;
       align-items: flex-start !important;
-      gap: 0.5rem !important;
+      gap: 0.375rem !important;
     }
     
     .visit-details-mobile > div {
       width: 100% !important;
       max-width: 100% !important;
       flex: none !important;
+    }
+    
+    /* Tablet: Reduce card padding and spacing */
+    .visit-card-content {
+      padding: 1rem 1.25rem !important;
+    }
+    
+    .visit-card-content .space-y-4,
+    .visit-card-content .space-y-5 {
+      gap: 0.75rem !important;
+    }
+    
+    /* Tablet: Reduce gap between header and details */
+    .visit-card-content > div > div:first-child {
+      gap: 0.5rem !important;
+    }
+    
+    /* Tablet: Reduce spacing in sections */
+    .visit-card-content h4 {
+      margin-bottom: 0.5rem !important;
+    }
+    
+    /* Tablet: Reduce separator spacing */
+    .visit-card-content .border-t {
+      margin-top: 0.5rem !important;
+      margin-bottom: 0.5rem !important;
+    }
+    
+    /* Tablet: Reduce main content spacing */
+    .visit-card-content > div > div {
+      gap: 0.75rem !important;
+    }
+    
+    /* Tablet: Reduce header section gap */
+    .visit-card-content > div > div:first-child > div {
+      gap: 0.5rem !important;
+    }
+    
+    /* Tablet: Optimize visit details section spacing */
+    .visit-card-content > div > div:nth-child(2) {
+      margin-top: 0.5rem !important;
+      margin-bottom: 0.5rem !important;
+    }
+    
+    /* Tablet: Reduce section title margins */
+    .visit-card-content h4 {
+      margin-top: 0.5rem !important;
+      margin-bottom: 0.5rem !important;
+    }
+    
+    /* Tablet: Reduce equipment section spacing */
+    .mobile-content > div:first-child {
+      margin-bottom: 1rem !important;
+    }
+    
+    /* Tablet: Reduce section title spacing */
+    .mobile-content h3 {
+      margin-bottom: 0.5rem !important;
     }
   }
   
