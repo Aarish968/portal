@@ -1,8 +1,8 @@
-﻿import React, { useState, useEffect } from 'react'
-import { Clock, MapPin, Building, Phone, Check, X, Link } from 'lucide-react'
+﻿import { useState, useEffect } from 'react'
+import { Clock, MapPin, Building, Phone, Check, Link } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
-import { StatusBadge, VisitTypeBadge } from './visit-badge'
+import { StatusBadge } from './visit-badge'
 import { Visit } from '../../types/types'
 import { Card, CardContent } from './ui/Card'
 
@@ -1777,83 +1777,88 @@ export function VisitCard({ visit }: { visit: Visit }) {
 
   return (
     <Card className="w-full bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer h-full" style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
-      <CardContent className="p-3 sm:p-4 md:p-5 lg:p-6 h-full flex flex-col visit-card-content" style={{ maxWidth: '100%', boxSizing: 'border-box' }}>
-        <div className="space-y-4 sm:space-y-5">
-          {/* Header Row */}
-          <div className="flex flex-col gap-3 sm:gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 min-w-0">
-                <h3 className="text-base sm:text-lg font-medium truncate" style={{ color: '#1b1b1b' }}>
-                  {visit.patientName}
-                </h3>
-                <div className="flex-shrink-0">
-                  <StatusBadge status={visit.status} visitState={visitState} />
+      <CardContent className="p-2 sm:p-3 h-full flex flex-col visit-card-content" style={{ maxWidth: '100%', boxSizing: 'border-box' }}>
+        <div className="flex justify-between items-start">
+          {/* Left side - Name, Status Badge and Visit Details in one container */}
+          <div className="flex flex-col items-start">
+            {/* Name and Status Badge */}
+            <div className="flex items-center gap-3 mb-1">
+              <h3 className="text-base sm:text-lg font-medium" style={{ color: '#1b1b1b' }}>
+                {visit.patientName}
+              </h3>
+              <StatusBadge status={visit.status} visitState={visitState} />
+            </div>
+
+            {/* Visit Details - Vertical Layout */}
+            <div className="space-y-1">
+              {/* Address */}
+              {visit.address && (
+                <div className="flex items-start gap-2 text-sm py-1" style={{ color: '#939090' }}>
+                  <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span className="break-words">{visit.address}</span>
                 </div>
+              )}
+
+              {/* Phone Number */}
+              {visit.phone && (
+                <div className="flex items-center gap-2 text-sm py-1" style={{ color: '#939090' }}>
+                  <Phone className="w-4 h-4 flex-shrink-0" />
+                  <span>{visit.phone}</span>
+                </div>
+              )}
+
+              {/* Time */}
+              <div className="flex items-center gap-2 text-sm py-1" style={{ color: '#939090' }}>
+                <Clock className="w-4 h-4 flex-shrink-0" />
+                <span>{visit.time}</span>
               </div>
-              <div className="w-full sm:w-auto sm:flex-shrink-0">{getActionButton()}</div>
+
+              {/* Insurance/Payer */}
+              <div className="flex items-center gap-2 text-sm py-1" style={{ color: '#939090' }}>
+                <Building className="w-4 h-4 flex-shrink-0" />
+                <span>{visit.insurance}</span>
+              </div>
+
+              {/* Visit Type Badge */}
+              <div className="flex items-center gap-2 text-sm mt-3">
+                {visit.visitType === 'telehealth' ? (
+                  <div
+                    className="px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 border"
+                    style={{
+                      color: '#239BCF',
+                      borderColor: '#239BCF',
+                    }}
+                  >
+                    <VideocamIcon className="w-3 h-3" />
+                    <span>Telehealth</span>
+                  </div>
+                ) : (
+                  <div
+                    className="px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 border"
+                    style={{
+                      color: '#5538A6',
+                      borderColor: '#5538A6',
+                    }}
+                  >
+                    <span>In-Home Visit</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-
-
-          {/* Visit Details - Responsive Flex Layout */}
-          <div className="flex flex-wrap md:flex-col items-center md:items-start gap-2 sm:gap-3 md:gap-2 text-sm visit-details-mobile" style={{ color: '#939090', maxWidth: '100%', overflow: 'hidden' }}>
-            {/* Time */}
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <Clock className="w-4 h-4 flex-shrink-0" />
-              <span className="text-sm whitespace-nowrap">{visit.time}</span>
-            </div>
-
-            {/* Address - show for all visits */}
-            {visit.address && (
-              <div className="flex items-start gap-1 min-w-0 max-w-full sm:max-w-xs md:max-w-full">
-                <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                <span className="text-sm break-words" style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>{visit.address}</span>
-              </div>
-            )}
-
-            {/* Phone Number */}
-            {visit.phone && (
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <Phone className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm whitespace-nowrap">{visit.phone}</span>
-              </div>
-            )}
-
-            {/* Insurance */}
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <Building className="w-4 h-4 flex-shrink-0" />
-              <span className="text-sm whitespace-nowrap">{visit.insurance}</span>
-            </div>
+          {/* Right side - Action Buttons */}
+          <div className="flex-shrink-0">
+            {getActionButton()}
           </div>
+        </div>
 
-          {/* Second Telehealth Button (below time for telehealth visits) */}
-          {visit.visitType === 'telehealth' && (
-            <div className="flex justify-start">
-              <div
-                className="px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 border"
-                style={{
-                  color: '#239BCF',
-                  borderColor: '#239BCF',
-                }}
-              >
-                <VideocamIcon className="w-3 h-3" />
-                <span>Telehealth</span>
-              </div>
-            </div>
-          )}
+        {/* First Separator Line */}
+        <div className="border-t border-gray-200 mt-3"></div>
 
-          {/* Visit Type */}
-          <VisitTypeBadge visitType={visit.visitType} />
-
-          {/* First Separator Line */}
-          <div className="border-t border-gray-200"></div>
-
-          {/* Consent Forms */}
-          <div style={{ maxWidth: '100%', overflow: 'hidden' }}>
-            <h4 className="text-xs font-medium text-gray-700 mb-2 sm:mb-3 tracking-wide">
-              Consent Forms:
-            </h4>
+        {/* Consent Forms */}
+        <div className="py-2" style={{ maxWidth: '100%', overflow: 'hidden' }}>
+          <h4 className="text-xs font-medium text-gray-700 mb-2 tracking-wide">Consent Forms:</h4>
             <div className="flex flex-wrap gap-6 items-start" style={{ maxWidth: '100%' }}>
               {(() => {
                 // Read consent record once to decide whether to show statuses
@@ -1928,151 +1933,112 @@ export function VisitCard({ visit }: { visit: Visit }) {
                 })
               })()}
             </div>
-          </div>
+        </div>
 
-          {/* Second Separator Line */}
-          <div className="border-t border-gray-200"></div>
+        {/* Second Separator Line */}
+        <div className="border-t border-gray-200 my-2"></div>
 
-          {/* Procedures */}
-          <div style={{ maxWidth: '100%', overflow: 'hidden' }}>
-            <h4 className="text-xs font-medium text-gray-700 mb-2 sm:mb-3 tracking-wide">
-              Required Procedures
-            </h4>
-            <div className="flex flex-wrap gap-2 procedures-mobile" style={{ maxWidth: '100%' }}>
-              {visit.procedures
-                .map((p, i) => {
-                  // Try multiple possible procedure ID formats to find a match (same as useVisitState)
-                  const possibleIds = [
-                    // First try exact name match (most common)
-                    p.name.toLowerCase().replace(/\s+/g, '-'),
-                    // Then try gap format
-                    `gap-${p.name.toLowerCase().replace(/\s+/g, '-')}`,
-                    // Then try common abbreviations
-                    p.name.toLowerCase().replace(/[^a-z0-9]/g, ''), // Remove all non-alphanumeric
-                    // Then try first word only
-                    p.name.split(' ')[0].toLowerCase(),
-                    // Then try last word only  
-                    p.name.split(' ').pop()?.toLowerCase() || '',
-                  ]
-                  
-                  // Special mappings for common procedure names (based on API response)
-                  const specialMappings: Record<string, string> = {
-                    // Lab mappings (Mapped_Lab_Term -> PSC_Lab_Type__c.toLowerCase())
-                    'GFR, UACR': 'ked', // KED lab
-                    'A1C': 'a1c',
-                    'HbA1c': 'hba1c',
-                    'Lipid Panel': 'lipid-panel',
-                    
-                    // Gap mappings (Mapped_Gap_Term -> gap-PSC_Measure__c.toLowerCase())
-                    'Fundospopic Imaging': 'gap-eed', // EED gap
-                    
-                    // Fallback mappings
-                    'Blood Pressure': 'blood-pressure',
-                    'Urine Sample': 'urine-sample'
-                  }
-                  
-                  // Find the first matching outcome
-                  let outcome = null
-                  
-                  // First try the exact procedureId if available (most reliable)
-                  if (p.procedureId && visitState?.outcomes?.[p.procedureId]) {
-                    outcome = visitState.outcomes[p.procedureId]
-                  } else {
-                    // Fallback to trying multiple possible IDs
-                    for (const id of possibleIds) {
-                      if (visitState?.outcomes?.[id]) {
-                        outcome = visitState.outcomes[id]
-                        break
-                      }
-                    }
-                    
-                    // Try special mappings if no match found
-                    if (!outcome) {
-                      const specialId = specialMappings[p.name]
-                      if (specialId && visitState?.outcomes?.[specialId]) {
-                        outcome = visitState.outcomes[specialId]
-                      }
-                    }
-                  }
-                  
-                  // Determine status: completed, not-completed, or pending (no outcome yet)
-                  const isBackendCompleted = p.completed === true
-                  const isCompleted = isBackendCompleted || outcome === 'completed'
-                  const isNotCompleted = !isBackendCompleted && outcome === 'not-completed'
-                  
-                  // Debug logging (remove in production)
-                  if (visitState?.outcomes && Object.keys(visitState.outcomes).length > 0) {
-                    console.log(`Visit Card - Procedure: "${p.name}", ProcedureId: "${p.procedureId}", Outcome: "${outcome}", Backend: ${isBackendCompleted}`)
-                    console.log(`Visit Card - Available outcomes:`, visitState.outcomes)
-                    console.log(`Visit Card - Final status: completed=${isCompleted}, not-completed=${isNotCompleted}`)
-                  }
+        {/* Procedures */}
+        <div className="py-2" style={{ maxWidth: '100%', overflow: 'hidden' }}>
+          <h4 className="text-xs font-medium text-gray-700 mb-2 tracking-wide">Required Procedures</h4>
+          <div className="flex flex-wrap gap-2 procedures-mobile" style={{ maxWidth: '100%' }}>
+            {visit.procedures.filter((p) => {
+              // Hide only if procedure came from backend as completed (p.completed === true)
+              // If user manually marked as completed, keep showing it
+              const isBackendCompleted = p.completed === true
 
-                  return (
-                    <div
-                      key={i}
-                      className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full"
+              // Hide if backend says completed, but show if user manually completed
+              return !isBackendCompleted
+            }).map((p, i) => {
+              // Map procedure names to IDs used in visit details
+              const procedureIdMap: Record<string, string> = {
+                'A1C': 'a1c',
+                'HbA1c Test': 'a1c', // Map HbA1c Test to same ID as A1C
+                'Blood Pressure': 'blood-pressure',
+                'Urine Sample': 'urine-sample',
+                'Lipid Panel': 'lipid-panel' // Add Lipid Panel mapping
+              }
+              const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
+
+              // Determine status: completed, not-completed, or pending (no outcome yet)
+              const outcome = visitState?.outcomes?.[procedureId]
+              const isCompleted = outcome === 'completed'
+              const isNotCompleted = outcome === 'not-completed'
+
+              return (
+                <div
+                  key={i}
+                  className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full"
+                  style={{
+                    maxWidth: '100%',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: '1.5',
+                    cursor: 'unset',
+                    verticalAlign: 'middle',
+                    boxSizing: 'border-box',
+                    height: '26px',
+                    fontWeight: '500',
+                    fontSize: '0.75rem',
+                    backgroundColor: isCompleted ? 'rgb(25, 154, 146)' : (isNotCompleted ? 'rgb(207, 35, 35)' : 'white'),
+                    color: isCompleted || isNotCompleted ? 'rgb(255, 255, 255)' : '#1B1B1B',
+                    whiteSpace: 'nowrap',
+                    transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                    outline: '0px',
+                    textDecoration: 'none',
+                    border: isCompleted || isNotCompleted ? '0px' : '1px solid rgb(229, 231, 235)',
+                    padding: '0px 8px',
+                    borderRadius: '9999px'
+                  }}
+                >
+                  {isCompleted && (
+                    <span
+                      className="inline-flex items-center justify-center"
                       style={{
-                        maxWidth: '100%',
-                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        lineHeight: '1.5',
-                        cursor: 'unset',
-                        verticalAlign: 'middle',
-                        boxSizing: 'border-box',
-                        height: '26px',
-                        fontWeight: '500',
-                        fontSize: '0.75rem',
-                        backgroundColor: isCompleted ? 'rgb(25, 154, 146)' : (isNotCompleted ? 'rgb(207, 35, 35)' : 'white'),
-                        color: isCompleted || isNotCompleted ? 'rgb(255, 255, 255)' : '#1B1B1B',
-                        whiteSpace: 'nowrap',
-                        transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
-                        outline: '0px',
-                        textDecoration: 'none',
-                        border: isCompleted || isNotCompleted ? '0px' : '1px solid rgb(229, 231, 235)',
-                        padding: '0px 12px',
-                        borderRadius: '999px'
+                        width: '12px',
+                        height: '12px',
+                        borderRadius: '9999px',
+                        backgroundColor: '#FFFFFF',
+                        marginRight: '4px'
                       }}
                     >
-                      {isCompleted ? (
-                        <>
-                          <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center flex-shrink-0">
-                            <Check className="w-3 h-3" style={{ color: 'rgb(25, 154, 146)' }} />
-                          </div>
-                          <span>{p.name}</span>
-                          {isBackendCompleted && (
-                            <span className="text-[10px] opacity-75 ml-1">(System)</span>
-                          )}
-                        </>
-                      ) : isNotCompleted ? (
-                        <>
-                          <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center flex-shrink-0">
-                            <X className="w-3 h-3" style={{ color: 'rgb(207, 35, 35)' }} />
-                          </div>
-                          <span>{p.name}</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>{p.name}</span>
-                        </>
-                      )}
-                    </div>
-                  )
-                })}
-            </div>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 16 16" fill="none">
+                        <path d="M6.5 11.3L3.5 8.3L4.55 7.25L6.5 9.2L11.45 4.25L12.5 5.3L6.5 11.3Z" fill="#199A92" />
+                      </svg>
+                    </span>
+                  )}
+                  {isNotCompleted && (
+                    <span
+                      className="inline-flex items-center justify-center"
+                      style={{
+                        width: '12px',
+                        height: '12px',
+                        borderRadius: '9999px',
+                        backgroundColor: '#FFFFFF',
+                        marginRight: '4px'
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 16 16" fill="none">
+                        <path d="M11.5 4.5L8 8L4.5 4.5L3.5 5.5L7 9L10.5 5.5L11.5 4.5Z" fill="#CF2323" />
+                      </svg>
+                    </span>
+                  )}
+                  <span>{p.name}</span>
+                </div>
+              )
+            })}
           </div>
+        </div>
 
-          {/* Third Separator Line */}
-          <div className="border-t border-gray-200"></div>
+        {/* Third Separator Line */}
+        <div className="border-t border-gray-200 my-2"></div>
 
-          {/* Health Risk Assessment */}
-          <div>
-            <h4 className="text-xs font-medium text-gray-700 mb-2 sm:mb-3 uppercase tracking-wide">
-              Health Risk Assessment
-            </h4>
-            {getHRABadge()}
-          </div>
+        {/* Health Risk Assessment */}
+        <div className="py-2">
+          <h4 className="text-xs font-medium text-gray-700 mb-2 uppercase tracking-wide">Health Risk Assessment</h4>
+          {getHRABadge()}
         </div>
       </CardContent>
     </Card>
