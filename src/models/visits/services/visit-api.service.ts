@@ -10,13 +10,6 @@ export class VisitApiService {
   static async getVisits(username: string): Promise<VisitApiResponse[]> {
     const response = await axiosInstance.post<{ visits: VisitApiResponse[] }>('/visits/get', {
       username,
-    }, {
-      // Disable caching to ensure fresh data
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
     })
     // Handle both old format (array) and new format (wrapped in visits property)
     return Array.isArray(response.data) ? response.data : response.data.visits

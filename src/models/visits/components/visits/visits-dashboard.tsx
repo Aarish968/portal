@@ -28,6 +28,7 @@ export function VisitsDashboard() {
   const [renderKey, setRenderKey] = useState(0)
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false)
   const [lastRefreshTime, setLastRefreshTime] = useState<number>(Date.now())
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   const { getVisits, error: apiError } = useVisitsApi()
   const currentUser = useAuthStore(state => state.currentUser)
@@ -119,7 +120,13 @@ export function VisitsDashboard() {
   }, [location.pathname])
 
   // Function to fetch visits data
-  const fetchVisits = async (forceRefresh = false) => {
+  const fetchVisits = React.useCallback(async (forceRefresh = false) => {
+    // Prevent multiple simultaneous API calls
+    if (isLoadingVisits && !forceRefresh) {
+      console.log('Dashboard: Already loading visits, skipping...')
+      return
+    }
+
     // Use username field instead of email
     const userEmail = currentUser?.username || currentUser?.idTokenClaims?.preferred_username
     
@@ -127,7 +134,7 @@ export function VisitsDashboard() {
       setIsLoadingVisits(true)
       if (!hasLoadedOnce) setHasLoadedOnce(true)
       try {
-        console.log('Dashboard: Fetching visits from API...')
+        console.log('Dashboard: Fetching visits from API for user:', userEmail)
         const data = await getVisits(userEmail)
         
         if (data && data.length > 0) {
@@ -183,6 +190,7 @@ export function VisitsDashboard() {
           setTransformedVisits([])
         }
       } catch (error) {
+        console.error('Dashboard: Error fetching visits:', error)
         setTransformedVisits([])
       } finally {
         setIsLoadingVisits(false)
@@ -191,11 +199,19 @@ export function VisitsDashboard() {
       setIsLoadingVisits(false)
       setTransformedVisits([])
     }
-  }
+  }, [currentUser?.username, hasLoadedOnce, isLoadingVisits, getVisits])
 
   useEffect(() => {
     fetchVisits()
-  }, [currentUser, hasLoadedOnce])
+  }, [currentUser?.username, hasLoadedOnce])
+
+  // Handle refresh trigger for consent form updates
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      console.log('Dashboard: Refresh trigger activated, fetching fresh data...')
+      fetchVisits(true)
+    }
+  }, [refreshTrigger, fetchVisits])
 
   useEffect(() => {
     const updateTime = () => {
@@ -213,30 +229,30 @@ export function VisitsDashboard() {
     return () => clearInterval(timer)
   }, [])
 
-  // Periodic refresh to check for consent updates
-  useEffect(() => {
-    const refreshInterval = setInterval(() => {
-      const now = Date.now()
-      // Refresh every 2 minutes if data is older than 2 minutes
-      if (now - lastRefreshTime > 120000) { // 2 minutes
-        console.log('Dashboard: Periodic refresh check...')
-        fetchVisits(true)
-        setLastRefreshTime(now)
-      }
-    }, 30000) // Check every 30 seconds
+  // Periodic refresh to check for consent updates - DISABLED to prevent network errors
+  // useEffect(() => {
+  //   const refreshInterval = setInterval(() => {
+  //     const now = Date.now()
+  //     // Refresh every 2 minutes if data is older than 2 minutes
+  //     if (now - lastRefreshTime > 120000) { // 2 minutes
+  //       console.log('Dashboard: Periodic refresh check...')
+  //       fetchVisits(true)
+  //       setLastRefreshTime(now)
+  //     }
+  //   }, 30000) // Check every 30 seconds
 
-    return () => clearInterval(refreshInterval)
-  }, [lastRefreshTime, fetchVisits])
+  //   return () => clearInterval(refreshInterval)
+  // }, [lastRefreshTime, fetchVisits])
 
   useEffect(() => {
     const handleFocus = () => {
       // Check if user is returning from consent form
       const fromConsentPage = sessionStorage.getItem('fromConsentPage')
       if (fromConsentPage === 'true') {
-        console.log('Dashboard: User returned from consent form, refreshing data...')
+        console.log('Dashboard: User returned from consent form, triggering refresh...')
         sessionStorage.removeItem('fromConsentPage')
-        // Refresh API data to get updated consent status
-        fetchVisits(true) // Force refresh
+        // Trigger a refresh by updating the refresh trigger
+        setRefreshTrigger(prev => prev + 1)
       } else {
         // Force re-render of visit cards when window gains focus (user navigates back)
         setRenderKey(prev => prev + 1)
@@ -248,10 +264,10 @@ export function VisitsDashboard() {
       if (!document.hidden) {
         const fromConsentPage = sessionStorage.getItem('fromConsentPage')
         if (fromConsentPage === 'true') {
-          console.log('Dashboard: User returned from consent form (visibility), refreshing data...')
+          console.log('Dashboard: User returned from consent form (visibility), triggering refresh...')
           sessionStorage.removeItem('fromConsentPage')
-          // Refresh API data to get updated consent status
-          fetchVisits(true) // Force refresh
+          // Trigger a refresh by updating the refresh trigger
+          setRefreshTrigger(prev => prev + 1)
         } else {
           // Force re-render when page becomes visible (user navigates back)
           setRenderKey(prev => prev + 1)
@@ -266,12 +282,12 @@ export function VisitsDashboard() {
       }
     }
 
-    // Listen for storage events from other tabs/windows (when consent is submitted)
+    // Simple storage event handler - just re-render, don't make API calls
     const handleStorageEvent = (e: StorageEvent) => {
-      // If consent form data is updated in another tab, refresh the data
+      // If consent form data is updated in another tab, just re-render
       if (e.key && e.key.includes('consentFormsStatus-')) {
-        console.log('Dashboard: Consent form updated in another tab, refreshing data...')
-        fetchVisits(true) // Force refresh
+        console.log('Dashboard: Consent form updated in another tab, re-rendering...')
+        setRenderKey(prev => prev + 1)
       }
     }
 
@@ -285,8 +301,11 @@ export function VisitsDashboard() {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('localStorageChange', handleLocalStorageChange as EventListener)
       window.removeEventListener('storage', handleStorageEvent)
+      if (storageEventTimeout) {
+        clearTimeout(storageEventTimeout)
+      }
     }
-  }, [fetchVisits])
+  }, []) // Remove fetchVisits dependency to prevent infinite loops
 
   const handleCollectConsent = () => {
     setShowConsentModal(false)
