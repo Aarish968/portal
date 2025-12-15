@@ -30,13 +30,13 @@ export function VisitsDashboard() {
   const [lastRefreshTime, setLastRefreshTime] = useState<number>(Date.now())
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
+  const { getVisits, error: apiError } = useVisitsApi()
+  const currentUser = useAuthStore(state => state.currentUser)
+
   // Reset hasLoadedOnce when user changes
   useEffect(() => {
     setHasLoadedOnce(false)
   }, [currentUser?.username])
-
-  const { getVisits, error: apiError } = useVisitsApi()
-  const currentUser = useAuthStore(state => state.currentUser)
   
   // Use only API visits
   const { visits: visitsToday, refreshVisitStates } = useVisitState(transformedVisits)
@@ -126,8 +126,15 @@ export function VisitsDashboard() {
 
   // Function to fetch visits data
   const fetchVisits = React.useCallback(async (forceRefresh = false) => {
+    // Safety check for currentUser
+    if (!currentUser) {
+      console.log('Dashboard: No current user available, skipping API call')
+      setIsLoadingVisits(false)
+      return
+    }
+
     // Use username field instead of email
-    const userEmail = currentUser?.username || currentUser?.idTokenClaims?.preferred_username
+    const userEmail = currentUser.username || currentUser.idTokenClaims?.preferred_username
     
     console.log('Dashboard: fetchVisits called with:', { 
       userEmail, 
@@ -226,13 +233,19 @@ export function VisitsDashboard() {
   useEffect(() => {
     console.log('Dashboard: Initial load effect triggered')
     console.log('Dashboard: Current user:', currentUser)
-    console.log('Dashboard: Username:', currentUser?.username)
-    console.log('Dashboard: Preferred username:', currentUser?.idTokenClaims?.preferred_username)
     
-    if (currentUser?.username || currentUser?.idTokenClaims?.preferred_username) {
-      fetchVisits()
+    if (currentUser) {
+      console.log('Dashboard: Username:', currentUser.username)
+      console.log('Dashboard: Preferred username:', currentUser.idTokenClaims?.preferred_username)
+      
+      if (currentUser.username || currentUser.idTokenClaims?.preferred_username) {
+        fetchVisits()
+      } else {
+        console.log('Dashboard: No username found, not calling API')
+      }
     } else {
-      console.log('Dashboard: No username found, not calling API')
+      console.log('Dashboard: Current user is null, waiting for authentication...')
+      setIsLoadingVisits(false)
     }
   }, [currentUser])
 
@@ -422,19 +435,26 @@ export function VisitsDashboard() {
                     visitsToday: visitsToday.length,
                     currentVisits: currentVisits.length,
                     isLoadingVisits,
-                    apiError
+                    apiError,
+                    userExists: !!currentUser
                   })
                   
                   // Test API call directly
-                  const userEmail = currentUser?.username || currentUser?.idTokenClaims?.preferred_username
-                  if (userEmail) {
-                    try {
-                      console.log('Testing direct API call for:', userEmail)
-                      const testData = await getVisits(userEmail)
-                      console.log('Direct API test result:', testData)
-                    } catch (error) {
-                      console.error('Direct API test error:', error)
+                  if (currentUser) {
+                    const userEmail = currentUser.username || currentUser.idTokenClaims?.preferred_username
+                    if (userEmail) {
+                      try {
+                        console.log('Testing direct API call for:', userEmail)
+                        const testData = await getVisits(userEmail)
+                        console.log('Direct API test result:', testData)
+                      } catch (error) {
+                        console.error('Direct API test error:', error)
+                      }
+                    } else {
+                      console.log('No user email found for API test')
                     }
+                  } else {
+                    console.log('No current user for API test')
                   }
                 }}
                 className="px-3 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600"
@@ -455,7 +475,11 @@ export function VisitsDashboard() {
         </div>
 
         <div className="space-y-4 sm:space-y-6 w-full visits-section-container" style={{ maxWidth: '100%', overflow: 'hidden', boxSizing: 'border-box' }}>
-          {activeTab === 'week' ? (
+          {!currentUser ? (
+            <div className="bg-gray-100 p-8 rounded-lg text-center">
+              <p className="text-gray-600">Waiting for authentication...</p>
+            </div>
+          ) : activeTab === 'week' ? (
             <>
               {!isLoadingVisits && Object.keys(groupedVisits).length === 0 ? (
                 <div className="bg-gray-100 p-8 rounded-lg text-center">
