@@ -144,12 +144,10 @@ export function VisitsDashboard() {
                   treatment: visit.consentForms.find(cf => cf.name === 'Treatment Consent')?.completed || false,
                   submitted: true // Mark as submitted since this data comes from API
                 }
-                
-                // Only update consent data if no existing consent data exists
-                const existingConsentData = localStorage.getItem(STORAGE_KEYS.CONSENT_STATUS(visit.id))
-                if (!existingConsentData) {
-                  localStorage.setItem(STORAGE_KEYS.CONSENT_STATUS(visit.id), JSON.stringify(consentStatus))
-                }
+
+                // Always update consent data from backend so latest changes are reflected
+                // This prevents stale localStorage data from hiding new backend updates
+                localStorage.setItem(STORAGE_KEYS.CONSENT_STATUS(visit.id), JSON.stringify(consentStatus))
               }
               
               // Preserve existing visit state data (user's manual updates)
