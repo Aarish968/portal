@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react'
-import { Clock, MapPin, Building, Phone, Check, Link } from 'lucide-react'
+import { Clock, MapPin, Building, Phone, Check, Link, Home } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
 import { StatusBadge } from './visit-badge'
@@ -1823,10 +1823,9 @@ export function VisitCard({ visit }: { visit: Visit }) {
               <div className="flex items-center gap-2 text-sm mt-3">
                 {visit.visitType === 'telehealth' ? (
                   <div
-                    className="px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 border"
+                    className="px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1"
                     style={{
                       color: '#239BCF',
-                      borderColor: '#239BCF',
                     }}
                   >
                     <VideocamIcon className="w-3 h-3" />
@@ -1834,12 +1833,12 @@ export function VisitCard({ visit }: { visit: Visit }) {
                   </div>
                 ) : (
                   <div
-                    className="px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1 border"
+                    className="px-2 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1"
                     style={{
                       color: '#5538A6',
-                      borderColor: '#5538A6',
                     }}
                   >
+                    <Home className="w-3 h-3" />
                     <span>In-Home Visit</span>
                   </div>
                 )}
