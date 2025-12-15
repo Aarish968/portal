@@ -30,6 +30,11 @@ export function VisitsDashboard() {
   const [lastRefreshTime, setLastRefreshTime] = useState<number>(Date.now())
   const [refreshTrigger, setRefreshTrigger] = useState(0)
 
+  // Reset hasLoadedOnce when user changes
+  useEffect(() => {
+    setHasLoadedOnce(false)
+  }, [currentUser?.username])
+
   const { getVisits, error: apiError } = useVisitsApi()
   const currentUser = useAuthStore(state => state.currentUser)
   
@@ -121,26 +126,44 @@ export function VisitsDashboard() {
 
   // Function to fetch visits data
   const fetchVisits = React.useCallback(async (forceRefresh = false) => {
-    // Prevent multiple simultaneous API calls
+    // Use username field instead of email
+    const userEmail = currentUser?.username || currentUser?.idTokenClaims?.preferred_username
+    
+    console.log('Dashboard: fetchVisits called with:', { 
+      userEmail, 
+      hasLoadedOnce, 
+      forceRefresh, 
+      isLoadingVisits 
+    })
+
+    if (!userEmail) {
+      console.log('Dashboard: No user email found, skipping API call')
+      setIsLoadingVisits(false)
+      setTransformedVisits([])
+      return
+    }
+
+    // Prevent multiple simultaneous API calls (unless force refresh)
     if (isLoadingVisits && !forceRefresh) {
       console.log('Dashboard: Already loading visits, skipping...')
       return
     }
 
-    // Use username field instead of email
-    const userEmail = currentUser?.username || currentUser?.idTokenClaims?.preferred_username
-    
-    if (userEmail && (!hasLoadedOnce || forceRefresh)) {
+    // Always call API if forceRefresh is true, or if we haven't loaded once
+    if (!hasLoadedOnce || forceRefresh) {
       setIsLoadingVisits(true)
       if (!hasLoadedOnce) setHasLoadedOnce(true)
+      
       try {
         console.log('Dashboard: Fetching visits from API for user:', userEmail)
         const data = await getVisits(userEmail)
+        console.log('Dashboard: API response received:', data)
         
         if (data && data.length > 0) {
           console.log('Dashboard: Received API data, transforming visits...')
           // Transform API response to Visit format
           const transformed = data.map((apiVisit, index) => transformApiVisitToVisit(apiVisit, index))
+          console.log('Dashboard: Transformed visits:', transformed)
           
           // Sync API consent data to localStorage for each visit (but preserve existing visit states)
           transformed.forEach(visit => {
@@ -179,14 +202,13 @@ export function VisitsDashboard() {
             }
           })
           
-          // Force a small delay to ensure localStorage is updated before rendering
-          setTimeout(() => {
-            setTransformedVisits(transformed)
-            setRenderKey(prev => prev + 1) // Force re-render of VisitCards
-            setLastRefreshTime(Date.now()) // Update refresh time
-          }, 100) // Increased delay to ensure localStorage operations complete
+          // Update state immediately
+          setTransformedVisits(transformed)
+          setRenderKey(prev => prev + 1) // Force re-render of VisitCards
+          setLastRefreshTime(Date.now()) // Update refresh time
 
         } else {
+          console.log('Dashboard: No data received from API')
           setTransformedVisits([])
         }
       } catch (error) {
@@ -195,15 +217,24 @@ export function VisitsDashboard() {
       } finally {
         setIsLoadingVisits(false)
       }
-    } else if (!userEmail) {
-      setIsLoadingVisits(false)
-      setTransformedVisits([])
+    } else {
+      console.log('Dashboard: Skipping API call - already loaded once and not force refresh')
     }
   }, [currentUser?.username, hasLoadedOnce, isLoadingVisits, getVisits])
 
+  // Initial load effect
   useEffect(() => {
-    fetchVisits()
-  }, [currentUser?.username, hasLoadedOnce])
+    console.log('Dashboard: Initial load effect triggered')
+    console.log('Dashboard: Current user:', currentUser)
+    console.log('Dashboard: Username:', currentUser?.username)
+    console.log('Dashboard: Preferred username:', currentUser?.idTokenClaims?.preferred_username)
+    
+    if (currentUser?.username || currentUser?.idTokenClaims?.preferred_username) {
+      fetchVisits()
+    } else {
+      console.log('Dashboard: No username found, not calling API')
+    }
+  }, [currentUser])
 
   // Handle refresh trigger for consent form updates
   useEffect(() => {
@@ -211,7 +242,7 @@ export function VisitsDashboard() {
       console.log('Dashboard: Refresh trigger activated, fetching fresh data...')
       fetchVisits(true)
     }
-  }, [refreshTrigger, fetchVisits])
+  }, [refreshTrigger])
 
   useEffect(() => {
     const updateTime = () => {
@@ -373,19 +404,53 @@ export function VisitsDashboard() {
             <h3 className="text-lg sm:text-xl font-medium mb-0" style={{ color: '#1b1b1b' }}>
               {getSectionTitle()}
             </h3>
-            <button
-              onClick={() => fetchVisits(true)}
-              disabled={isLoadingVisits}
-              className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-            >
-              {isLoadingVisits ? 'Refreshing...' : 'Refresh'}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => fetchVisits(true)}
+                disabled={isLoadingVisits}
+                className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+              >
+                {isLoadingVisits ? 'Refreshing...' : 'Refresh'}
+              </button>
+              <button
+                onClick={async () => {
+                  console.log('Debug info:', {
+                    currentUser: currentUser?.username,
+                    preferredUsername: currentUser?.idTokenClaims?.preferred_username,
+                    hasLoadedOnce,
+                    transformedVisits: transformedVisits.length,
+                    visitsToday: visitsToday.length,
+                    currentVisits: currentVisits.length,
+                    isLoadingVisits,
+                    apiError
+                  })
+                  
+                  // Test API call directly
+                  const userEmail = currentUser?.username || currentUser?.idTokenClaims?.preferred_username
+                  if (userEmail) {
+                    try {
+                      console.log('Testing direct API call for:', userEmail)
+                      const testData = await getVisits(userEmail)
+                      console.log('Direct API test result:', testData)
+                    } catch (error) {
+                      console.error('Direct API test error:', error)
+                    }
+                  }
+                }}
+                className="px-3 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                Debug
+              </button>
+            </div>
           </div>
           {isLoadingVisits && (
             <p className="text-sm text-gray-500 mt-2">Loading visits from API...</p>
           )}
           {apiError && (
             <p className="text-sm text-red-600 mt-2">Error loading visits: {apiError}</p>
+          )}
+          {!isLoadingVisits && !apiError && transformedVisits.length === 0 && (
+            <p className="text-sm text-yellow-600 mt-2">No visits data loaded. Try clicking Refresh or Debug to see what's happening.</p>
           )}
         </div>
 
