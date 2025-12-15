@@ -301,9 +301,6 @@ export function VisitsDashboard() {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('localStorageChange', handleLocalStorageChange as EventListener)
       window.removeEventListener('storage', handleStorageEvent)
-      if (storageEventTimeout) {
-        clearTimeout(storageEventTimeout)
-      }
     }
   }, []) // Remove fetchVisits dependency to prevent infinite loops
 
