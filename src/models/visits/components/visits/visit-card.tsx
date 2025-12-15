@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import { Clock, MapPin, Building, Phone, Check, Link } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
@@ -23,6 +23,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
   const navigate = useNavigate()
   const [isLinkCopied, setIsLinkCopied] = useState(false)
   const [visitState, setVisitState] = useState<any>(null)
+  const [consentRefreshKey, setConsentRefreshKey] = useState(0)
 
   const handleVisitClick = () => {
     navigate(ROUTES.app.visitDetails.href.replace(':visitId', visit.id), { state: { visit } })
@@ -56,11 +57,21 @@ export function VisitCard({ visit }: { visit: Visit }) {
       }
     }
 
+    // Listen for consent form updates
+    const handleConsentStorageChange = (e: StorageEvent) => {
+      if (e.key === `consentFormsStatus-${visit.id}`) {
+        console.log(`VisitCard: Consent data updated for visit ${visit.id}, refreshing...`)
+        setConsentRefreshKey(prev => prev + 1)
+      }
+    }
+
     window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('storage', handleConsentStorageChange)
     window.addEventListener('localStorageChange', handleCustomStorageChange as EventListener)
 
     return () => {
       window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('storage', handleConsentStorageChange)
       window.removeEventListener('localStorageChange', handleCustomStorageChange as EventListener)
     }
   }, [visit.id])
@@ -73,7 +84,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
     }
 
     // Check consent forms completion status - read fresh from localStorage each render
-    const consentStatus = (() => {
+    const consentStatus = React.useMemo(() => {
       try {
         const consentData = localStorage.getItem(`consentFormsStatus-${visit.id}`)
         if (consentData) {
@@ -96,7 +107,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
         privacy: false,
         treatment: false
       }
-    })()
+    }, [visit.id, visitState, consentRefreshKey]) // Re-compute when visitState or consent data changes
 
     const completedCount = Object.values(consentStatus).filter(Boolean).length
     const areAllConsentFormsCompleted = completedCount === 3
@@ -1871,6 +1882,24 @@ export function VisitCard({ visit }: { visit: Visit }) {
                     showStatuses = consentRecord?.submitted === true
                   }
                 } catch { }
+
+                // Also check if consent data comes from API (visit.consentForms)
+                if (!showStatuses && visit.consentForms && visit.consentForms.length > 0) {
+                  // Check if any consent form is completed from API data
+                  const hasAnyCompleted = visit.consentForms.some(cf => cf.completed)
+                  if (hasAnyCompleted) {
+                    showStatuses = true
+                    // Create consent record from API data if not exists
+                    if (!consentRecord) {
+                      consentRecord = {
+                        hipaa: visit.consentForms.find(cf => cf.name === 'HIPAA Authorization')?.completed || false,
+                        privacy: visit.consentForms.find(cf => cf.name === 'Notice of Privacy Practices')?.completed || false,
+                        treatment: visit.consentForms.find(cf => cf.name === 'Treatment Consent')?.completed || false,
+                        submitted: true
+                      }
+                    }
+                  }
+                }
 
                 return visit.consentForms.map((cf, i) => {
                   // Determine completion only if we have a record

@@ -27,6 +27,7 @@ export function VisitsDashboard() {
   const [isLoadingVisits, setIsLoadingVisits] = useState(true)
   const [renderKey, setRenderKey] = useState(0)
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false)
+  const [lastRefreshTime, setLastRefreshTime] = useState<number>(Date.now())
 
   const { getVisits, error: apiError } = useVisitsApi()
   const currentUser = useAuthStore(state => state.currentUser)
@@ -117,78 +118,82 @@ export function VisitsDashboard() {
     setRenderKey(prev => prev + 1)
   }, [location.pathname])
 
-  useEffect(() => {
-    const fetchVisits = async () => {
-      // Use username field instead of email
-      const userEmail = currentUser?.username || currentUser?.idTokenClaims?.preferred_username
-      
-      if (userEmail && !hasLoadedOnce) {
-        setIsLoadingVisits(true)
-        setHasLoadedOnce(true)
-        try {
-          console.log('Dashboard: Fetching visits from API...')
-          const data = await getVisits(userEmail)
+  // Function to fetch visits data
+  const fetchVisits = async (forceRefresh = false) => {
+    // Use username field instead of email
+    const userEmail = currentUser?.username || currentUser?.idTokenClaims?.preferred_username
+    
+    if (userEmail && (!hasLoadedOnce || forceRefresh)) {
+      setIsLoadingVisits(true)
+      if (!hasLoadedOnce) setHasLoadedOnce(true)
+      try {
+        console.log('Dashboard: Fetching visits from API...')
+        const data = await getVisits(userEmail)
+        
+        if (data && data.length > 0) {
+          console.log('Dashboard: Received API data, transforming visits...')
+          // Transform API response to Visit format
+          const transformed = data.map((apiVisit, index) => transformApiVisitToVisit(apiVisit, index))
           
-          if (data && data.length > 0) {
-            console.log('Dashboard: Received API data, transforming visits...')
-            // Transform API response to Visit format
-            const transformed = data.map((apiVisit, index) => transformApiVisitToVisit(apiVisit, index))
-            
-            // Sync API consent data to localStorage for each visit (but preserve existing visit states)
-            transformed.forEach(visit => {
-              // Handle consent forms
-              if (visit.consentForms && visit.consentForms.length > 0) {
-                const consentStatus = {
-                  hipaa: visit.consentForms.find(cf => cf.name === 'HIPAA Authorization')?.completed || false,
-                  privacy: visit.consentForms.find(cf => cf.name === 'Notice of Privacy Practices')?.completed || false,
-                  treatment: visit.consentForms.find(cf => cf.name === 'Treatment Consent')?.completed || false,
-                  submitted: true // Mark as submitted since this data comes from API
-                }
-                
-                // Only update consent data if no existing consent data exists
-                const existingConsentData = localStorage.getItem(STORAGE_KEYS.CONSENT_STATUS(visit.id))
-                if (!existingConsentData) {
-                  localStorage.setItem(STORAGE_KEYS.CONSENT_STATUS(visit.id), JSON.stringify(consentStatus))
-                }
+          // Sync API consent data to localStorage for each visit (but preserve existing visit states)
+          transformed.forEach(visit => {
+            // Handle consent forms
+            if (visit.consentForms && visit.consentForms.length > 0) {
+              const consentStatus = {
+                hipaa: visit.consentForms.find(cf => cf.name === 'HIPAA Authorization')?.completed || false,
+                privacy: visit.consentForms.find(cf => cf.name === 'Notice of Privacy Practices')?.completed || false,
+                treatment: visit.consentForms.find(cf => cf.name === 'Treatment Consent')?.completed || false,
+                submitted: true // Mark as submitted since this data comes from API
               }
               
-              // Preserve existing visit state data (user's manual updates)
-              // Don't overwrite if user has already made changes
-              const existingVisitState = localStorage.getItem(`visit-state-${visit.id}`)
-              if (existingVisitState) {
-                try {
-                  const parsedState = JSON.parse(existingVisitState)
-                  // If user has made changes (has outcomes), preserve them
-                  if (parsedState.outcomes && Object.keys(parsedState.outcomes).length > 0) {
-                    console.log(`Dashboard: Preserving existing visit state for ${visit.id}:`, parsedState.outcomes)
-                    // Keep the existing state, don't overwrite with API data
-                    return
-                  }
-                } catch {
-                  // If parsing fails, continue with API data
-                }
+              // Always update consent data when force refreshing, otherwise only if no existing data
+              const existingConsentData = localStorage.getItem(STORAGE_KEYS.CONSENT_STATUS(visit.id))
+              if (!existingConsentData || forceRefresh) {
+                localStorage.setItem(STORAGE_KEYS.CONSENT_STATUS(visit.id), JSON.stringify(consentStatus))
+                console.log(`Dashboard: Updated consent status for visit ${visit.id}:`, consentStatus)
               }
-            })
+            }
             
-            // Force a small delay to ensure localStorage is updated before rendering
-            setTimeout(() => {
-              setTransformedVisits(transformed)
-              setRenderKey(prev => prev + 1) // Force re-render of VisitCards
-            }, 100) // Increased delay to ensure localStorage operations complete
+            // Preserve existing visit state data (user's manual updates)
+            // Don't overwrite if user has already made changes (unless force refreshing)
+            const existingVisitState = localStorage.getItem(`visit-state-${visit.id}`)
+            if (existingVisitState && !forceRefresh) {
+              try {
+                const parsedState = JSON.parse(existingVisitState)
+                // If user has made changes (has outcomes), preserve them
+                if (parsedState.outcomes && Object.keys(parsedState.outcomes).length > 0) {
+                  console.log(`Dashboard: Preserving existing visit state for ${visit.id}:`, parsedState.outcomes)
+                  // Keep the existing state, don't overwrite with API data
+                  return
+                }
+              } catch {
+                // If parsing fails, continue with API data
+              }
+            }
+          })
+          
+          // Force a small delay to ensure localStorage is updated before rendering
+          setTimeout(() => {
+            setTransformedVisits(transformed)
+            setRenderKey(prev => prev + 1) // Force re-render of VisitCards
+            setLastRefreshTime(Date.now()) // Update refresh time
+          }, 100) // Increased delay to ensure localStorage operations complete
 
-          } else {
-            setTransformedVisits([])
-          }
-        } catch (error) {
+        } else {
           setTransformedVisits([])
-        } finally {
-          setIsLoadingVisits(false)
         }
-      } else if (!userEmail) {
-        setIsLoadingVisits(false)
+      } catch (error) {
         setTransformedVisits([])
+      } finally {
+        setIsLoadingVisits(false)
       }
+    } else if (!userEmail) {
+      setIsLoadingVisits(false)
+      setTransformedVisits([])
     }
+  }
+
+  useEffect(() => {
     fetchVisits()
   }, [currentUser, hasLoadedOnce])
 
@@ -208,16 +213,49 @@ export function VisitsDashboard() {
     return () => clearInterval(timer)
   }, [])
 
+  // Periodic refresh to check for consent updates
+  useEffect(() => {
+    const refreshInterval = setInterval(() => {
+      const now = Date.now()
+      // Refresh every 2 minutes if data is older than 2 minutes
+      if (now - lastRefreshTime > 120000) { // 2 minutes
+        console.log('Dashboard: Periodic refresh check...')
+        fetchVisits(true)
+        setLastRefreshTime(now)
+      }
+    }, 30000) // Check every 30 seconds
+
+    return () => clearInterval(refreshInterval)
+  }, [lastRefreshTime, fetchVisits])
+
   useEffect(() => {
     const handleFocus = () => {
-      // Force re-render of visit cards when window gains focus (user navigates back)
-      setRenderKey(prev => prev + 1)
+      // Check if user is returning from consent form
+      const fromConsentPage = sessionStorage.getItem('fromConsentPage')
+      if (fromConsentPage === 'true') {
+        console.log('Dashboard: User returned from consent form, refreshing data...')
+        sessionStorage.removeItem('fromConsentPage')
+        // Refresh API data to get updated consent status
+        fetchVisits(true) // Force refresh
+      } else {
+        // Force re-render of visit cards when window gains focus (user navigates back)
+        setRenderKey(prev => prev + 1)
+      }
     }
 
     const handleVisibilityChange = () => {
-      // Force re-render when page becomes visible (user navigates back)
+      // Check if user is returning from consent form when page becomes visible
       if (!document.hidden) {
-        setRenderKey(prev => prev + 1)
+        const fromConsentPage = sessionStorage.getItem('fromConsentPage')
+        if (fromConsentPage === 'true') {
+          console.log('Dashboard: User returned from consent form (visibility), refreshing data...')
+          sessionStorage.removeItem('fromConsentPage')
+          // Refresh API data to get updated consent status
+          fetchVisits(true) // Force refresh
+        } else {
+          // Force re-render when page becomes visible (user navigates back)
+          setRenderKey(prev => prev + 1)
+        }
       }
     }
 
@@ -228,16 +266,27 @@ export function VisitsDashboard() {
       }
     }
 
+    // Listen for storage events from other tabs/windows (when consent is submitted)
+    const handleStorageEvent = (e: StorageEvent) => {
+      // If consent form data is updated in another tab, refresh the data
+      if (e.key && e.key.includes('consentFormsStatus-')) {
+        console.log('Dashboard: Consent form updated in another tab, refreshing data...')
+        fetchVisits(true) // Force refresh
+      }
+    }
+
     window.addEventListener('focus', handleFocus)
     document.addEventListener('visibilitychange', handleVisibilityChange)
     window.addEventListener('localStorageChange', handleLocalStorageChange as EventListener)
+    window.addEventListener('storage', handleStorageEvent)
     
     return () => {
       window.removeEventListener('focus', handleFocus)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('localStorageChange', handleLocalStorageChange as EventListener)
+      window.removeEventListener('storage', handleStorageEvent)
     }
-  }, [])
+  }, [fetchVisits])
 
   const handleCollectConsent = () => {
     setShowConsentModal(false)
@@ -304,9 +353,18 @@ export function VisitsDashboard() {
         />
 
         <div className="mb-4 sm:mb-6">
-          <h3 className="text-lg sm:text-xl font-medium mb-0" style={{ color: '#1b1b1b' }}>
-            {getSectionTitle()}
-          </h3>
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg sm:text-xl font-medium mb-0" style={{ color: '#1b1b1b' }}>
+              {getSectionTitle()}
+            </h3>
+            <button
+              onClick={() => fetchVisits(true)}
+              disabled={isLoadingVisits}
+              className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+            >
+              {isLoadingVisits ? 'Refreshing...' : 'Refresh'}
+            </button>
+          </div>
           {isLoadingVisits && (
             <p className="text-sm text-gray-500 mt-2">Loading visits from API...</p>
           )}
