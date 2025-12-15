@@ -124,95 +124,64 @@ export function VisitsDashboard() {
     setRenderKey(prev => prev + 1)
   }, [location.pathname])
 
-  // Function to fetch visits data
-  const fetchVisits = React.useCallback(async (forceRefresh = false) => {
-    // Safety check for currentUser
-    if (!currentUser) {
-      console.log('Dashboard: No current user available, skipping API call')
-      setIsLoadingVisits(false)
-      return
-    }
-
-    // Use username field instead of email
-    const userEmail = currentUser.username || currentUser.idTokenClaims?.preferred_username
-    
-    console.log('Dashboard: fetchVisits called with:', { 
-      userEmail, 
-      hasLoadedOnce, 
-      forceRefresh, 
-      isLoadingVisits 
-    })
-
-    if (!userEmail) {
-      console.log('Dashboard: No user email found, skipping API call')
-      setIsLoadingVisits(false)
-      setTransformedVisits([])
-      return
-    }
-
-    // Prevent multiple simultaneous API calls (unless force refresh)
-    if (isLoadingVisits && !forceRefresh) {
-      console.log('Dashboard: Already loading visits, skipping...')
-      return
-    }
-
-    // Always call API if forceRefresh is true, or if we haven't loaded once
-    if (!hasLoadedOnce || forceRefresh) {
-      setIsLoadingVisits(true)
-      if (!hasLoadedOnce) setHasLoadedOnce(true)
+  useEffect(() => {
+    const fetchVisits = async () => {
+      // Use username field instead of email
+      const userEmail = currentUser?.username || currentUser?.idTokenClaims?.preferred_username
       
-      try {
-        console.log('Dashboard: Fetching visits from API for user:', userEmail)
-        const data = await getVisits(userEmail)
-        console.log('Dashboard: API response received:', data)
-        
-        if (data && data.length > 0) {
-          console.log('Dashboard: Received API data, transforming visits...')
-          // Transform API response to Visit format
-          const transformed = data.map((apiVisit, index) => transformApiVisitToVisit(apiVisit, index))
-          console.log('Dashboard: Transformed visits:', transformed)
+      if (userEmail && !hasLoadedOnce) {
+        setIsLoadingVisits(true)
+        setHasLoadedOnce(true)
+        try {
+          console.log('Dashboard: Fetching visits from API...')
+          const data = await getVisits(userEmail)
           
-          // Sync API consent data to localStorage for each visit (but preserve existing visit states)
-          transformed.forEach(visit => {
-            // Handle consent forms
-            if (visit.consentForms && visit.consentForms.length > 0) {
-              const consentStatus = {
-                hipaa: visit.consentForms.find(cf => cf.name === 'HIPAA Authorization')?.completed || false,
-                privacy: visit.consentForms.find(cf => cf.name === 'Notice of Privacy Practices')?.completed || false,
-                treatment: visit.consentForms.find(cf => cf.name === 'Treatment Consent')?.completed || false,
-                submitted: true // Mark as submitted since this data comes from API
+          if (data && data.length > 0) {
+            console.log('Dashboard: Received API data, transforming visits...')
+            // Transform API response to Visit format
+            const transformed = data.map((apiVisit, index) => transformApiVisitToVisit(apiVisit, index))
+            
+            // Sync API consent data to localStorage for each visit (but preserve existing visit states)
+            transformed.forEach(visit => {
+              // Handle consent forms
+              if (visit.consentForms && visit.consentForms.length > 0) {
+                const consentStatus = {
+                  hipaa: visit.consentForms.find(cf => cf.name === 'HIPAA Authorization')?.completed || false,
+                  privacy: visit.consentForms.find(cf => cf.name === 'Notice of Privacy Practices')?.completed || false,
+                  treatment: visit.consentForms.find(cf => cf.name === 'Treatment Consent')?.completed || false,
+                  submitted: true // Mark as submitted since this data comes from API
+                }
+                
+                // Only update consent data if no existing consent data exists
+                const existingConsentData = localStorage.getItem(STORAGE_KEYS.CONSENT_STATUS(visit.id))
+                if (!existingConsentData) {
+                  localStorage.setItem(STORAGE_KEYS.CONSENT_STATUS(visit.id), JSON.stringify(consentStatus))
+                }
               }
               
-              // Always update consent data when force refreshing, otherwise only if no existing data
-              const existingConsentData = localStorage.getItem(STORAGE_KEYS.CONSENT_STATUS(visit.id))
-              if (!existingConsentData || forceRefresh) {
-                localStorage.setItem(STORAGE_KEYS.CONSENT_STATUS(visit.id), JSON.stringify(consentStatus))
-                console.log(`Dashboard: Updated consent status for visit ${visit.id}:`, consentStatus)
-              }
-            }
-            
-            // Preserve existing visit state data (user's manual updates)
-            // Don't overwrite if user has already made changes (unless force refreshing)
-            const existingVisitState = localStorage.getItem(`visit-state-${visit.id}`)
-            if (existingVisitState && !forceRefresh) {
-              try {
-                const parsedState = JSON.parse(existingVisitState)
-                // If user has made changes (has outcomes), preserve them
-                if (parsedState.outcomes && Object.keys(parsedState.outcomes).length > 0) {
-                  console.log(`Dashboard: Preserving existing visit state for ${visit.id}:`, parsedState.outcomes)
-                  // Keep the existing state, don't overwrite with API data
-                  return
+              // Preserve existing visit state data (user's manual updates)
+              // Don't overwrite if user has already made changes
+              const existingVisitState = localStorage.getItem(`visit-state-${visit.id}`)
+              if (existingVisitState) {
+                try {
+                  const parsedState = JSON.parse(existingVisitState)
+                  // If user has made changes (has outcomes), preserve them
+                  if (parsedState.outcomes && Object.keys(parsedState.outcomes).length > 0) {
+                    console.log(`Dashboard: Preserving existing visit state for ${visit.id}:`, parsedState.outcomes)
+                    // Keep the existing state, don't overwrite with API data
+                    return
+                  }
+                } catch {
+                  // If parsing fails, continue with API data
                 }
-              } catch {
-                // If parsing fails, continue with API data
               }
-            }
-          })
-          
-          // Update state immediately
-          setTransformedVisits(transformed)
-          setRenderKey(prev => prev + 1) // Force re-render of VisitCards
-          setLastRefreshTime(Date.now()) // Update refresh time
+            })
+            
+            // Force a small delay to ensure localStorage is updated before rendering
+            setTimeout(() => {
+              setTransformedVisits(transformed)
+              setRenderKey(prev => prev + 1) // Force re-render of VisitCards
+            }, 100) // Increased delay to ensure localStorage operations complete
 
         } else {
           console.log('Dashboard: No data received from API')
