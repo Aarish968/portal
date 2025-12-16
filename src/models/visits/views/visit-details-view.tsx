@@ -64,6 +64,13 @@ export default function VisitDetailsView() {
   // TOAST TEST - Easy to remove: Delete this line and all FORCE_SAVE_ERROR checks
   const FORCE_SAVE_ERROR = forceSaveError
 
+  // State to hold the visit data
+  const [visitFromState, setVisitFromState] = React.useState<any>(null)
+  const [isVisitDataLoaded, setIsVisitDataLoaded] = React.useState(false)
+  
+  // Get visitId early so it can be used in callbacks and effects
+  const visitId = visitFromState?.id || params.visitId || '1'
+
   // Helper function to update localStorage and notify other components
   const updateVisitState = React.useCallback((visitData: any) => {
     try {
@@ -82,10 +89,6 @@ export default function VisitDetailsView() {
       // Handle localStorage errors silently
     }
   }, [visitId])
-
-  // State to hold the visit data
-  const [visitFromState, setVisitFromState] = React.useState<any>(null)
-  const [isVisitDataLoaded, setIsVisitDataLoaded] = React.useState(false)
   
   // Load visit data from navigation state or localStorage (only once)
   React.useEffect(() => {
@@ -127,7 +130,6 @@ export default function VisitDetailsView() {
     setIsVisitDataLoaded(true)
   }, []) // Remove dependencies to run only once
   
-  const visitId = visitFromState?.id || params.visitId || '1'
   const patientName = visitFromState?.patientName || 'Jane Smith'
   const address = visitFromState?.address || '1234 Main Street, Dayton, OH'
   const time = visitFromState?.time || '10:30AM'
