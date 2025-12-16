@@ -86,17 +86,11 @@ export default function VisitDetailsView() {
       const storedVisit = localStorage.getItem(`visit-data-${params.visitId}`)
       if (storedVisit) {
         visitFromState = JSON.parse(storedVisit)
-        console.log('Visit Details: Retrieved visit data from localStorage:', visitFromState)
-      } else {
-        console.log('Visit Details: No stored visit data found for visitId:', params.visitId)
+        console.log('Visit Details: Retrieved visit data from localStorage for visitId:', params.visitId)
       }
     } catch (error) {
       console.log('Visit Details: Error retrieving stored visit data:', error)
     }
-  } else if (visitFromState) {
-    console.log('Visit Details: Using visit data from navigation state:', visitFromState)
-  } else {
-    console.log('Visit Details: No visit data available, will use fallback demo data')
   }
   
   const visitId = visitFromState?.id || params.visitId || '1'
@@ -108,17 +102,21 @@ export default function VisitDetailsView() {
   const visitProcedures = visitFromState?.procedures || []
   const assessmentID = visitFromState?.assessmentID || visitId // Use API assessmentID or fallback to visitId
 
-  // Store visit data in localStorage if it comes from navigation state
+  // Store visit data in localStorage if it comes from navigation state (only once)
+  const hasStoredVisitData = React.useRef(false)
   React.useEffect(() => {
-    if (visitFromState && visitId) {
+    // Only store if we have visit data from navigation state (not from localStorage) and haven't stored it yet
+    const visitFromNavigation = (location.state as any)?.visit
+    if (visitFromNavigation && visitId && !hasStoredVisitData.current) {
       try {
-        localStorage.setItem(`visit-data-${visitId}`, JSON.stringify(visitFromState))
+        localStorage.setItem(`visit-data-${visitId}`, JSON.stringify(visitFromNavigation))
+        hasStoredVisitData.current = true
         console.log('Visit Details: Stored visit data in localStorage for visitId:', visitId)
       } catch (error) {
         console.log('Visit Details: Error storing visit data:', error)
       }
     }
-  }, [visitFromState, visitId])
+  }, [location.state, visitId])
 
   // Clean up stored visit data when navigating away from visits section entirely
   React.useEffect(() => {
@@ -1124,15 +1122,16 @@ export default function VisitDetailsView() {
 
                           // Store visit data in localStorage before navigating to HRA
                           // This ensures we can retrieve the API data when returning from HRA
-                          if (visitFromState) {
+                          const visitFromNavigation = (location.state as any)?.visit
+                          if (visitFromNavigation) {
                             try {
-                              localStorage.setItem(`visit-data-${visitId}`, JSON.stringify(visitFromState))
+                              localStorage.setItem(`visit-data-${visitId}`, JSON.stringify(visitFromNavigation))
                               console.log('Visit Details: Stored visit data before HRA navigation for visitId:', visitId)
                             } catch (error) {
                               console.log('Visit Details: Error storing visit data before HRA navigation:', error)
                             }
                           } else {
-                            console.log('Visit Details: No visitFromState available to store before HRA navigation')
+                            console.log('Visit Details: No visit data from navigation state available to store before HRA navigation')
                           }
 
                           // Navigate to HRA page with member data in state
