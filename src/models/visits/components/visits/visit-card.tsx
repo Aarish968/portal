@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Clock, MapPin, Building, Phone, Check, Link, Home, Home } from 'lucide-react'
+import { Clock, MapPin, Building, Phone, Check, Link, Home } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
 import { StatusBadge } from './visit-badge'
@@ -1943,11 +1943,25 @@ export function VisitCard({ visit }: { visit: Visit }) {
           <div className="flex flex-wrap gap-2 procedures-mobile" style={{ maxWidth: '100%' }}>
             {visit.procedures.filter((p) => {
               // Hide only if procedure came from backend as completed (p.completed === true)
-              // If user manually marked as completed, keep showing it
+              // Always show procedures that are completed from frontend (user interaction)
               const isBackendCompleted = p.completed === true
 
-              // Hide if backend says completed, but show if user manually completed
-              return !isBackendCompleted
+              // Map procedure names to IDs used in visit details for checking frontend status
+              const procedureIdMap: Record<string, string> = {
+                'A1C': 'a1c',
+                'HbA1c Test': 'a1c',
+                'Blood Pressure': 'blood-pressure',
+                'Urine Sample': 'urine-sample',
+                'Lipid Panel': 'lipid-panel'
+              }
+              const procedureId = procedureIdMap[p.name] || p.name.toLowerCase().replace(/\s+/g, '-')
+              
+              // Check if user has manually set status in frontend
+              const hasFrontendStatus = visitState?.outcomes?.[procedureId] !== undefined
+
+              // Hide only if backend completed AND user hasn't manually set any status
+              // Show if: not backend completed OR user has set frontend status
+              return !isBackendCompleted || hasFrontendStatus
             }).map((p, i) => {
               // Map procedure names to IDs used in visit details
               const procedureIdMap: Record<string, string> = {
