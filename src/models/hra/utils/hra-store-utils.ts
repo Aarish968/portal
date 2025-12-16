@@ -181,7 +181,7 @@ function processQuestion(hra: HRA, q: Question): TransformedQuestion {
     processedAnswer = formatDate(date, q.dateFormat)
   }
   else if (q.answerType === 'Select Multiple' && Array.isArray(answer)) {
-    processedAnswer = answer.join(', ')
+    processedAnswer = answer.join('\n')
   }
 
   const answerValue = processedAnswer ? String(processedAnswer) : ''

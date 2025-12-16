@@ -1,6 +1,6 @@
 import { CheckCircle } from 'lucide-react'
 import { PendingConsentData, Visit } from '../../../types/types'
-import ROUTES from '@/data/routing/routes'
+
 
 interface ConsentModalsProps {
   showConsentModal: boolean
@@ -22,7 +22,7 @@ export function ConsentModals({
   showConsentLoading,
   showConsentSuccess,
   pendingConsentData,
-  currentVisits,
+  // currentVisits,
   onCloseConsentModal,
   onCloseConsentConfirmation,
   onConsentConfirmation,

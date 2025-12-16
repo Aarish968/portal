@@ -96,10 +96,39 @@ function HRAView() {
         title: 'HRA Submitted Successfully',
         duration: 2000,
       })
+      // Update visit state to mark HRA as completed
+      const visitId = selectedMember?.id
+      if (visitId) {
+        try {
+          const stored = localStorage.getItem(`visit-state-${visitId}`)
+          if (stored) {
+            const visitData = JSON.parse(stored)
+            const updatedOutcomes = {
+              ...visitData.outcomes,
+              'hra': 'completed' as const
+            }
+            const updatedVisitData = {
+              ...visitData,
+              outcomes: updatedOutcomes
+            }
+            localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(updatedVisitData))
+          } else {
+            // If no visit state exists, create a minimal one with completed HRA
+            const newVisitData = {
+              id: visitId,
+              outcomes: {
+                'hra': 'completed' as const
+              }
+            }
+            localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(newVisitData))
+          }
+        } catch (error) {
+          console.error('Failed to update visit state:', error)
+        }
+      }
       setIsNavigating(true)
       await new Promise(resolve => setTimeout(resolve, 3500))
       // Redirect to Visit Details page if visitId is available, otherwise fallback to HRA Activity
-      const visitId = selectedMember?.id
       const redirectPath = visitId 
         ? ROUTES.app.visitDetails.href.replace(':visitId', visitId)
         : '/hra-activity'

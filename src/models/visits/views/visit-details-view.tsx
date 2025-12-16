@@ -6,7 +6,7 @@ import { useToast } from '@/base_submod/hooks/use-toast'
 import { useMemberStore } from '@/models/member/stores/member-store'
 import { useForceSaveError, ForceSaveErrorToggle } from '../components/force-save-error-toggle'
 import { useVisitsApi } from '../hooks/useVisitsApi'
-import type { UpdateLabPayload, UpdateGapPayload, LabOutcome, LabNotCompletedReason } from '../types'
+import type { UpdateLabPayload, UpdateGapPayload, LabNotCompletedReason } from '../types'
 
 // This will be dynamically generated from API data
 
@@ -58,7 +58,7 @@ export default function VisitDetailsView() {
   const [procedureMetadata, setProcedureMetadata] = React.useState<Record<string, { type: 'lab' | 'gap', apiId: string, accountId?: string }>>({})
 
   const { forceSaveError, toggleForceSaveError } = useForceSaveError()
-  const { updateLab, updateGap, loading: apiLoading } = useVisitsApi()
+  const { updateLab, updateGap} = useVisitsApi()
 
   // TEST FLAG: Set to true to simulate save errors for testing
   // TOAST TEST - Easy to remove: Delete this line and all FORCE_SAVE_ERROR checks
