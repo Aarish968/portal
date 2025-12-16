@@ -54,64 +54,27 @@ export const generateEquipmentFromVisits = (visits: Visit[]): { name: string; vi
   const equipmentCount: Record<string, number> = {}
   
   visits.forEach(visit => {
-    // Get visit state from localStorage to check frontend completion status
-    let visitState: any = null
-    try {
-      const stored = localStorage.getItem(`visit-state-${visit.id}`)
-      visitState = stored ? JSON.parse(stored) : null
-    } catch {
-      visitState = null
-    }
-
     // Process labs
     if ((visit as any).labs) {
       (visit as any).labs.forEach((lab: any) => {
-        const isBackendCompleted = lab.PSC_Status__c === 'Completed'
-        const procedureId = lab.PSC_Lab_Type__c.toLowerCase().replace(/\s+/g, '-')
-        const hasFrontendStatus = visitState?.outcomes?.[procedureId] !== undefined
-        
-        // Only count equipment if not backend completed OR has frontend status
-        if (!isBackendCompleted || hasFrontendStatus) {
-          const equipmentName = labToEquipmentMap[lab.PSC_Lab_Type__c] || `${lab.PSC_Lab_Type__c} Kit`
-          equipmentCount[equipmentName] = (equipmentCount[equipmentName] || 0) + 1
-        }
+        const equipmentName = labToEquipmentMap[lab.PSC_Lab_Type__c] || `${lab.PSC_Lab_Type__c} Kit`
+        equipmentCount[equipmentName] = (equipmentCount[equipmentName] || 0) + 1
       })
     }
     
     // Process gaps
     if ((visit as any).gaps) {
       (visit as any).gaps.forEach((gap: any) => {
-        const isBackendCompleted = gap.PSC_Status__c === 'Completed'
-        const procedureId = `gap-${gap.PSC_Measure__c}`.toLowerCase()
-        const hasFrontendStatus = visitState?.outcomes?.[procedureId] !== undefined
-        
-        // Only count equipment if not backend completed OR has frontend status
-        if (!isBackendCompleted || hasFrontendStatus) {
-          const equipmentName = gapToEquipmentMap[gap.PSC_Measure__c] || `${gap.PSC_Measure__c} Equipment`
-          equipmentCount[equipmentName] = (equipmentCount[equipmentName] || 0) + 1
-        }
+        const equipmentName = gapToEquipmentMap[gap.PSC_Measure__c] || `${gap.PSC_Measure__c} Equipment`
+        equipmentCount[equipmentName] = (equipmentCount[equipmentName] || 0) + 1
       })
     }
     
     // Process procedures (fallback for visits without labs/gaps)
     visit.procedures?.forEach(procedure => {
-      const isBackendCompleted = procedure.completed === true
-      const procedureIdMap: Record<string, string> = {
-        'A1C': 'a1c',
-        'HbA1c Test': 'a1c',
-        'Blood Pressure': 'blood-pressure',
-        'Urine Sample': 'urine-sample',
-        'Lipid Panel': 'lipid-panel'
-      }
-      const procedureId = procedureIdMap[procedure.name] || procedure.name.toLowerCase().replace(/\s+/g, '-')
-      const hasFrontendStatus = visitState?.outcomes?.[procedureId] !== undefined
-      
-      // Only count equipment if not backend completed OR has frontend status
-      if (!isBackendCompleted || hasFrontendStatus) {
-        const equipmentName = labToEquipmentMap[procedure.name] || gapToEquipmentMap[procedure.name]
-        if (equipmentName) {
-          equipmentCount[equipmentName] = (equipmentCount[equipmentName] || 0) + 1
-        }
+      const equipmentName = labToEquipmentMap[procedure.name] || gapToEquipmentMap[procedure.name]
+      if (equipmentName) {
+        equipmentCount[equipmentName] = (equipmentCount[equipmentName] || 0) + 1
       }
     })
   })
