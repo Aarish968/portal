@@ -78,7 +78,20 @@ export default function VisitDetailsView() {
   }
 
   // Extract visit either from navigation state or fallback to param id
-  const visitFromState = (location.state as any)?.visit
+  let visitFromState = (location.state as any)?.visit
+  
+  // If no visit data from navigation state, try to get it from localStorage
+  if (!visitFromState && params.visitId) {
+    try {
+      const storedVisit = localStorage.getItem(`visit-data-${params.visitId}`)
+      if (storedVisit) {
+        visitFromState = JSON.parse(storedVisit)
+      }
+    } catch {
+      // Handle localStorage errors silently
+    }
+  }
+  
   const visitId = visitFromState?.id || params.visitId || '1'
   const patientName = visitFromState?.patientName || 'Jane Smith'
   const address = visitFromState?.address || '1234 Main Street, Dayton, OH'
@@ -87,6 +100,26 @@ export default function VisitDetailsView() {
   const visitType = visitFromState?.visitType || 'in-home'
   const visitProcedures = visitFromState?.procedures || []
   const assessmentID = visitFromState?.assessmentID || visitId // Use API assessmentID or fallback to visitId
+
+  // Store visit data in localStorage if it comes from navigation state
+  React.useEffect(() => {
+    if (visitFromState && visitId) {
+      try {
+        localStorage.setItem(`visit-data-${visitId}`, JSON.stringify(visitFromState))
+      } catch {
+        // Handle localStorage errors silently
+      }
+    }
+
+    // Cleanup function to remove stored visit data when component unmounts
+    return () => {
+      try {
+        localStorage.removeItem(`visit-data-${visitId}`)
+      } catch {
+        // Handle localStorage errors silently
+      }
+    }
+  }, [visitFromState, visitId])
 
   // Redirect if visitId is missing from URL params (route mismatch)
   React.useEffect(() => {
@@ -1073,6 +1106,16 @@ export default function VisitDetailsView() {
 
                           // Set member data in store
                           setSelectedMember(memberData)
+
+                          // Store visit data in localStorage before navigating to HRA
+                          // This ensures we can retrieve the API data when returning from HRA
+                          if (visitFromState) {
+                            try {
+                              localStorage.setItem(`visit-data-${visitId}`, JSON.stringify(visitFromState))
+                            } catch {
+                              // Handle localStorage errors silently
+                            }
+                          }
 
                           // Navigate to HRA page with member data in state
                           navigate('/hra', {
