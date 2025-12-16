@@ -65,33 +65,67 @@ export default function VisitDetailsView() {
   const FORCE_SAVE_ERROR = forceSaveError
 
   // Helper function to update localStorage and notify other components
-  const updateVisitState = (visitData: any) => {
+  const updateVisitState = React.useCallback((visitData: any) => {
     try {
-      localStorage.setItem(`visit-state-${visitId}`, JSON.stringify(visitData))
-      // Dispatch custom event to notify other components (like visit cards)
-      window.dispatchEvent(new CustomEvent('localStorageChange', {
-        detail: { key: `visit-state-${visitId}`, value: visitData }
-      }))
+      const currentData = localStorage.getItem(`visit-state-${visitId}`)
+      const newDataString = JSON.stringify(visitData)
+      
+      // Only update if data has actually changed
+      if (currentData !== newDataString) {
+        localStorage.setItem(`visit-state-${visitId}`, newDataString)
+        // Dispatch custom event to notify other components (like visit cards)
+        window.dispatchEvent(new CustomEvent('localStorageChange', {
+          detail: { key: `visit-state-${visitId}`, value: visitData }
+        }))
+      }
     } catch {
       // Handle localStorage errors silently
     }
-  }
+  }, [visitId])
 
-  // Extract visit either from navigation state or fallback to param id
-  let visitFromState = (location.state as any)?.visit
+  // State to hold the visit data
+  const [visitFromState, setVisitFromState] = React.useState<any>(null)
+  const [isVisitDataLoaded, setIsVisitDataLoaded] = React.useState(false)
   
-  // If no visit data from navigation state, try to get it from localStorage
-  if (!visitFromState && params.visitId) {
-    try {
-      const storedVisit = localStorage.getItem(`visit-data-${params.visitId}`)
-      if (storedVisit) {
-        visitFromState = JSON.parse(storedVisit)
-        console.log('Visit Details: Retrieved visit data from localStorage for visitId:', params.visitId)
+  // Load visit data from navigation state or localStorage (only once)
+  React.useEffect(() => {
+    if (isVisitDataLoaded) return // Prevent multiple loads
+    
+    const visitFromNavigation = (location.state as any)?.visit
+    
+    if (visitFromNavigation) {
+      // Use data from navigation state
+      setVisitFromState(visitFromNavigation)
+      
+      // Store it in localStorage for future use (only if not already stored)
+      if (params.visitId) {
+        try {
+          const existingData = localStorage.getItem(`visit-data-${params.visitId}`)
+          if (!existingData) {
+            localStorage.setItem(`visit-data-${params.visitId}`, JSON.stringify(visitFromNavigation))
+            console.log('Visit Details: Stored visit data in localStorage for visitId:', params.visitId)
+          }
+        } catch (error) {
+          console.log('Visit Details: Error storing visit data:', error)
+        }
       }
-    } catch (error) {
-      console.log('Visit Details: Error retrieving stored visit data:', error)
+    } else if (params.visitId) {
+      // Try to get from localStorage
+      try {
+        const storedVisit = localStorage.getItem(`visit-data-${params.visitId}`)
+        if (storedVisit) {
+          const parsedVisit = JSON.parse(storedVisit)
+          setVisitFromState(parsedVisit)
+          console.log('Visit Details: Retrieved visit data from localStorage for visitId:', params.visitId)
+        }
+      } catch (error) {
+        console.log('Visit Details: Error retrieving stored visit data:', error)
+      }
     }
-  }
+    
+    // Always set loaded to true to prevent re-runs
+    setIsVisitDataLoaded(true)
+  }, []) // Remove dependencies to run only once
   
   const visitId = visitFromState?.id || params.visitId || '1'
   const patientName = visitFromState?.patientName || 'Jane Smith'
@@ -101,22 +135,6 @@ export default function VisitDetailsView() {
   const visitType = visitFromState?.visitType || 'in-home'
   const visitProcedures = visitFromState?.procedures || []
   const assessmentID = visitFromState?.assessmentID || visitId // Use API assessmentID or fallback to visitId
-
-  // Store visit data in localStorage if it comes from navigation state (only once)
-  const hasStoredVisitData = React.useRef(false)
-  React.useEffect(() => {
-    // Only store if we have visit data from navigation state (not from localStorage) and haven't stored it yet
-    const visitFromNavigation = (location.state as any)?.visit
-    if (visitFromNavigation && visitId && !hasStoredVisitData.current) {
-      try {
-        localStorage.setItem(`visit-data-${visitId}`, JSON.stringify(visitFromNavigation))
-        hasStoredVisitData.current = true
-        console.log('Visit Details: Stored visit data in localStorage for visitId:', visitId)
-      } catch (error) {
-        console.log('Visit Details: Error storing visit data:', error)
-      }
-    }
-  }, [location.state, visitId])
 
   // Clean up stored visit data when navigating away from visits section entirely
   React.useEffect(() => {
@@ -145,6 +163,8 @@ export default function VisitDetailsView() {
 
   // Load saved data from local storage and set initial visit status
   React.useEffect(() => {
+    if (!isVisitDataLoaded) return // Wait for visit data to be loaded first
+    
     // Load saved visit data from local storage
     try {
       const stored = localStorage.getItem(`visit-state-${visitId}`)
@@ -195,7 +215,7 @@ export default function VisitDetailsView() {
     }
 
     setIsInitialLoad(false)
-  }, [visitId, visitFromState?.status, patientName, address, time, insurance])
+  }, [visitId, visitFromState?.status, patientName, address, time, insurance, isVisitDataLoaded, updateVisitState])
 
   // Check if HRA has been started (check on component mount and when visitId changes)
   React.useEffect(() => {
@@ -525,7 +545,7 @@ export default function VisitDetailsView() {
 
   // Save to local storage whenever visitStatus changes (but not during initial load)
   React.useEffect(() => {
-    if (isInitialLoad) return
+    if (isInitialLoad || !isVisitDataLoaded) return
 
     const visitData = {
       id: visitId,
@@ -538,7 +558,7 @@ export default function VisitDetailsView() {
       procedureReasons
     }
     updateVisitState(visitData)
-  }, [visitStatus, outcomes, procedureReasons, visitId, patientName, address, time, insurance, isInitialLoad])
+  }, [visitStatus, outcomes, procedureReasons, visitId, patientName, address, time, insurance, isInitialLoad, isVisitDataLoaded, updateVisitState])
 
   const handleSaveVisit = () => {
     console.log('Saving visit...', { outcomes, procedureReasons })
@@ -1120,18 +1140,18 @@ export default function VisitDetailsView() {
                           // Set member data in store
                           setSelectedMember(memberData)
 
-                          // Store visit data in localStorage before navigating to HRA
+                          // Store visit data in localStorage before navigating to HRA (only if not already stored)
                           // This ensures we can retrieve the API data when returning from HRA
-                          const visitFromNavigation = (location.state as any)?.visit
-                          if (visitFromNavigation) {
+                          if (visitFromState) {
                             try {
-                              localStorage.setItem(`visit-data-${visitId}`, JSON.stringify(visitFromNavigation))
-                              console.log('Visit Details: Stored visit data before HRA navigation for visitId:', visitId)
+                              const existingData = localStorage.getItem(`visit-data-${visitId}`)
+                              if (!existingData) {
+                                localStorage.setItem(`visit-data-${visitId}`, JSON.stringify(visitFromState))
+                                console.log('Visit Details: Stored visit data before HRA navigation for visitId:', visitId)
+                              }
                             } catch (error) {
                               console.log('Visit Details: Error storing visit data before HRA navigation:', error)
                             }
-                          } else {
-                            console.log('Visit Details: No visit data from navigation state available to store before HRA navigation')
                           }
 
                           // Navigate to HRA page with member data in state
