@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Clock, MapPin, Building, Phone, Check, Link, Home } from 'lucide-react'
+import { Clock, MapPin, Building, Phone, Check, Link, Home, Home } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
 import { StatusBadge } from './visit-badge'
