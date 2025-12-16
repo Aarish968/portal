@@ -86,10 +86,17 @@ export default function VisitDetailsView() {
       const storedVisit = localStorage.getItem(`visit-data-${params.visitId}`)
       if (storedVisit) {
         visitFromState = JSON.parse(storedVisit)
+        console.log('Visit Details: Retrieved visit data from localStorage:', visitFromState)
+      } else {
+        console.log('Visit Details: No stored visit data found for visitId:', params.visitId)
       }
-    } catch {
-      // Handle localStorage errors silently
+    } catch (error) {
+      console.log('Visit Details: Error retrieving stored visit data:', error)
     }
+  } else if (visitFromState) {
+    console.log('Visit Details: Using visit data from navigation state:', visitFromState)
+  } else {
+    console.log('Visit Details: No visit data available, will use fallback demo data')
   }
   
   const visitId = visitFromState?.id || params.visitId || '1'
@@ -106,20 +113,28 @@ export default function VisitDetailsView() {
     if (visitFromState && visitId) {
       try {
         localStorage.setItem(`visit-data-${visitId}`, JSON.stringify(visitFromState))
-      } catch {
-        // Handle localStorage errors silently
+        console.log('Visit Details: Stored visit data in localStorage for visitId:', visitId)
+      } catch (error) {
+        console.log('Visit Details: Error storing visit data:', error)
       }
     }
+  }, [visitFromState, visitId])
 
-    // Cleanup function to remove stored visit data when component unmounts
-    return () => {
+  // Clean up stored visit data when navigating away from visits section entirely
+  React.useEffect(() => {
+    const handleBeforeUnload = () => {
       try {
         localStorage.removeItem(`visit-data-${visitId}`)
       } catch {
         // Handle localStorage errors silently
       }
     }
-  }, [visitFromState, visitId])
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [visitId])
 
   // Redirect if visitId is missing from URL params (route mismatch)
   React.useEffect(() => {
@@ -1112,9 +1127,12 @@ export default function VisitDetailsView() {
                           if (visitFromState) {
                             try {
                               localStorage.setItem(`visit-data-${visitId}`, JSON.stringify(visitFromState))
-                            } catch {
-                              // Handle localStorage errors silently
+                              console.log('Visit Details: Stored visit data before HRA navigation for visitId:', visitId)
+                            } catch (error) {
+                              console.log('Visit Details: Error storing visit data before HRA navigation:', error)
                             }
+                          } else {
+                            console.log('Visit Details: No visitFromState available to store before HRA navigation')
                           }
 
                           // Navigate to HRA page with member data in state
