@@ -60,11 +60,12 @@ export interface LabItem {
     type: string
     url: string
   }
-  PSC_Account__c: string
-  Id: string
-  PSC_Status__c: string
-  PSC_Lab_Type__c: string
-  Mapped_Lab_Term?: string[]
+  PSC_Account__c?: string
+  Id?: string
+  PSC_Status__c?: string
+  PSC_Lab_Type__c?: string
+  PSC_Outcome__c?: string
+  Mapped_Lab_Term?: string[] | string
 }
 
 export interface GapItem {
@@ -72,13 +73,15 @@ export interface GapItem {
     type: string
     url: string
   }
-  Account__c: string
-  Id: string
-  PSC_Type__c: string
-  PSC_Status__c: string
-  PSC_Measure__c: string
+  Account__c?: string
+  Id?: string
+  PSC_Type__c?: string
+  PSC_Status__c?: string
+  PSC_Measure__c?: string
   PSC_Sub_Type__c?: string
   PSC_Measurement_Year__c?: string
+  PSC_Outcome__c?: string
+  PSC_Not_Completed_Reason__c?: string
   Mapped_Gap_Term?: string
 }
 
@@ -94,8 +97,8 @@ export interface VisitApiResponse {
   memberFirstName: string
   memberAddress: MemberAddress
   labs: LabItem[]
-  IsStarted: boolean
-  IsCompletedFlag: boolean
+  IsStarted: boolean | null
+  IsCompletedFlag: boolean | null
   gaps: GapItem[]
   consentURL: string
   consentToTreatment: boolean

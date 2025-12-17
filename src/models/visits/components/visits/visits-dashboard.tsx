@@ -130,9 +130,14 @@ export function VisitsDashboard() {
           const data = await getVisits(userEmail)
           
           if (data && data.length > 0) {
-            console.log('Dashboard: Received API data, transforming visits...')
+            console.log('Dashboard: Received API data, transforming visits...', data)
             // Transform API response to Visit format
-            const transformed = data.map((apiVisit, index) => transformApiVisitToVisit(apiVisit, index))
+            const transformed = data.map((apiVisit, index) => {
+              console.log(`Dashboard: Transforming visit ${index + 1}:`, apiVisit)
+              const result = transformApiVisitToVisit(apiVisit, index)
+              console.log(`Dashboard: Transformed visit ${index + 1}:`, result)
+              return result
+            })
             
             // Sync API consent data to localStorage for each visit (but preserve existing visit states)
             transformed.forEach(visit => {

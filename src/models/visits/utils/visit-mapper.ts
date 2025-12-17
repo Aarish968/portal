@@ -13,8 +13,14 @@ export function mapApiResponseToProcedures(visit: VisitApiResponse): ProcedureIt
     const procedures: ProcedureItem[] = []
 
     visit.labs?.forEach((lab: LabItem) => {
-        const labName = lab.Mapped_Lab_Term && lab.Mapped_Lab_Term.length > 0 
-            ? lab.Mapped_Lab_Term.join(', ') 
+        // Skip labs that don't have required data
+        if (!lab.Id || !lab.PSC_Lab_Type__c) {
+            console.warn('Skipping lab with missing required data:', lab)
+            return
+        }
+        
+        const labName = lab.Mapped_Lab_Term 
+            ? (Array.isArray(lab.Mapped_Lab_Term) ? lab.Mapped_Lab_Term.join(', ') : lab.Mapped_Lab_Term)
             : lab.PSC_Lab_Type__c
             
         procedures.push({
@@ -23,11 +29,17 @@ export function mapApiResponseToProcedures(visit: VisitApiResponse): ProcedureIt
             type: 'lab',
             apiId: lab.Id,
             accountId: lab.PSC_Account__c,
-            status: lab.PSC_Status__c,
+            status: lab.PSC_Status__c || 'Unknown',
         })
     })
 
     visit.gaps?.forEach((gap: GapItem) => {
+        // Skip gaps that don't have required data
+        if (!gap.Id || !gap.PSC_Measure__c) {
+            console.warn('Skipping gap with missing required data:', gap)
+            return
+        }
+        
         const gapName = gap.Mapped_Gap_Term || gap.PSC_Measure__c
         
         procedures.push({
@@ -35,7 +47,7 @@ export function mapApiResponseToProcedures(visit: VisitApiResponse): ProcedureIt
             title: gapName,
             type: 'gap',
             apiId: gap.Id,
-            status: gap.PSC_Status__c,
+            status: gap.PSC_Status__c || 'Unknown',
         })
     })
 
@@ -43,48 +55,70 @@ export function mapApiResponseToProcedures(visit: VisitApiResponse): ProcedureIt
 }
 
 export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: number): Visit {
+    console.log(`Mapper: Processing visit for ${apiVisit.memberFirstName} ${apiVisit.memberLastName}`)
+    console.log(`Mapper: Labs:`, apiVisit.labs)
+    console.log(`Mapper: Gaps:`, apiVisit.gaps)
+    console.log(`Mapper: IsStarted: ${apiVisit.IsStarted}, IsCompletedFlag: ${apiVisit.IsCompletedFlag}`)
+    
     const procedures: VisitProcedure[] = []
     
     // Map labs to procedures
     apiVisit.labs?.forEach((lab: LabItem) => {
+        // Skip labs that don't have required data
+        if (!lab.Id || !lab.PSC_Lab_Type__c) {
+            console.warn('Skipping lab with missing required data:', lab)
+            return
+        }
+        
         // Use Mapped_Lab_Term if available, otherwise use PSC_Lab_Type__c
-        const labName = lab.Mapped_Lab_Term && lab.Mapped_Lab_Term.length > 0 
-            ? lab.Mapped_Lab_Term.join(', ') 
+        const labName = lab.Mapped_Lab_Term 
+            ? (Array.isArray(lab.Mapped_Lab_Term) ? lab.Mapped_Lab_Term.join(', ') : lab.Mapped_Lab_Term)
             : lab.PSC_Lab_Type__c
         
         procedures.push({
             name: labName,
             completed: lab.PSC_Status__c === 'Completed',
-            status: lab.PSC_Status__c,
+            status: lab.PSC_Status__c || 'Unknown',
             procedureId: lab.PSC_Lab_Type__c.toLowerCase().replace(/\s+/g, '-'), // Add the actual ID used in visit details
         })
     })
 
     // Map gaps to procedures
     apiVisit.gaps?.forEach((gap: GapItem) => {
+        // Skip gaps that don't have required data
+        if (!gap.Id || !gap.PSC_Measure__c) {
+            console.warn('Skipping gap with missing required data:', gap)
+            return
+        }
+        
         // Use Mapped_Gap_Term if available, otherwise use PSC_Measure__c
         const gapName = gap.Mapped_Gap_Term || gap.PSC_Measure__c
         
         procedures.push({
             name: gapName,
             completed: gap.PSC_Status__c === 'Completed',
-            status: gap.PSC_Status__c,
+            status: gap.PSC_Status__c || 'Unknown',
             procedureId: `gap-${gap.PSC_Measure__c}`.toLowerCase(), // Add the actual ID used in visit details
         })
     })
 
+    console.log(`Mapper: Processed ${procedures.length} procedures:`, procedures)
+    
     const consentForms: ConsentForm[] = [
         { name: 'HIPAA Authorization', completed: apiVisit.consentToHipaa },
         { name: 'Notice of Privacy Practices', completed: apiVisit.consentToPrivacy },
         { name: 'Treatment Consent', completed: apiVisit.consentToTreatment },
     ]
 
-    // Determine visit status
+    // Determine visit status - handle null values
     let status: 'not-started' | 'in-progress' | 'completed' | 'ready-to-save' = 'not-started'
-    if (apiVisit.IsCompletedFlag) {
+    if (apiVisit.IsCompletedFlag === true) {
         status = 'completed'
-    } else if (apiVisit.IsStarted) {
+    } else if (apiVisit.IsStarted === true) {
         status = 'in-progress'
+    } else if (apiVisit.IsCompletedFlag === null && apiVisit.IsStarted === null) {
+        // When both are null, default to not-started but still show the visit
+        status = 'not-started'
     }
 
     // Format address
@@ -170,7 +204,7 @@ export function transformApiVisitToVisit(apiVisit: VisitApiResponse, index: numb
         status,
         visitType: apiVisit.visitType.toLowerCase() === 'telehealth' ? 'telehealth' : 'in-home',
         procedures,
-        healthRiskAssessment: apiVisit.IsCompletedFlag ? 'completed' : apiVisit.IsStarted ? 'in-progress' : 'not-started',
+        healthRiskAssessment: apiVisit.IsCompletedFlag === true ? 'completed' : apiVisit.IsStarted === true ? 'in-progress' : 'not-started',
         consentForms,
         consentURL: apiVisit.consentURL,
         assessmentID: apiVisit.assessmentID,
