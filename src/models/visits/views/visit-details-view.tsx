@@ -320,7 +320,7 @@ export default function VisitDetailsView() {
 
       setTimeout(() => {
         setSavingProcedureIds(prev => prev.filter(id => id !== procedureId))
-      }, 700)
+      }, 300)
     }
   }
 
@@ -395,7 +395,7 @@ export default function VisitDetailsView() {
 
       setTimeout(() => {
         setSavingProcedureIds(prev => prev.filter(id => id !== selectedProcedure.id))
-      }, 700)
+      }, 300)
     }
   }
 
@@ -460,7 +460,7 @@ export default function VisitDetailsView() {
       }
       setTimeout(() => {
         setSavingProcedureIds(prev => prev.filter(id => id !== editingProcedure.id))
-      }, 700)
+      }, 300)
     }
   }
 
@@ -1418,8 +1418,15 @@ export default function VisitDetailsView() {
                         </div>
                       )}
 
+                      {/* Loading spinner */}
+                      {savingProcedureIds.includes(procedure.id) && (
+                        <div className="flex items-center justify-center py-4">
+                          <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                        </div>
+                      )}
+
                       {/* Action buttons - show when this card is being edited or when no outcome set, but not for backend completed */}
-                      {(editingCardIds.includes(procedure.id) || (!displayOutcome && !isBackendCompleted)) && (
+                      {(editingCardIds.includes(procedure.id) || (!displayOutcome && !isBackendCompleted)) && !savingProcedureIds.includes(procedure.id) && (
                         <div>
                           <div>
                             <p className="text-sm text-gray-600 mb-3">Outcome:</p>
@@ -1432,6 +1439,7 @@ export default function VisitDetailsView() {
                                   }
                                 }}
                                 className="flex-1"
+                                disabled={savingProcedureIds.includes(procedure.id)}
                                 style={{
                                   position: 'relative',
                                   appearance: 'none',
@@ -1449,7 +1457,7 @@ export default function VisitDetailsView() {
                                   fontSize: '0.75rem',
                                   backgroundColor: displayOutcome === 'completed' ? 'rgb(25, 154, 146)' : 'white',
                                   color: displayOutcome === 'completed' ? 'rgb(255, 255, 255)' : 'rgb(107, 114, 128)',
-                                  cursor: 'pointer',
+                                  cursor: savingProcedureIds.includes(procedure.id) ? 'not-allowed' : 'pointer',
                                   margin: '0px',
                                   whiteSpace: 'nowrap',
                                   transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
@@ -1457,7 +1465,8 @@ export default function VisitDetailsView() {
                                   textDecoration: 'none',
                                   border: displayOutcome === 'completed' ? '0px' : '1px solid rgb(209, 213, 219)',
                                   padding: '0px',
-                                  borderRadius: '999px'
+                                  borderRadius: '999px',
+                                  opacity: savingProcedureIds.includes(procedure.id) ? '0.6' : '1'
                                 }}
                               >
                                 Completed
@@ -1470,6 +1479,7 @@ export default function VisitDetailsView() {
                                   }
                                 }}
                                 className="flex-1"
+                                disabled={savingProcedureIds.includes(procedure.id)}
                                 style={{
                                   position: 'relative',
                                   appearance: 'none',
@@ -1487,7 +1497,7 @@ export default function VisitDetailsView() {
                                   fontSize: '0.75rem',
                                   backgroundColor: displayOutcome === 'not-completed' ? 'rgb(207, 35, 35)' : 'white',
                                   color: displayOutcome === 'not-completed' ? 'rgb(255, 255, 255)' : 'rgb(107, 114, 128)',
-                                  cursor: 'pointer',
+                                  cursor: savingProcedureIds.includes(procedure.id) ? 'not-allowed' : 'pointer',
                                   margin: '0px',
                                   whiteSpace: 'nowrap',
                                   transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
@@ -1495,7 +1505,8 @@ export default function VisitDetailsView() {
                                   textDecoration: 'none',
                                   border: displayOutcome === 'not-completed' ? '0px' : '1px solid rgb(209, 213, 219)',
                                   padding: '0px',
-                                  borderRadius: '999px'
+                                  borderRadius: '999px',
+                                  opacity: savingProcedureIds.includes(procedure.id) ? '0.6' : '1'
                                 }}
                               >
                                 Not Completed
