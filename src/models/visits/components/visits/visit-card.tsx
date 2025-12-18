@@ -103,9 +103,19 @@ export function VisitCard({ visit }: { visit: Visit }) {
     const hasOneOrTwoConsentsCompleted = completedCount === 1 || completedCount === 2
     const hasNoConsentsCompleted = completedCount === 0
     const hasTreatmentConsent = consentStatus.treatment === true
-    // Only Treatment Consent is collected (no other consents)
-    const onlyTreatmentConsentCollected = hasTreatmentConsent && !consentStatus.hipaa && !consentStatus.privacy
-    // HIPAA and Privacy collected but Treatment Consent missing
+    const hasHipaaConsent = consentStatus.hipaa === true
+    const hasPrivacyConsent = consentStatus.privacy === true
+    
+    // Count how many consents are true
+    const consentCount = [hasTreatmentConsent, hasHipaaConsent, hasPrivacyConsent].filter(Boolean).length
+    
+    // New logic: Show Log Outcomes button if any consent is true (1, 2, or 3 consents)
+    const shouldShowLogOutcomesButton = consentCount > 0
+    
+    // Show both buttons only when all three consents are true
+    const shouldShowBothButtons = consentCount === 3
+    
+    // HIPAA and Privacy collected but Treatment Consent missing (keeping for other logic)
     const hipaaAndPrivacyCollectedButTreatmentMissing = consentStatus.hipaa && consentStatus.privacy && !consentStatus.treatment
 
     // Function to copy consent link
@@ -135,12 +145,99 @@ export function VisitCard({ visit }: { visit: Visit }) {
 
 
     // Button logic - Check specific consent combinations FIRST (before visit status)
-    // This ensures specific cases like "only Treatment" or "HIPAA+Privacy without Treatment" are handled correctly
+    // This ensures specific cases are handled correctly based on consent status
     
-    // Case 1: Only Treatment Consent collected (regardless of visit status)
-    if (onlyTreatmentConsentCollected) {
+    // Case 1: All three consents are true - Show both Log Outcomes and View Summary buttons
+    if (shouldShowBothButtons) {
+      return (
+        <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
+          <button
+            onClick={handleVisitClick}
+            className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              boxSizing: 'border-box',
+              cursor: 'pointer',
+              userSelect: 'none',
+              verticalAlign: 'middle',
+              appearance: 'none',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+              fontSize: '0.875rem',
+              lineHeight: '1.75',
+              minWidth: '64px',
+              textTransform: 'none',
+              fontWeight: '500',
+              boxShadow: 'none',
+              minHeight: '48px',
+              backgroundColor: 'rgb(85, 56, 166)',
+              color: 'rgb(255, 255, 255)',
+              outline: '0px',
+              margin: '0px',
+              textDecoration: 'none',
+              padding: '10px 24px',
+              borderWidth: '0px',
+              borderStyle: 'initial',
+              borderColor: 'initial',
+              borderImage: 'initial',
+              transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+              borderRadius: '12px',
+              width: '100%'
+            }}
+          >
+            Log Outcomes
+          </button>
+          <button
+            onClick={() => {
+              // Navigate to visit summary or details page
+              window.location.href = `${ROUTES.app.visitDetails.href}/${visit.id}`
+            }}
+            className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              boxSizing: 'border-box',
+              cursor: 'pointer',
+              userSelect: 'none',
+              verticalAlign: 'middle',
+              appearance: 'none',
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+              fontSize: '0.875rem',
+              lineHeight: '1.75',
+              minWidth: '64px',
+              textTransform: 'none',
+              fontWeight: '500',
+              boxShadow: 'none',
+              minHeight: '48px',
+              backgroundColor: 'rgb(34, 197, 94)',
+              color: 'rgb(255, 255, 255)',
+              outline: '0px',
+              margin: '0px',
+              textDecoration: 'none',
+              padding: '10px 24px',
+              borderWidth: '0px',
+              borderStyle: 'initial',
+              borderColor: 'initial',
+              borderImage: 'initial',
+              transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+              borderRadius: '12px',
+              width: '100%'
+            }}
+          >
+            View Summary
+          </button>
+        </div>
+      )
+    }
+    
+    // Case 2: Show Log Outcomes button when 1 or 2 consents are collected (but not all 3)
+    if (shouldShowLogOutcomesButton && !shouldShowBothButtons) {
       if (visit.visitType === 'in-home') {
-        // In-Home: Show both Log Outcomes and Collect Consent buttons
+        // In-Home: Show Log Outcomes and Collect Consent buttons when 1-2 consents are collected
         return (
           <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
             <button
@@ -227,7 +324,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
           </div>
         )
       } else {
-        // Telehealth: Show both Log Outcomes and Copy Consent Link buttons
+        // Telehealth: Show Log Outcomes and Copy Consent Link buttons when 1-2 consents are collected
         return (
           <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
             <button
