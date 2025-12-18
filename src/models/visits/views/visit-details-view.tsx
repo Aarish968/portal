@@ -320,7 +320,7 @@ export default function VisitDetailsView() {
 
       setTimeout(() => {
         setSavingProcedureIds(prev => prev.filter(id => id !== procedureId))
-      }, 300)
+      }, 150)
     }
   }
 
@@ -395,7 +395,7 @@ export default function VisitDetailsView() {
 
       setTimeout(() => {
         setSavingProcedureIds(prev => prev.filter(id => id !== selectedProcedure.id))
-      }, 300)
+      }, 150)
     }
   }
 
@@ -460,7 +460,7 @@ export default function VisitDetailsView() {
       }
       setTimeout(() => {
         setSavingProcedureIds(prev => prev.filter(id => id !== editingProcedure.id))
-      }, 300)
+      }, 150)
     }
   }
 
@@ -1426,7 +1426,7 @@ export default function VisitDetailsView() {
                       )}
 
                       {/* Action buttons - show when this card is being edited or when no outcome set, but not for backend completed */}
-                      {(editingCardIds.includes(procedure.id) || (!displayOutcome && !isBackendCompleted)) && !savingProcedureIds.includes(procedure.id) && (
+                      {(editingCardIds.includes(procedure.id) || (!displayOutcome && !isBackendCompleted)) && (
                         <div>
                           <div>
                             <p className="text-sm text-gray-600 mb-3">Outcome:</p>
