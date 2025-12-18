@@ -1242,9 +1242,9 @@ export default function VisitDetailsView() {
                           <span className="text-white text-[12px] font-bold leading-none">!</span>
                         </div>
                       )}
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-base font-semibold text-gray-900">{procedure.title}</h3>
-                        <div className="flex items-center gap-2">
+                      <div className="flex items-start justify-between mb-4 gap-3">
+                        <h3 className="text-base font-semibold text-gray-900 flex-1 min-w-0 pr-2 leading-tight">{procedure.title}</h3>
+                        <div className="flex items-center gap-2 flex-shrink-0">
                           {/* Status Badge - show when outcome exists */}
                           {displayOutcome && !editingCardIds.includes(procedure.id) && (
                             <div
@@ -1418,12 +1418,7 @@ export default function VisitDetailsView() {
                         </div>
                       )}
 
-                      {/* Loading spinner */}
-                      {savingProcedureIds.includes(procedure.id) && (
-                        <div className="flex items-center justify-center py-4">
-                          <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
-                        </div>
-                      )}
+
 
                       {/* Action buttons - show when this card is being edited or when no outcome set, but not for backend completed */}
                       {(editingCardIds.includes(procedure.id) || (!displayOutcome && !isBackendCompleted)) && (
