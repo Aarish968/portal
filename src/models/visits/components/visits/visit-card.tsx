@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Clock, MapPin, Building, Phone, Check, X, Link, Home } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
@@ -65,6 +65,240 @@ export function VisitCard({ visit }: { visit: Visit }) {
     }
   }, [visit.id])
 
+  // Function to copy consent link
+  const handleCopyConsentLink = () => {
+    // Store visit data for later use when user submits consent form
+    sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
+    sessionStorage.setItem('currentVisitId', visit.id)
+
+    // Use consentURL from API response
+    const consentLink = visit.consentURL || `${window.location.origin}${ROUTES.app.consentForms.href}?visitId=${visit.id}`
+
+    navigator.clipboard.writeText(consentLink).then(() => {
+      // Change button state to show success
+      setIsLinkCopied(true)
+
+      // Reset button state after 2 seconds
+      setTimeout(() => {
+        setIsLinkCopied(false)
+      }, 2000)
+    }).catch(() => {
+      // Could show error state here if needed
+    })
+  }
+
+  // Helper function to render status-based button
+  const renderStatusButton = (status: string) => {
+    const buttonStyles = {
+      base: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative' as const,
+        boxSizing: 'border-box' as const,
+        cursor: 'pointer',
+        userSelect: 'none' as const,
+        verticalAlign: 'middle' as const,
+        appearance: 'none' as const,
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        fontSize: '0.875rem',
+        lineHeight: '1.75',
+        textTransform: 'none' as const,
+        fontWeight: '500',
+        boxShadow: 'none',
+        outline: '0px',
+        margin: '0px',
+        textDecoration: 'none' as const,
+        transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+        borderRadius: '12px'
+      }
+    }
+
+    if (status === 'completed') {
+      return (
+        <button
+          onClick={handleVisitClick}
+          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none text-sm leading-7 min-w-16 font-medium transition-all duration-250 ease-out"
+          style={{
+            ...buttonStyles.base,
+            minWidth: '64px',
+            color: 'rgb(85, 56, 166)',
+            backgroundColor: 'transparent',
+            minHeight: '44px',
+            padding: '5px 15px',
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderColor: 'rgb(85, 56, 166)',
+            width: '100%'
+          }}
+        >
+          View Summary
+        </button>
+      )
+    } else if (status === 'ready-to-save') {
+      return (
+        <button
+          onClick={handleVisitClick}
+          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+          style={{
+            ...buttonStyles.base,
+            minWidth: '120px',
+            minHeight: '48px',
+            backgroundColor: 'rgb(85, 56, 166)',
+            color: 'rgb(255, 255, 255)',
+            padding: '10px 24px',
+            borderWidth: '0px',
+            borderStyle: 'initial',
+            borderColor: 'initial',
+            width: '100%'
+          }}
+        >
+          Save
+        </button>
+      )
+    } else if (status === 'in-progress') {
+      return (
+        <button
+          onClick={handleVisitClick}
+          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+          style={{
+            ...buttonStyles.base,
+            minWidth: '64px',
+            minHeight: '48px',
+            backgroundColor: 'rgb(85, 56, 166)',
+            color: 'rgb(255, 255, 255)',
+            padding: '10px 24px',
+            borderWidth: '0px',
+            borderStyle: 'initial',
+            borderColor: 'initial',
+            width: '100%'
+          }}
+        >
+          Continue
+        </button>
+      )
+    } else {
+      // Default: Log Outcomes button
+      return (
+        <button
+          onClick={handleVisitClick}
+          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+          style={{
+            ...buttonStyles.base,
+            minWidth: '64px',
+            minHeight: '48px',
+            backgroundColor: 'rgb(85, 56, 166)',
+            color: 'rgb(255, 255, 255)',
+            padding: '10px 24px',
+            borderWidth: '0px',
+            borderStyle: 'initial',
+            borderColor: 'initial',
+            width: '100%'
+          }}
+        >
+          Log Outcomes
+        </button>
+      )
+    }
+  }
+
+  // Helper function to render consent collection button
+  const renderConsentButton = () => {
+    if (visit.visitType === 'in-home') {
+      return (
+        <button
+          onClick={() => {
+            sessionStorage.setItem('fromConsentPage', 'true')
+            sessionStorage.setItem('currentVisitId', visit.id)
+            sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
+            window.open(visit.consentURL || `${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
+          }}
+          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative' as const,
+            boxSizing: 'border-box' as const,
+            cursor: 'pointer',
+            userSelect: 'none' as const,
+            verticalAlign: 'middle' as const,
+            appearance: 'none' as const,
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            fontSize: '0.875rem',
+            lineHeight: '1.75',
+            minWidth: '64px',
+            textTransform: 'none' as const,
+            fontWeight: '500',
+            boxShadow: 'none',
+            minHeight: '48px',
+            backgroundColor: 'rgb(228, 118, 0)',
+            color: 'rgb(255, 255, 255)',
+            outline: '0px',
+            margin: '0px',
+            textDecoration: 'none' as const,
+            padding: '10px 24px',
+            borderWidth: '0px',
+            borderStyle: 'initial',
+            borderColor: 'initial',
+            transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
+            borderRadius: '12px',
+            width: '100%'
+          }}
+        >
+          Collect Consent
+        </button>
+      )
+    } else {
+      // Telehealth
+      return (
+        <div className="flex flex-col gap-1" style={{ alignItems: 'flex-end' }}>
+          <button
+            onClick={handleCopyConsentLink}
+            className="inline-flex items-center justify-center gap-2 relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative' as const,
+              boxSizing: 'border-box' as const,
+              cursor: 'pointer',
+              userSelect: 'none' as const,
+              verticalAlign: 'middle' as const,
+              appearance: 'none' as const,
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+              fontSize: '0.875rem',
+              lineHeight: '1.75',
+              minWidth: '64px',
+              textTransform: 'none' as const,
+              fontWeight: '500',
+              boxShadow: 'none',
+              minHeight: '48px',
+              backgroundColor: 'rgb(85, 56, 166)',
+              color: 'rgb(255, 255, 255)',
+              outline: '0px',
+              margin: '0px',
+              textDecoration: 'none' as const,
+              padding: '10px 24px',
+              borderWidth: '0px',
+              borderStyle: 'initial',
+              borderColor: 'initial',
+              borderRadius: '12px',
+              width: '100%',
+              transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)'
+            }}
+          >
+            {isLinkCopied ? 'Link Copied!' : 'Copy Consent Link'}
+            <Link className="w-4 h-4" />
+          </button>
+          <p className="text-xs text-gray-500" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', marginTop: '2px' }}>
+            Copies link to paste in Telehealth chat
+          </p>
+        </div>
+      )
+    }
+  }
+
   const getActionButton = () => {
     // Get the actual visit status from session storage (same logic as StatusBadge)
     let displayStatus = visit.status // Default to original status
@@ -100,1146 +334,36 @@ export function VisitCard({ visit }: { visit: Visit }) {
 
     const completedCount = Object.values(consentStatus).filter(Boolean).length
     const areAllConsentFormsCompleted = completedCount === 3
-    const hasOneOrTwoConsentsCompleted = completedCount === 1 || completedCount === 2
+    const hasOneOrTwoConsentsMissing = completedCount === 1 || completedCount === 2
     const hasNoConsentsCompleted = completedCount === 0
-    const hasTreatmentConsent = consentStatus.treatment === true
-    const hasHipaaConsent = consentStatus.hipaa === true
-    const hasPrivacyConsent = consentStatus.privacy === true
-    
-    // Count how many consents are true
-    const consentCount = [hasTreatmentConsent, hasHipaaConsent, hasPrivacyConsent].filter(Boolean).length
-    
-    // New logic: Show Log Outcomes button if any consent is true (1, 2, or 3 consents)
-    const shouldShowLogOutcomesButton = consentCount > 0
-    
-    // Show both buttons (Log Outcomes + View Summary) when all 3 consents are completed
-    const shouldShowBothButtons = consentCount === 3
-    
-    // Show buttons with consent button when 1 or 2 consents are completed
-    const shouldShowButtonsWithConsent = consentCount > 0 && consentCount < 3
-    
-    // HIPAA and Privacy collected but Treatment Consent missing (keeping for other logic)
-    const hipaaAndPrivacyCollectedButTreatmentMissing = consentStatus.hipaa && consentStatus.privacy && !consentStatus.treatment
 
-    // Function to copy consent link
-    const handleCopyConsentLink = () => {
-      // Store visit data for later use when user submits consent form
-      sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
-      sessionStorage.setItem('currentVisitId', visit.id)
+    // New Simplified Logic:
+    // 1. When all 3 consents are true ? Show only status-based button
+    // 2. When 1-2 consents are missing ? Show status-based button + consent collection button
+    // 3. When no consents ? Show only consent collection button
 
-      // Use consentURL from API response
-      const consentLink = visit.consentURL || `${window.location.origin}${ROUTES.app.consentForms.href}?visitId=${visit.id}`
-
-      navigator.clipboard.writeText(consentLink).then(() => {
-        // Change button state to show success
-        setIsLinkCopied(true)
-
-        // Reset button state after 2 seconds
-        setTimeout(() => {
-          setIsLinkCopied(false)
-        }, 2000)
-      }).catch(() => {
-        // Could show error state here if needed
-      })
+    // Case 1: All 3 consents are true ? Show only status-based button
+    if (areAllConsentFormsCompleted) {
+      return renderStatusButton(displayStatus)
     }
 
-
-
-
-
-    // Check if any consents are missing (1-2 consents collected, not all 3)
-    const anyConsentsMissing = consentCount < 3 && consentCount > 0
-
-    // If any consents are missing, show status button + consent collection button
-    if (anyConsentsMissing) {
-      // Get status-based button text
-      let statusButtonText = 'Log Outcomes'
-      let statusButtonColor = 'rgb(85, 56, 166)'
-      
-      if (displayStatus === 'ready-to-save') {
-        statusButtonText = 'Save'
-      } else if (displayStatus === 'completed') {
-        statusButtonText = 'View Summary'
-        statusButtonColor = 'transparent'
-      } else if (displayStatus === 'in-progress') {
-        statusButtonText = 'Continue'
-      }
-
-      if (visit.visitType === 'in-home') {
-        // In-Home: Show status button and Collect Consent button
-        return (
-          <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
-            <button
-              onClick={handleVisitClick}
-              className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                boxSizing: 'border-box',
-                cursor: 'pointer',
-                userSelect: 'none',
-                verticalAlign: 'middle',
-                appearance: 'none',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                fontSize: '0.875rem',
-                lineHeight: '1.75',
-                minWidth: '64px',
-                textTransform: 'none',
-                fontWeight: '500',
-                boxShadow: 'none',
-                minHeight: displayStatus === 'completed' ? '44px' : '48px',
-                backgroundColor: statusButtonColor,
-                color: displayStatus === 'completed' ? 'rgb(85, 56, 166)' : 'rgb(255, 255, 255)',
-                outline: '0px',
-                margin: '0px',
-                textDecoration: 'none',
-                padding: displayStatus === 'completed' ? '5px 15px' : '10px 24px',
-                borderWidth: displayStatus === 'completed' ? '1px' : '0px',
-                borderStyle: displayStatus === 'completed' ? 'solid' : 'initial',
-                borderColor: displayStatus === 'completed' ? 'rgb(85, 56, 166)' : 'initial',
-                borderImage: 'initial',
-                transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-                borderRadius: '12px',
-                width: '100%'
-              }}
-            >
-              {statusButtonText}
-            </button>
-            <button
-              onClick={() => {
-                // Navigate to visit summary or details page
-                window.location.href = `${ROUTES.app.visitDetails.href}/${visit.id}`
-              }}
-              className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                boxSizing: 'border-box',
-                cursor: 'pointer',
-                userSelect: 'none',
-                verticalAlign: 'middle',
-                appearance: 'none',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                fontSize: '0.875rem',
-                lineHeight: '1.75',
-                minWidth: '64px',
-                textTransform: 'none',
-                fontWeight: '500',
-                boxShadow: 'none',
-                minHeight: '48px',
-                backgroundColor: 'rgb(34, 197, 94)',
-                color: 'rgb(255, 255, 255)',
-                outline: '0px',
-                margin: '0px',
-                textDecoration: 'none',
-                padding: '10px 24px',
-                borderWidth: '0px',
-                borderStyle: 'initial',
-                borderColor: 'initial',
-                borderImage: 'initial',
-                transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-                borderRadius: '12px',
-                width: '100%'
-              }}
-            >
-              View Summary
-            </button>
-          </div>
-        )
-      } else {
-        // Telehealth: Show status button and Copy Consent Link button
-        return (
-          <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
-            <button
-              onClick={handleVisitClick}
-              className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                boxSizing: 'border-box',
-                cursor: 'pointer',
-                userSelect: 'none',
-                verticalAlign: 'middle',
-                appearance: 'none',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                fontSize: '0.875rem',
-                lineHeight: '1.75',
-                minWidth: '64px',
-                textTransform: 'none',
-                fontWeight: '500',
-                boxShadow: 'none',
-                minHeight: displayStatus === 'completed' ? '44px' : '48px',
-                backgroundColor: statusButtonColor,
-                color: displayStatus === 'completed' ? 'rgb(85, 56, 166)' : 'rgb(255, 255, 255)',
-                outline: '0px',
-                margin: '0px',
-                textDecoration: 'none',
-                padding: displayStatus === 'completed' ? '5px 15px' : '10px 24px',
-                borderWidth: displayStatus === 'completed' ? '1px' : '0px',
-                borderStyle: displayStatus === 'completed' ? 'solid' : 'initial',
-                borderColor: displayStatus === 'completed' ? 'rgb(85, 56, 166)' : 'initial',
-                borderImage: 'initial',
-                transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-                borderRadius: '12px',
-                width: '100%'
-              }}
-            >
-              {statusButtonText}
-            </button>
-            <button
-              onClick={handleCopyConsentLink}
-              className="inline-flex items-center justify-center gap-2 relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                boxSizing: 'border-box',
-                cursor: 'pointer',
-                userSelect: 'none',
-                verticalAlign: 'middle',
-                appearance: 'none',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                fontSize: '0.875rem',
-                lineHeight: '1.75',
-                minWidth: '64px',
-                textTransform: 'none',
-                fontWeight: '500',
-                boxShadow: 'none',
-                minHeight: '48px',
-                backgroundColor: 'rgb(85, 56, 166)',
-                color: 'rgb(255, 255, 255)',
-                outline: '0px',
-                margin: '0px',
-                textDecoration: 'none',
-                padding: '10px 24px',
-                borderWidth: '0px',
-                borderStyle: 'initial',
-                borderColor: 'initial',
-                borderImage: 'initial',
-                transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-                borderRadius: '12px',
-                width: '100%'
-              }}
-            >
-              {isLinkCopied ? 'Link Copied!' : 'Copy Consent Link'}
-              <Link className="w-4 h-4" />
-            </button>
-            <p className="text-xs text-gray-500" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', marginTop: '2px' }}>
-              Copies link to paste in Telehealth chat
-            </p>
-          </div>
-        )
-      }
+    // Case 2: 1-2 consents are missing ? Show status-based button + consent collection button
+    if (hasOneOrTwoConsentsMissing) {
+      return (
+        <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
+          {renderStatusButton(displayStatus)}
+          {renderConsentButton()}
+        </div>
+      )
     }
 
-    // Button logic based on badge status - when all consents are completed (3/3)
-    if (displayStatus === 'completed') {
-      return (
-        <button
-          onClick={handleVisitClick}
-          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none text-sm leading-7 min-w-16 font-medium transition-all duration-250 ease-out"
-          style={{
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-            fontSize: '0.875rem',
-            lineHeight: '1.75',
-            minWidth: '64px',
-            textTransform: 'none',
-            fontWeight: '500',
-            color: 'rgb(85, 56, 166)',
-            backgroundColor: 'transparent',
-            minHeight: '44px',
-            outline: '0px',
-            margin: '0px',
-            textDecoration: 'none',
-            padding: '5px 15px',
-            borderWidth: '1px',
-            borderStyle: 'solid',
-            borderColor: 'rgb(85, 56, 166)',
-            borderRadius: '12px',
-            transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)'
-          }}
-        >
-          View Summary
-        </button>
-      )
-    } else if (displayStatus === 'ready-to-save') {
-      return (
-        <button
-          onClick={handleVisitClick}
-          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            boxSizing: 'border-box',
-            cursor: 'pointer',
-            userSelect: 'none',
-            verticalAlign: 'middle',
-            appearance: 'none',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-            fontSize: '0.875rem',
-            lineHeight: '1.75',
-            minWidth: '120px',
-            textTransform: 'none',
-            fontWeight: '500',
-            boxShadow: 'none',
-            minHeight: '48px',
-            backgroundColor: 'rgb(85, 56, 166)',
-            color: 'rgb(255, 255, 255)',
-            outline: '0px',
-            margin: '0px',
-            textDecoration: 'none',
-            padding: '10px 24px',
-            borderWidth: '0px',
-            borderStyle: 'initial',
-            borderColor: 'initial',
-            borderImage: 'initial',
-            transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-            borderRadius: '12px'
-          }}
-        >
-          Save
-        </button>
-      )
-    } else if (displayStatus === 'in-progress') {
-      return (
-        <button
-          onClick={handleVisitClick}
-          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            boxSizing: 'border-box',
-            cursor: 'pointer',
-            userSelect: 'none',
-            verticalAlign: 'middle',
-            appearance: 'none',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-            fontSize: '0.875rem',
-            lineHeight: '1.75',
-            minWidth: '64px',
-            textTransform: 'none',
-            fontWeight: '500',
-            boxShadow: 'none',
-            minHeight: '48px',
-            backgroundColor: 'rgb(85, 56, 166)',
-            color: 'rgb(255, 255, 255)',
-            outline: '0px',
-            margin: '0px',
-            textDecoration: 'none',
-            padding: '10px 24px',
-            borderWidth: '0px',
-            borderStyle: 'initial',
-            borderColor: 'initial',
-            borderImage: 'initial',
-            transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-            borderRadius: '12px'
-          }}
-        >
-          Continue
-        </button>
-      )
-                {isLinkCopied ? 'Link Copied!' : 'Copy Consent Link'}
-                <Link className="w-4 h-4" />
-              </button>
-              <p className="text-xs text-gray-500" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', marginTop: '2px' }}>
-                Copies link to paste in Telehealth chat
-              </p>
-            </div>
-          )
-        }
-      }
-
-      // All consents collected - show only Save button
-      return (
-        <button
-          onClick={handleVisitClick}
-          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            boxSizing: 'border-box',
-            cursor: 'pointer',
-            userSelect: 'none',
-            verticalAlign: 'middle',
-            appearance: 'none',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-            fontSize: '0.875rem',
-            lineHeight: '1.75',
-            minWidth: '120px',
-            textTransform: 'none',
-            fontWeight: '500',
-            boxShadow: 'none',
-            minHeight: '48px',
-            backgroundColor: 'rgb(85, 56, 166)',
-            color: 'rgb(255, 255, 255)',
-            outline: '0px',
-            margin: '0px',
-            textDecoration: 'none',
-            padding: '10px 24px',
-            borderWidth: '0px',
-            borderStyle: 'initial',
-            borderColor: 'initial',
-            borderImage: 'initial',
-            transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-            borderRadius: '12px'
-          }}
-        >
-          Save
-        </button>
-      )
-    } else if (displayStatus === 'in-progress') {
-      // In-progress status â†’ Continue button
-      // Check if HIPAA or Privacy are missing
-      const hipaaOrPrivacyMissing = !consentStatus.hipaa || !consentStatus.privacy
-
-      if (hipaaOrPrivacyMissing) {
-        // Show Continue + additional consent button
-        if (visit.visitType === 'in-home') {
-          return (
-            <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
-              <button
-                onClick={handleVisitClick}
-                className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  boxSizing: 'border-box',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  verticalAlign: 'middle',
-                  appearance: 'none',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                  fontSize: '0.875rem',
-                  lineHeight: '1.75',
-                  minWidth: '64px',
-                  textTransform: 'none',
-                  fontWeight: '500',
-                  boxShadow: 'none',
-                  minHeight: '48px',
-                  backgroundColor: 'rgb(85, 56, 166)',
-                  color: 'rgb(255, 255, 255)',
-                  outline: '0px',
-                  margin: '0px',
-                  textDecoration: 'none',
-                  padding: '10px 24px',
-                  borderWidth: '0px',
-                  borderStyle: 'initial',
-                  borderColor: 'initial',
-                  borderImage: 'initial',
-                  transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-                  borderRadius: '12px',
-                  width: '100%'
-                }}
-              >
-                Continue
-              </button>
-              <button
-                onClick={() => {
-                  sessionStorage.setItem('fromConsentPage', 'true')
-                  sessionStorage.setItem('currentVisitId', visit.id)
-                  sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
-                  window.open(visit.consentURL || `${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
-                }}
-                className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  boxSizing: 'border-box',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  verticalAlign: 'middle',
-                  appearance: 'none',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                  fontSize: '0.875rem',
-                  lineHeight: '1.75',
-                  minWidth: '64px',
-                  textTransform: 'none',
-                  fontWeight: '500',
-                  boxShadow: 'none',
-                  minHeight: '48px',
-                  backgroundColor: 'rgb(228, 118, 0)',
-                  color: 'rgb(255, 255, 255)',
-                  outline: '0px',
-                  margin: '0px',
-                  textDecoration: 'none',
-                  padding: '10px 24px',
-                  borderWidth: '0px',
-                  borderStyle: 'initial',
-                  borderColor: 'initial',
-                  borderImage: 'initial',
-                  transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-                  borderRadius: '12px',
-                  width: '100%'
-                }}
-              >
-                Collect Consent
-              </button>
-            </div>
-          )
-        } else {
-          // Telehealth
-          return (
-            <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
-              <button
-                onClick={handleVisitClick}
-                className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  boxSizing: 'border-box',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  verticalAlign: 'middle',
-                  appearance: 'none',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                  fontSize: '0.875rem',
-                  lineHeight: '1.75',
-                  minWidth: '64px',
-                  textTransform: 'none',
-                  fontWeight: '500',
-                  boxShadow: 'none',
-                  minHeight: '48px',
-                  backgroundColor: 'rgb(85, 56, 166)',
-                  color: 'rgb(255, 255, 255)',
-                  outline: '0px',
-                  margin: '0px',
-                  textDecoration: 'none',
-                  padding: '10px 24px',
-                  borderWidth: '0px',
-                  borderStyle: 'initial',
-                  borderColor: 'initial',
-                  borderImage: 'initial',
-                  transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-                  borderRadius: '12px',
-                  width: '100%'
-                }}
-              >
-                Continue
-              </button>
-              <button
-                onClick={handleCopyConsentLink}
-                className="inline-flex items-center justify-center gap-2 relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  boxSizing: 'border-box',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  verticalAlign: 'middle',
-                  appearance: 'none',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                  fontSize: '0.875rem',
-                  lineHeight: '1.75',
-                  minWidth: '64px',
-                  textTransform: 'none',
-                  fontWeight: '500',
-                  boxShadow: 'none',
-                  minHeight: '48px',
-                  backgroundColor: 'rgb(85, 56, 166)',
-                  color: 'rgb(255, 255, 255)',
-                  outline: '0px',
-                  margin: '0px',
-                  textDecoration: 'none',
-                  padding: '10px 24px',
-                  borderWidth: '0px',
-                  borderStyle: 'initial',
-                  borderColor: 'initial',
-                  borderImage: 'initial',
-                  transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-                  borderRadius: '12px',
-                  width: '100%'
-                }}
-              >
-                {isLinkCopied ? 'Link Copied!' : 'Copy Consent Link'}
-                <Link className="w-4 h-4" />
-              </button>
-              <p className="text-xs text-gray-500" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', marginTop: '2px' }}>
-                Copies link to paste in Telehealth chat
-              </p>
-            </div>
-          )
-        }
-      }
-
-      // All consents collected - show only Continue
-      return (
-        <button
-          onClick={handleVisitClick}
-          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            boxSizing: 'border-box',
-            cursor: 'pointer',
-            userSelect: 'none',
-            verticalAlign: 'middle',
-            appearance: 'none',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-            fontSize: '0.875rem',
-            lineHeight: '1.75',
-            minWidth: '64px',
-            textTransform: 'none',
-            fontWeight: '500',
-            boxShadow: 'none',
-            minHeight: '48px',
-            backgroundColor: 'rgb(85, 56, 166)',
-            color: 'rgb(255, 255, 255)',
-            outline: '0px',
-            margin: '0px',
-            textDecoration: 'none',
-            padding: '10px 24px',
-            borderWidth: '0px',
-            borderStyle: 'initial',
-            borderColor: 'initial',
-            borderImage: 'initial',
-            transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-            borderRadius: '12px'
-          }}
-        >
-          Continue
-        </button>
-      )
-    } else if (areAllConsentFormsCompleted) {
-      // All consent forms completed â†’ Log Outcomes button
-      return (
-        <button
-          onClick={handleVisitClick}
-          className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            boxSizing: 'border-box',
-            cursor: 'pointer',
-            userSelect: 'none',
-            verticalAlign: 'middle',
-            appearance: 'none',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-            fontSize: '0.875rem',
-            lineHeight: '1.75',
-            minWidth: '64px',
-            textTransform: 'none',
-            fontWeight: '500',
-            boxShadow: 'none',
-            minHeight: '44px',
-            backgroundColor: 'rgb(85, 56, 166)',
-            color: 'rgb(255, 255, 255)',
-            outline: '0px',
-            margin: '0px',
-            textDecoration: 'none',
-            padding: '6px 16px',
-            borderWidth: '0px',
-            borderStyle: 'initial',
-            borderColor: 'initial',
-            borderImage: 'initial',
-            transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-            borderRadius: '12px'
-          }}
-        >
-          Log Outcomes
-        </button>
-      )
-    } else if (hasOneOrTwoConsentsCompleted) {
-      // 1 or 2 consents completed â†’ Different buttons based on visit type and which consents are collected
-      if (visit.visitType === 'telehealth') {
-        // Telehealth: Check specific consent combinations
-        // Note: "Only Treatment" and "HIPAA+Privacy without Treatment" cases are handled above
-
-        // Only HIPAA OR only Privacy collected (Treatment missing) â†’ Show only Copy Consent Link button
-        if ((consentStatus.hipaa && !consentStatus.privacy && !consentStatus.treatment) ||
-          (!consentStatus.hipaa && consentStatus.privacy && !consentStatus.treatment)) {
-          return (
-            <div className="flex flex-col gap-1" style={{ alignItems: 'flex-end' }}>
-              <button
-                onClick={handleCopyConsentLink}
-                className="inline-flex items-center justify-center gap-2 relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  boxSizing: 'border-box',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  verticalAlign: 'middle',
-                  appearance: 'none',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                  fontSize: '0.875rem',
-                  lineHeight: '1.75',
-                  minWidth: '64px',
-                  textTransform: 'none',
-                  fontWeight: '500',
-                  boxShadow: 'none',
-                  minHeight: '48px',
-                  backgroundColor: 'rgb(85, 56, 166)',
-                  color: 'rgb(255, 255, 255)',
-                  outline: '0px',
-                  margin: '0px',
-                  textDecoration: 'none',
-                  padding: '10px 24px',
-                  borderWidth: '0px',
-                  borderStyle: 'initial',
-                  borderColor: 'initial',
-                  borderImage: 'initial',
-                  borderRadius: '12px',
-                  width: '100%',
-                  transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)'
-                }}
-              >
-                {isLinkCopied ? 'Link Copied!' : 'Copy Consent Link'}
-                <Link className="w-4 h-4" />
-              </button>
-              <p className="text-xs text-gray-500" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', marginTop: '2px' }}>
-                Copies link to paste in Telehealth chat
-              </p>
-            </div>
-          )
-        }
-
-        // Treatment + HIPAA OR Treatment + Privacy (but not both) â†’ Show both Log Outcomes and Copy Consent Link buttons
-        if (consentStatus.treatment && ((consentStatus.hipaa && !consentStatus.privacy) || (!consentStatus.hipaa && consentStatus.privacy))) {
-          // Treatment collected with one of HIPAA or Privacy â†’ Show both Log Outcomes and Copy Consent Link buttons
-          return (
-            <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
-              <button
-                onClick={handleVisitClick}
-                className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  boxSizing: 'border-box',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  verticalAlign: 'middle',
-                  appearance: 'none',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                  fontSize: '0.875rem',
-                  lineHeight: '1.75',
-                  minWidth: '64px',
-                  textTransform: 'none',
-                  fontWeight: '500',
-                  boxShadow: 'none',
-                  minHeight: '48px',
-                  backgroundColor: 'rgb(85, 56, 166)',
-                  color: 'rgb(255, 255, 255)',
-                  outline: '0px',
-                  margin: '0px',
-                  textDecoration: 'none',
-                  padding: '10px 24px',
-                  borderWidth: '0px',
-                  borderStyle: 'initial',
-                  borderColor: 'initial',
-                  borderImage: 'initial',
-                  transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-                  borderRadius: '12px',
-                  width: '100%'
-                }}
-              >
-                Log Outcomes
-              </button>
-              <button
-                onClick={handleCopyConsentLink}
-                className="inline-flex items-center justify-center gap-2 relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  boxSizing: 'border-box',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  verticalAlign: 'middle',
-                  appearance: 'none',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                  fontSize: '0.875rem',
-                  lineHeight: '1.75',
-                  minWidth: '64px',
-                  textTransform: 'none',
-                  fontWeight: '500',
-                  boxShadow: 'none',
-                  minHeight: '48px',
-                  backgroundColor: 'rgb(85, 56, 166)',
-                  color: 'rgb(255, 255, 255)',
-                  outline: '0px',
-                  margin: '0px',
-                  textDecoration: 'none',
-                  padding: '10px 24px',
-                  borderWidth: '0px',
-                  borderStyle: 'initial',
-                  borderColor: 'initial',
-                  borderImage: 'initial',
-                  transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-                  borderRadius: '12px',
-                  width: '100%'
-                }}
-              >
-                {isLinkCopied ? 'Link Copied!' : 'Copy Consent Link'}
-                <Link className="w-4 h-4" />
-              </button>
-              <p className="text-xs text-gray-500" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', marginTop: '2px' }}>
-                Copies link to paste in Telehealth chat
-              </p>
-            </div>
-          )
-        } else {
-          // Fallback for other combinations â†’ Show both buttons (original behavior)
-          return (
-            <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
-              <button
-                onClick={handleVisitClick}
-                className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  boxSizing: 'border-box',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  verticalAlign: 'middle',
-                  appearance: 'none',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                  fontSize: '0.875rem',
-                  lineHeight: '1.75',
-                  minWidth: '64px',
-                  textTransform: 'none',
-                  fontWeight: '500',
-                  boxShadow: 'none',
-                  minHeight: '48px',
-                  backgroundColor: 'rgb(85, 56, 166)',
-                  color: 'rgb(255, 255, 255)',
-                  outline: '0px',
-                  margin: '0px',
-                  textDecoration: 'none',
-                  padding: '10px 24px',
-                  borderWidth: '0px',
-                  borderStyle: 'initial',
-                  borderColor: 'initial',
-                  borderImage: 'initial',
-                  transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-                  borderRadius: '12px',
-                  width: '100%'
-                }}
-              >
-                Log Outcomes
-              </button>
-              <button
-                onClick={handleCopyConsentLink}
-                className="inline-flex items-center justify-center gap-2 relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  boxSizing: 'border-box',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  verticalAlign: 'middle',
-                  appearance: 'none',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                  fontSize: '0.875rem',
-                  lineHeight: '1.75',
-                  minWidth: '64px',
-                  textTransform: 'none',
-                  fontWeight: '500',
-                  boxShadow: 'none',
-                  minHeight: '48px',
-                  backgroundColor: 'rgb(85, 56, 166)',
-                  color: 'rgb(255, 255, 255)',
-                  outline: '0px',
-                  margin: '0px',
-                  textDecoration: 'none',
-                  padding: '10px 24px',
-                  borderWidth: '0px',
-                  borderStyle: 'initial',
-                  borderColor: 'initial',
-                  borderImage: 'initial',
-                  transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-                  borderRadius: '12px',
-                  width: '100%'
-                }}
-              >
-                {isLinkCopied ? 'Link Copied!' : 'Copy Consent Link'}
-                <Link className="w-4 h-4" />
-              </button>
-              <p className="text-xs text-gray-500" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', marginTop: '2px' }}>
-                Copies link to paste in Telehealth chat
-              </p>
-            </div>
-          )
-        }
-      } else if (visit.visitType === 'in-home') {
-        // In-home: Check specific consent combinations
-        // Note: "Only Treatment" and "HIPAA+Privacy without Treatment" cases are handled above
-
-        // Only HIPAA OR only Privacy collected (Treatment missing) â†’ Show only Collect Consent button
-        if ((consentStatus.hipaa && !consentStatus.privacy && !consentStatus.treatment) ||
-          (!consentStatus.hipaa && consentStatus.privacy && !consentStatus.treatment)) {
-          return (
-            <button
-              onClick={() => {
-                sessionStorage.setItem('fromConsentPage', 'true')
-                sessionStorage.setItem('currentVisitId', visit.id)
-                sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
-                window.open(visit.consentURL || `${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
-              }}
-              className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                boxSizing: 'border-box',
-                cursor: 'pointer',
-                userSelect: 'none',
-                verticalAlign: 'middle',
-                appearance: 'none',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                fontSize: '0.875rem',
-                lineHeight: '1.75',
-                minWidth: '64px',
-                textTransform: 'none',
-                fontWeight: '500',
-                boxShadow: 'none',
-                minHeight: '48px',
-                backgroundColor: 'rgb(228, 118, 0)',
-                color: 'rgb(255, 255, 255)',
-                outline: '0px',
-                margin: '0px',
-                textDecoration: 'none',
-                padding: '10px 24px',
-                borderWidth: '0px',
-                borderStyle: 'initial',
-                borderColor: 'initial',
-                borderImage: 'initial',
-                transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-                borderRadius: '12px'
-              }}
-            >
-              Collect Consent
-            </button>
-          )
-        }
-
-        // Treatment + HIPAA OR Treatment + Privacy (but not both) â†’ Show both Log Outcomes and Collect Consent buttons
-        if (consentStatus.treatment && ((consentStatus.hipaa && !consentStatus.privacy) || (!consentStatus.hipaa && consentStatus.privacy))) {
-          // Treatment + HIPAA OR Treatment + Privacy (but not both) â†’ Show both Log Outcomes and Collect Consent buttons
-          return (
-            <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
-              <button
-                onClick={handleVisitClick}
-                className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  boxSizing: 'border-box',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  verticalAlign: 'middle',
-                  appearance: 'none',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                  fontSize: '0.875rem',
-                  lineHeight: '1.75',
-                  minWidth: '64px',
-                  textTransform: 'none',
-                  fontWeight: '500',
-                  boxShadow: 'none',
-                  minHeight: '48px',
-                  backgroundColor: 'rgb(85, 56, 166)',
-                  color: 'rgb(255, 255, 255)',
-                  outline: '0px',
-                  margin: '0px',
-                  textDecoration: 'none',
-                  padding: '10px 24px',
-                  borderWidth: '0px',
-                  borderStyle: 'initial',
-                  borderColor: 'initial',
-                  borderImage: 'initial',
-                  transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-                  borderRadius: '12px',
-                  width: '100%'
-                }}
-              >
-                Log Outcomes
-              </button>
-              <button
-                onClick={() => {
-                  sessionStorage.setItem('fromConsentPage', 'true')
-                  sessionStorage.setItem('currentVisitId', visit.id)
-                  // Store visit data for later use
-                  sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
-                  window.open(visit.consentURL || `${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
-                }}
-                className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  boxSizing: 'border-box',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  verticalAlign: 'middle',
-                  appearance: 'none',
-                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                  fontSize: '0.875rem',
-                  lineHeight: '1.75',
-                  minWidth: '64px',
-                  textTransform: 'none',
-                  fontWeight: '500',
-                  boxShadow: 'none',
-                  minHeight: '48px',
-                  backgroundColor: 'rgb(228, 118, 0)',
-                  color: 'rgb(255, 255, 255)',
-                  outline: '0px',
-                  margin: '0px',
-                  textDecoration: 'none',
-                  padding: '10px 24px',
-                  borderWidth: '0px',
-                  borderStyle: 'initial',
-                  borderColor: 'initial',
-                  borderImage: 'initial',
-                  transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-                  borderRadius: '12px',
-                  width: '100%'
-                }}
-              >
-                Collect Consent
-              </button>
-            </div>
-          )
-        }
-      }
-
-      // Fallback
-      return null
-    } else {
-      // For telehealth visits with no consents completed, show Copy Consent Link button
-      if (visit.visitType === 'telehealth' && hasNoConsentsCompleted) {
-        return (
-          <div className="flex flex-col gap-1" style={{ alignItems: 'flex-end' }}>
-            <button
-              onClick={handleCopyConsentLink}
-              className="inline-flex items-center justify-center gap-2 relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                position: 'relative',
-                boxSizing: 'border-box',
-                cursor: 'pointer',
-                userSelect: 'none',
-                verticalAlign: 'middle',
-                appearance: 'none',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                fontSize: '0.875rem',
-                lineHeight: '1.75',
-                minWidth: '64px',
-                textTransform: 'none',
-                fontWeight: '500',
-                boxShadow: 'none',
-                minHeight: '48px',
-                backgroundColor: 'rgb(85, 56, 166)',
-                color: 'rgb(255, 255, 255)',
-                outline: '0px',
-                margin: '0px',
-                textDecoration: 'none',
-                padding: '10px 24px',
-                borderWidth: '0px',
-                borderStyle: 'initial',
-                borderColor: 'initial',
-                borderImage: 'initial',
-                borderRadius: '12px',
-                width: '100%',
-                transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)'
-              }}
-            >
-              {isLinkCopied ? 'Link Copied!' : 'Copy Consent Link'}
-              <Link className="w-4 h-4" />
-            </button>
-            <p className="text-xs text-gray-500" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', marginTop: '2px' }}>
-              Copies link to paste in Telehealth chat
-            </p>
-          </div>
-        )
-      }
-
-      // For in-home visits with no consents completed, show Collect Consent button
-      if (visit.visitType === 'in-home' && hasNoConsentsCompleted) {
-        return (
-          <button
-            onClick={() => {
-              sessionStorage.setItem('fromConsentPage', 'true')
-              sessionStorage.setItem('currentVisitId', visit.id)
-              sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
-              window.open(visit.consentURL || ROUTES.app.consentForms.href, '_blank')
-            }}
-            className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-              boxSizing: 'border-box',
-              cursor: 'pointer',
-              userSelect: 'none',
-              verticalAlign: 'middle',
-              appearance: 'none',
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-              fontSize: '0.875rem',
-              lineHeight: '1.75',
-              minWidth: '64px',
-              textTransform: 'none',
-              fontWeight: '500',
-              boxShadow: 'none',
-              minHeight: '44px',
-              backgroundColor: 'rgb(228, 118, 0)',
-              color: 'rgb(255, 255, 255)',
-              outline: '0px',
-              margin: '0px',
-              textDecoration: 'none',
-              padding: '6px 16px',
-              borderWidth: '0px',
-              borderStyle: 'initial',
-              borderColor: 'initial',
-              borderImage: 'initial',
-              transition: 'background-color 250ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1), border-color 250ms cubic-bezier(0.4, 0, 0.2, 1)',
-              borderRadius: '12px'
-            }}
-          >
-            Collect Consent
-          </button>
-        )
-      }
+    // Case 3: No consents ? Show only consent collection button
+    if (hasNoConsentsCompleted) {
+      return renderConsentButton()
     }
+
+    // Fallback (should not reach here)
+    return null
   }
 
   const getHRABadge = () => {
@@ -1335,10 +459,6 @@ export function VisitCard({ visit }: { visit: Visit }) {
       return (
         <div
           className="bg-red-500 text-white px-3 sm:px-4 rounded-full text-xs font-medium inline-flex items-center gap-1 whitespace-nowrap"
-        // style={{
-        //   height: '32px',
-        //   minHeight: '32px',
-        // }}
         >
           <span className="text-xs">Not Started</span>
         </div>
@@ -1643,5 +763,3 @@ export function VisitCard({ visit }: { visit: Visit }) {
     </Card>
   )
 }
-
-
