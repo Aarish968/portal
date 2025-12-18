@@ -488,8 +488,8 @@ export default function VisitDetailsView() {
     // Add labs as procedures
     if (visitFromState?.labs) {
       visitFromState.labs.forEach((lab: any) => {
-        const labName = lab.Mapped_Lab_Term && lab.Mapped_Lab_Term.length > 0
-          ? lab.Mapped_Lab_Term.join(', ')
+        const labName = lab.Mapped_Lab_Term 
+          ? (Array.isArray(lab.Mapped_Lab_Term) ? lab.Mapped_Lab_Term.join(', ') : lab.Mapped_Lab_Term)
           : lab.PSC_Lab_Type__c
 
         procs.push({
