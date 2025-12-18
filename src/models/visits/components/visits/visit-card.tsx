@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Clock, MapPin, Building, Phone, Check, X, Link, Home } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import ROUTES from '@/data/routing/routes'
@@ -112,8 +112,11 @@ export function VisitCard({ visit }: { visit: Visit }) {
     // New logic: Show Log Outcomes button if any consent is true (1, 2, or 3 consents)
     const shouldShowLogOutcomesButton = consentCount > 0
     
-    // Show both buttons only when all three consents are true
+    // Show both buttons (Log Outcomes + View Summary) when all 3 consents are completed
     const shouldShowBothButtons = consentCount === 3
+    
+    // Show buttons with consent button when 1 or 2 consents are completed
+    const shouldShowButtonsWithConsent = consentCount > 0 && consentCount < 3
     
     // HIPAA and Privacy collected but Treatment Consent missing (keeping for other logic)
     const hipaaAndPrivacyCollectedButTreatmentMissing = consentStatus.hipaa && consentStatus.privacy && !consentStatus.treatment
@@ -206,10 +209,8 @@ export function VisitCard({ visit }: { visit: Visit }) {
             </button>
             <button
               onClick={() => {
-                sessionStorage.setItem('fromConsentPage', 'true')
-                sessionStorage.setItem('currentVisitId', visit.id)
-                sessionStorage.setItem(`visit-${visit.id}`, JSON.stringify(visit))
-                window.open(visit.consentURL || `${ROUTES.app.consentForms.href}?visitId=${visit.id}`, '_blank')
+                // Navigate to visit summary or details page
+                window.location.href = `${ROUTES.app.visitDetails.href}/${visit.id}`
               }}
               className="inline-flex items-center justify-center relative box-border cursor-pointer select-none align-middle appearance-none font-medium transition-all"
               style={{
@@ -230,7 +231,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
                 fontWeight: '500',
                 boxShadow: 'none',
                 minHeight: '48px',
-                backgroundColor: 'rgb(228, 118, 0)',
+                backgroundColor: 'rgb(34, 197, 94)',
                 color: 'rgb(255, 255, 255)',
                 outline: '0px',
                 margin: '0px',
@@ -245,7 +246,7 @@ export function VisitCard({ visit }: { visit: Visit }) {
                 width: '100%'
               }}
             >
-              Collect Consent
+              View Summary
             </button>
           </div>
         )
