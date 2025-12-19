@@ -905,7 +905,7 @@ export default function VisitDetailsView() {
                 <p className="text-sm mb-2" style={{
                   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                   color: '#939090'
-                }}>Outcomes Captured</p>
+                }}>Actions Captured</p>
                 <div className="flex items-center gap-3">
                   <div className="flex-1">
                     <div className="h-2 w-full rounded-full bg-gray-200 overflow-hidden">

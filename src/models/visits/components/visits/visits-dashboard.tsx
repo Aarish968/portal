@@ -21,7 +21,7 @@ import { STORAGE_KEYS } from '../../constants'
 export function VisitsDashboard() {
   const location = useLocation()
   const [activeTab, setActiveTab] = useState<TabType>('today')
-  const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(false)
+  const [isEquipmentExpanded, setIsEquipmentExpanded] = useState(true)
   const [time, setTime] = useState('')
   const [transformedVisits, setTransformedVisits] = useState<Visit[]>([])
   const [isLoadingVisits, setIsLoadingVisits] = useState(true)
@@ -311,7 +311,7 @@ export function VisitsDashboard() {
             {getSectionTitle()}
           </h3>
           {isLoadingVisits && (
-            <p className="text-sm text-gray-500 mt-2">Loading visits from API...</p>
+            <p className="text-sm text-gray-500 mt-2">Loading visits...</p>
           )}
           {apiError && (
             <p className="text-sm text-red-600 mt-2">Error loading visits: {apiError}</p>
