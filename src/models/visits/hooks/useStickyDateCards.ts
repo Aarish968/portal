@@ -10,7 +10,7 @@ export function useStickyDateCards(
   const dateSectionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
 
   const handleScroll = useCallback(() => {
-    if (activeTab !== 'week') return
+    if (activeTab !== 'week' && activeTab !== 'past') return
 
     try {
       const viewportWidth = Math.min(window.innerWidth, document.documentElement.clientWidth)
@@ -117,7 +117,7 @@ export function useStickyDateCards(
       }
     }
 
-    if (activeTab === 'week') {
+    if (activeTab === 'week' || activeTab === 'past') {
       handleScroll()
 
       window.addEventListener('scroll', throttledHandleScroll, { passive: true })

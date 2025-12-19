@@ -335,39 +335,54 @@ export function VisitsDashboard() {
         </div>
 
         <div className="space-y-4 sm:space-y-6 w-full visits-section-container" style={{ maxWidth: '100%', overflow: 'hidden', boxSizing: 'border-box' }}>
-          {activeTab === 'week' ? (
+          {activeTab === 'week' || activeTab === 'past' ? (
             <>
               {!isLoadingVisits && Object.keys(groupedVisits).length === 0 ? (
                 <div className="bg-gray-100 p-8 rounded-lg text-center">
                   <p className="text-gray-600">No data found</p>
                 </div>
               ) : (
-                Object.entries(groupedVisits).map(([date, visits]) => (
-                  <div key={date} className="w-full date-section-container" ref={el => dateSectionRefs.current[date] = el} style={{ maxWidth: '100%', overflow: 'hidden' }}>
-                    <div className="date-card-wrapper" style={{ minHeight: 'fit-content', maxWidth: '100%' }}>
-                      <div
-                        ref={el => dateRefs.current[date] = el}
-                        className="date-card rounded-lg px-3 sm:px-4 py-3 w-full"
-                        style={{ maxWidth: '100%', boxSizing: 'border-box' }}
-                      >
-                        <h4 className="text-sm font-medium mb-1">{date}</h4>
-                        <span className="text-xs font-medium" style={{ color: '#939090' }}>
-                          {visits.length} {visits.length === 1 ? 'Visit' : 'Visits'} Scheduled
-                        </span>
+                (() => {
+                  // Sort dates: ascending for week, descending for past (most recent first)
+                  const sortedEntries = Object.entries(groupedVisits).sort((a, b) => {
+                    const dateA = a[1][0]?.visitDate || ''
+                    const dateB = b[1][0]?.visitDate || ''
+                    if (activeTab === 'past') {
+                      // For past, sort descending (most recent first)
+                      return dateB.localeCompare(dateA)
+                    } else {
+                      // For week, sort ascending (today first)
+                      return dateA.localeCompare(dateB)
+                    }
+                  })
+                  
+                  return sortedEntries.map(([date, visits]) => (
+                    <div key={date} className="w-full date-section-container" ref={el => dateSectionRefs.current[date] = el} style={{ maxWidth: '100%', overflow: 'hidden' }}>
+                      <div className="date-card-wrapper" style={{ minHeight: 'fit-content', maxWidth: '100%' }}>
+                        <div
+                          ref={el => dateRefs.current[date] = el}
+                          className="date-card rounded-lg px-3 sm:px-4 py-3 w-full"
+                          style={{ maxWidth: '100%', boxSizing: 'border-box' }}
+                        >
+                          <h4 className="text-sm font-medium mb-1">{date}</h4>
+                          <span className="text-xs font-medium" style={{ color: '#939090' }}>
+                            {visits.length} {visits.length === 1 ? 'Visit' : 'Visits'} Scheduled
+                          </span>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="w-full bg-white rounded-lg shadow-sm white-container" style={{ maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden', padding: 'clamp(0.75rem, 2vw, 1.5rem)' }}>
-                      <div className="visits-grid-week" style={{ maxWidth: '100%', width: '100%' }}>
-                        {visits.map(v => (
-                          <div key={`${v.id}-${renderKey}`} style={{ maxWidth: '100%', width: '100%' }}>
-                            <VisitCard visit={v} />
-                          </div>
-                        ))}
+                      <div className="w-full bg-white rounded-lg shadow-sm white-container" style={{ maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden', padding: 'clamp(0.75rem, 2vw, 1.5rem)' }}>
+                        <div className="visits-grid-week" style={{ maxWidth: '100%', width: '100%' }}>
+                          {visits.map(v => (
+                            <div key={`${v.id}-${renderKey}`} style={{ maxWidth: '100%', width: '100%' }}>
+                              <VisitCard visit={v} />
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  ))
+                })()
               )}
             </>
           ) : (
