@@ -48,7 +48,7 @@ export function VisitsDashboard() {
   const [localConsentLoading, setLocalConsentLoading] = useState(false)
   const [localConsentSuccess, setLocalConsentSuccess] = useState(false)
 
-  const { todayTabRef, tomorrowTabRef, weekTabRef, underlineStyle } = useTabUnderline(activeTab)
+  const { todayTabRef, tomorrowTabRef, weekTabRef, pastTabRef, underlineStyle } = useTabUnderline(activeTab)
 
   // Get today and tomorrow dates in Atlanta timezone for filtering
   const getTodayAndTomorrowDates = () => {
@@ -82,12 +82,18 @@ export function VisitsDashboard() {
     } else if (activeTab === 'tomorrow') {
       // Show visits for tomorrow's actual date (e.g., 2024-01-14)
       return visitsToday.filter(v => v.visitDate === tomorrow)
-    } else {
+    } else if (activeTab === 'week') {
       // Week view - show all visits including today, tomorrow, and beyond
       return visitsToday.filter(v => {
         if (!v.visitDate) return false
         // Include visits from today onwards (today, tomorrow, and future dates)
         return v.visitDate >= today
+      })
+    } else {
+      // Past view - show all visits before today
+      return visitsToday.filter(v => {
+        if (!v.visitDate) return false
+        return v.visitDate < today
       })
     }
   }
@@ -96,14 +102,22 @@ export function VisitsDashboard() {
   
   // Generate equipment data from actual visits
   const currentEquipment = React.useMemo(() => {
-    if (activeTab === 'today') {
-      return generateEquipmentFromVisits(currentVisits)
-    } else if (activeTab === 'tomorrow') {
-      return generateEquipmentFromVisits(currentVisits)
-    } else {
-      // Week view - use all visits
-      return generateEquipmentFromVisits(visitsToday)
+    if (activeTab === 'week') {
+      // Week view - use all upcoming visits
+      return generateEquipmentFromVisits(visitsToday.filter(v => {
+        const { today } = getTodayAndTomorrowDates()
+        return v.visitDate && v.visitDate >= today
+      }))
     }
+    if (activeTab === 'past') {
+      // Past view - use all past visits
+      return generateEquipmentFromVisits(visitsToday.filter(v => {
+        const { today } = getTodayAndTomorrowDates()
+        return v.visitDate && v.visitDate < today
+      }))
+    }
+    // Today and Tomorrow - use only the currently visible visits
+    return generateEquipmentFromVisits(currentVisits)
   }, [activeTab, currentVisits, visitsToday])
   
   const equipmentCount = currentEquipment.length
@@ -277,7 +291,8 @@ export function VisitsDashboard() {
   const getSectionTitle = () => {
     if (activeTab === 'today') return "Today's Visits"
     if (activeTab === 'tomorrow') return "Tomorrow's Visits"
-    return 'Upcoming Visits'
+    if (activeTab === 'week') return 'Upcoming Visits'
+    return 'Past Visits'
   }
 
   return (
@@ -292,6 +307,7 @@ export function VisitsDashboard() {
         todayTabRef={todayTabRef}
         tomorrowTabRef={tomorrowTabRef}
         weekTabRef={weekTabRef}
+        pastTabRef={pastTabRef}
         underlineStyle={underlineStyle}
         onTabChange={setActiveTab}
       />

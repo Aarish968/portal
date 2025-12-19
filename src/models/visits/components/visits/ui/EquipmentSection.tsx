@@ -23,7 +23,8 @@ export function EquipmentSection({
   const getTitle = () => {
     if (activeTab === 'today') return 'Equipment Needed Today'
     if (activeTab === 'tomorrow') return 'Equipment Needed Tomorrow'
-    return 'Equipment Needed - Week'
+    if (activeTab === 'week') return 'Equipment Needed - Week'
+    return 'Equipment Needed - Past'
   }
 
   return (

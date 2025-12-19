@@ -34,7 +34,7 @@ export interface EquipmentItem {
   visits: number
 }
 
-export type TabType = 'today' | 'tomorrow' | 'week'
+export type TabType = 'today' | 'tomorrow' | 'week' | 'past'
 
 export interface ConsentStatus {
   hipaa: boolean

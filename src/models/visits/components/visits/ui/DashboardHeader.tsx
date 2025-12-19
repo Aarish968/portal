@@ -7,6 +7,7 @@ interface DashboardHeaderProps {
   todayTabRef: React.RefObject<HTMLButtonElement>
   tomorrowTabRef: React.RefObject<HTMLButtonElement>
   weekTabRef: React.RefObject<HTMLButtonElement>
+  pastTabRef: React.RefObject<HTMLButtonElement>
   underlineStyle: { width: number; left: number }
   onTabChange: (tab: TabType) => void
 }
@@ -17,6 +18,7 @@ export function DashboardHeader({
   todayTabRef,
   tomorrowTabRef,
   weekTabRef,
+  pastTabRef,
   underlineStyle,
   onTabChange
 }: DashboardHeaderProps) {
@@ -89,6 +91,14 @@ export function DashboardHeader({
             style={{ color: activeTab === 'week' ? '#015F88' : '#6b7280' }}
           >
             Week
+          </button>
+          <button
+            ref={pastTabRef}
+            onClick={() => onTabChange('past')}
+            className="relative font-medium transition-colors duration-200 whitespace-nowrap text-sm sm:text-base"
+            style={{ color: activeTab === 'past' ? '#015F88' : '#6b7280' }}
+          >
+            Past
           </button>
 
           <div
