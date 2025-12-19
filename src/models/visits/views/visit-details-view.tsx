@@ -136,7 +136,11 @@ export default function VisitDetailsView() {
   const insurance = visitFromState?.insurance || 'UHC'
   const visitType = visitFromState?.visitType || 'in-home'
   const visitProcedures = visitFromState?.procedures || []
-  const assessmentID = visitFromState?.assessmentID || visitId // Use API assessmentID or fallback to visitId
+  // Check if assessmentID is null or undefined from backend
+  const assessmentID = visitFromState?.assessmentID !== null && visitFromState?.assessmentID !== undefined 
+    ? visitFromState.assessmentID 
+    : null
+  const hasAssessmentID = assessmentID !== null && assessmentID !== undefined
 
   // Clean up stored visit data when navigating away from visits section entirely
   React.useEffect(() => {
@@ -1032,6 +1036,41 @@ export default function VisitDetailsView() {
                 }}>Health Risk Assessment questionnaire</p>
                 {(() => {
                   const hraCompleted = outcomes['hra'] === 'completed'
+                  
+                  // If assessmentID is null, show disabled "HRA N/A" button
+                  if (!hasAssessmentID) {
+                    return (
+                      <div className="space-y-4">
+                        <button
+                          disabled
+                          className="w-full bg-gray-100 text-gray-400 font-medium py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2 cursor-not-allowed"
+                          style={{
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                          }}
+                        >
+                          <span>HRA N/A</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-5 h-5"
+                            style={{ color: '#939090' }}
+                          >
+                            <circle cx="12" cy="12" r="10" />
+                            <circle cx="12" cy="12" r="4" />
+                            <circle cx="12" cy="12" r="1" />
+                          </svg>
+                        </button>
+                      </div>
+                    )
+                  }
+                  
                   return hraCompleted ? (
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 font-medium" style={{ color: 'rgb(25, 154, 146)' }}>
