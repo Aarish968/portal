@@ -83,11 +83,11 @@ export function VisitsDashboard() {
       // Show visits for tomorrow's actual date (e.g., 2024-01-14)
       return visitsToday.filter(v => v.visitDate === tomorrow)
     } else {
-      // Week view - show visits for dates after tomorrow (e.g., 2024-01-15, 2024-01-16, etc.)
+      // Week view - show all visits including today, tomorrow, and beyond
       return visitsToday.filter(v => {
         if (!v.visitDate) return false
-        // Compare dates: visit date should be after tomorrow
-        return v.visitDate > tomorrow
+        // Include visits from today onwards (today, tomorrow, and future dates)
+        return v.visitDate >= today
       })
     }
   }
