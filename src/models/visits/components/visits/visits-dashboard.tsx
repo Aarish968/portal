@@ -196,57 +196,7 @@ export function VisitsDashboard() {
   }, [currentUser, hasLoadedOnce])
 
   useEffect(() => {
-    const updateTime = () => {
-      const now = new Date()
-      const options: any = { 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        hour12: true,
-        timeZone: 'America/New_York' // Atlanta is in Eastern Time
-      }
-      setTime(now.toLocaleTimeString('en-US', options))
-    }
-    updateTime()
-    const timer = setInterval(updateTime, 60000)
-    return () => clearInterval(timer)
-  }, [])
-
-  useEffect(() => {
-    const handleFocus = () => {
-      // Force re-render of visit cards when window gains focus (user navigates back)
-      setRenderKey(prev => prev + 1)
-    }
-
-    const handleVisibilityChange = () => {
-      // Force re-render when page becomes visible (user navigates back)
-      if (!document.hidden) {
-        setRenderKey(prev => prev + 1)
-      }
-    }
-
-    const handleLocalStorageChange = (e: CustomEvent) => {
-      // Force re-render when visit state changes
-      if (e.detail.key && e.detail.key.startsWith('visit-state-')) {
-        setRenderKey(prev => prev + 1)
-      }
-    }
-
-    window.addEventListener('focus', handleFocus)
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('localStorageChange', handleLocalStorageChange as EventListener)
     
-    return () => {
-      window.removeEventListener('focus', handleFocus)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-      window.removeEventListener('localStorageChange', handleLocalStorageChange as EventListener)
-    }
-  }, [])
-
-  const handleCollectConsent = () => {
-    setShowConsentModal(false)
-
-    const visitId = pendingConsentData?.visitId || currentVisits[0]?.id
-
     if (visitId) {
       sessionStorage.setItem('fromConsentPage', 'true')
       sessionStorage.setItem('currentVisitId', visitId)
