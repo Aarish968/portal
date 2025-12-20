@@ -1250,12 +1250,6 @@ export default function VisitDetailsView() {
 
           {/* Procedures */}
           <div data-procedures-section className="relative">
-            {/* Loader spinner in top right corner when procedures are being saved */}
-            {savingProcedureIds.length > 0 && (
-              <div className="absolute top-0 right-0 z-10">
-                <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
-              </div>
-            )}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {procedures
                 .map((procedure) => {
