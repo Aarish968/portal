@@ -149,7 +149,14 @@ function HRAView() {
     return (
       <HRAStartView
         onContinue={handleStartViewContinue}
-        onCancel={() => navigate('/hra-activity')}
+        onCancel={() => {
+          // Redirect to Visit Details page if visitId is available, otherwise fallback to HRA Activity
+          const visitId = selectedMember?.id
+          const redirectPath = visitId 
+            ? ROUTES.app.visitDetails.href.replace(':visitId', visitId)
+            : '/hra-activity'
+          navigate(redirectPath)
+        }}
       />
     )
   }
@@ -159,7 +166,14 @@ function HRAView() {
   }
 
   if (error) {
-    return <HRAErrorView error={error} onBack={() => navigate('/hra-activity')} />
+    return <HRAErrorView error={error} onBack={() => {
+      // Redirect to Visit Details page if visitId is available, otherwise fallback to HRA Activity
+      const visitId = selectedMember?.id
+      const redirectPath = visitId 
+        ? ROUTES.app.visitDetails.href.replace(':visitId', visitId)
+        : '/hra-activity'
+      navigate(redirectPath)
+    }} />
   }
 
   if (!hra) {

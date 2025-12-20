@@ -3,6 +3,7 @@ import { useBlocker, useNavigate } from 'react-router-dom'
 import { useToast } from '@/base_submod/hooks/use-toast'
 import { useHRAStore } from '@/models/hra/stores/hra-store'
 import { useMemberStore } from '@/models/member/stores/member-store'
+import ROUTES from '@/data/routing/routes'
 
 interface UseHRABlockerProps {
   shouldBlock: boolean
@@ -55,7 +56,12 @@ export function useHRABlocker({ shouldBlock }: UseHRABlockerProps) {
 
   const handleExitWithoutSaving = (e?: React.MouseEvent) => {
     e?.stopPropagation()
-    const targetLocation = pendingLocationRef.current || { pathname: '/hra-activity', search: '', hash: '' }
+    // Redirect to Visit Details page if visitId is available, otherwise fallback to HRA Activity
+    const visitId = selectedMember?.id
+    const defaultPath = visitId 
+      ? ROUTES.app.visitDetails.href.replace(':visitId', visitId)
+      : '/hra-activity'
+    const targetLocation = pendingLocationRef.current || { pathname: defaultPath, search: '', hash: '' }
 
     setShowConfirmationModal(false)
     pendingLocationRef.current = targetLocation
@@ -64,7 +70,12 @@ export function useHRABlocker({ shouldBlock }: UseHRABlockerProps) {
 
   const handleConfirmNavigation = async (e?: React.MouseEvent) => {
     e?.stopPropagation()
-    const targetLocation = pendingLocationRef.current || { pathname: '/hra-activity', search: '', hash: '' }
+    // Redirect to Visit Details page if visitId is available, otherwise fallback to HRA Activity
+    const visitId = selectedMember?.id
+    const defaultPath = visitId 
+      ? ROUTES.app.visitDetails.href.replace(':visitId', visitId)
+      : '/hra-activity'
+    const targetLocation = pendingLocationRef.current || { pathname: defaultPath, search: '', hash: '' }
 
     try {
       setIsSaving(true)

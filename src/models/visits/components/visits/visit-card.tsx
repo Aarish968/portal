@@ -491,12 +491,10 @@ export function VisitCard({ visit }: { visit: Visit }) {
               )}
 
               {/* Phone Number */}
-              {visit.phone && (
-                <div className="flex items-center gap-2 text-sm py-1" style={{ color: '#939090' }}>
-                  <Phone className="w-4 h-4 flex-shrink-0" />
-                  <span>{visit.phone}</span>
-                </div>
-              )}
+              <div className="flex items-center gap-2 text-sm py-1" style={{ color: '#939090' }}>
+                <Phone className="w-4 h-4 flex-shrink-0" />
+                <span>{visit.phone || 'N/A'}</span>
+              </div>
 
               {/* Time */}
               <div className="flex items-center gap-2 text-sm py-1" style={{ color: '#939090' }}>
@@ -729,9 +727,6 @@ export function VisitCard({ visit }: { visit: Visit }) {
                       <Check className="w-3 h-3" style={{ color: 'rgb(25, 154, 146)' }} />
                     </div>
                     <span>{p.name}</span>
-                    {isBackendCompleted && (
-                      <span className="text-[10px] opacity-75 ml-1">(System)</span>
-                    )}
                   </>
                 ) : isNotCompleted ? (
                   <>

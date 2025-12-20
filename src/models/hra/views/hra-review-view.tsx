@@ -120,7 +120,14 @@ function HRAReviewView({ hra, onSubmit, onSubmitNavigate }: HRAReviewViewProps) 
         isEditing={isEditing}
         disabled={!isEditing && hasUnansweredQuestions}
         isCompleted={isCompleted}
-        onReturn={() => navigate('/hra-activity')}
+        onReturn={() => {
+          // Redirect to Visit Details page if visitId is available, otherwise fallback to HRA Activity
+          const visitId = selectedMember?.id
+          const redirectPath = visitId 
+            ? ROUTES.app.visitDetails.href.replace(':visitId', visitId)
+            : '/hra-activity'
+          navigate(redirectPath)
+        }}
       />
 
     </BasePractitionerView>
