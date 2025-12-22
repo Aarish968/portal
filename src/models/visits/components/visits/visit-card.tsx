@@ -357,9 +357,14 @@ export function VisitCard({ visit }: { visit: Visit }) {
       )
     }
 
-    // Case 3: No consents ? Show only consent collection button
+    // Case 3: No consents ? Show status-based button + consent collection button
     if (hasNoConsentsCompleted) {
-      return renderConsentButton()
+      return (
+        <div className="flex flex-col gap-3" style={{ alignItems: 'flex-end' }}>
+          {renderStatusButton(displayStatus)}
+          {renderConsentButton()}
+        </div>
+      )
     }
 
     // Fallback (should not reach here)
