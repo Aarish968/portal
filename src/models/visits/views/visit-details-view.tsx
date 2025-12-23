@@ -1549,7 +1549,7 @@ export default function VisitDetailsView() {
 
           {/* Immediate Assistance Section - below procedures */}
           <div className="mt-8">
-            <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8 max-w-4xl">
+            <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
               <h3
                 className="text-base font-semibold mb-3"
                 style={{
@@ -1571,7 +1571,7 @@ export default function VisitDetailsView() {
                 Use this when the member needs further help right away so Care Guides can prioritize follow-up.
               </p>
 
-              <div className="flex flex-col gap-4 max-w-3xl">
+              <div className="flex flex-col gap-4">
                 <label className="inline-flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -1608,14 +1608,42 @@ export default function VisitDetailsView() {
                       rows={4}
                       maxLength={500}
                       placeholder="Describe what support the member needs and any time-sensitive concerns."
-                      className="w-full max-w-3xl rounded-xl border border-[#5538A6] px-3 py-2 text-sm shadow-sm focus:border-[#5538A6] focus:ring-2 focus:ring-[#5538A6]/30 outline-none resize-y"
+                      className="w-full rounded-xl border border-[#5538A6] px-3 py-2 text-sm shadow-sm focus:border-[#5538A6] focus:ring-2 focus:ring-[#5538A6]/30 outline-none resize-y"
                       style={{
                         fontFamily:
                           '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
                       }}
                     />
-                    <div className="text-xs text-gray-500 text-right">
-                      {immediateAssistanceNotes.length}/500
+                    <div className="flex justify-between items-center">
+                      <div className="text-xs text-gray-500">
+                        {immediateAssistanceNotes.length}/500
+                      </div>
+                      {immediateAssistanceNotes.trim() && (
+                        <button
+                          onClick={() => {
+                            // Handle sending the notes here
+                            console.log('Sending assistance notes:', immediateAssistanceNotes)
+                            // You can add your API call or other logic here
+                            
+                            // Clear the notes after sending
+                            setImmediateAssistanceNotes('')
+                            
+                            // Show success toast
+                            toast({
+                              title: 'Assistance request sent',
+                              description: 'Care Guides have been notified and will prioritize follow-up.',
+                              duration: 3000
+                            })
+                          }}
+                          className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-[#5538A6] hover:bg-[#4A2F95] rounded-lg transition-colors"
+                          style={{
+                            fontFamily:
+                              '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
+                          }}
+                        >
+                          Send
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
