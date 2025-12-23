@@ -1269,76 +1269,6 @@ export default function VisitDetailsView() {
                 })()}
               </div>
             </div>
-
-            {/* Immediate Assistance Section */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3
-                className="text-base font-semibold mb-3"
-                style={{
-                  fontFamily:
-                    '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
-                  color: '#1B1B1B',
-                }}
-              >
-                Immediate Assistance
-              </h3>
-              <p
-                className="text-sm mb-4"
-                style={{
-                  fontFamily:
-                    '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
-                  color: '#939090',
-                }}
-              >
-                Use this when the member needs further help right away so Care Guides can prioritize follow-up.
-              </p>
-
-              <div className="flex flex-col gap-4 max-w-xl">
-                <label className="inline-flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={immediateAssistance}
-                    onChange={(e) => setImmediateAssistance(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-[#5538A6] focus:ring-[#5538A6]"
-                  />
-                  <span
-                    className="text-sm font-medium"
-                    style={{
-                      fontFamily:
-                        '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
-                      color: '#1B1B1B',
-                    }}
-                  >
-                    Immediate Assistance
-                  </span>
-                </label>
-
-                {immediateAssistance && (
-                  <div className="flex flex-col gap-2">
-                    <label
-                      className="text-sm font-medium text-gray-700"
-                      style={{
-                        fontFamily:
-                          '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
-                      }}
-                    >
-                      Notes for Care Team (optional)
-                    </label>
-                    <textarea
-                      value={immediateAssistanceNotes}
-                      onChange={(e) => setImmediateAssistanceNotes(e.target.value)}
-                      rows={3}
-                      placeholder="Describe what support the member needs and any time-sensitive concerns."
-                      className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-[#5538A6] focus:ring-2 focus:ring-[#5538A6]/20 outline-none resize-y"
-                      style={{
-                        fontFamily:
-                          '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
 
           {/* Procedures */}
@@ -1614,6 +1544,82 @@ export default function VisitDetailsView() {
                     </div>
                   )
                 })}
+            </div>
+          </div>
+
+          {/* Immediate Assistance Section - below procedures */}
+          <div className="mt-8">
+            <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8 max-w-4xl">
+              <h3
+                className="text-base font-semibold mb-3"
+                style={{
+                  fontFamily:
+                    '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
+                  color: '#1B1B1B',
+                }}
+              >
+                Immediate Assistance
+              </h3>
+              <p
+                className="text-sm mb-4"
+                style={{
+                  fontFamily:
+                    '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
+                  color: '#939090',
+                }}
+              >
+                Use this when the member needs further help right away so Care Guides can prioritize follow-up.
+              </p>
+
+              <div className="flex flex-col gap-4 max-w-3xl">
+                <label className="inline-flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={immediateAssistance}
+                    onChange={(e) => setImmediateAssistance(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-[#5538A6] focus:ring-[#5538A6]"
+                  />
+                  <span
+                    className="text-sm font-medium"
+                    style={{
+                      fontFamily:
+                        '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
+                      color: '#1B1B1B',
+                    }}
+                  >
+                    Immediate Assistance
+                  </span>
+                </label>
+
+                {immediateAssistance && (
+                  <div className="flex flex-col gap-2">
+                    <label
+                      className="text-xs font-semibold text-gray-700 uppercase tracking-wide"
+                      style={{
+                        fontFamily:
+                          '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
+                      }}
+                    >
+                      Assistance Notes
+                    </label>
+                    <textarea
+                      value={immediateAssistanceNotes}
+                      onChange={(e) => setImmediateAssistanceNotes(e.target.value)}
+                      rows={4}
+                      maxLength={500}
+                      placeholder="Describe what support the member needs and any time-sensitive concerns."
+                      className="w-full max-w-3xl rounded-xl border border-[#5538A6] px-3 py-2 text-sm shadow-sm focus:border-[#5538A6] focus:ring-2 focus:ring-[#5538A6]/30 outline-none resize-y"
+                      style={{
+                        fontFamily:
+                          '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
+                      }}
+                    />
+                    <div className="text-xs text-gray-500 text-right">
+                      {immediateAssistanceNotes.length}/500
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
