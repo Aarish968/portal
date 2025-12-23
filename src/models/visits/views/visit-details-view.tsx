@@ -45,6 +45,9 @@ export default function VisitDetailsView() {
   const [procedureReasons, setProcedureReasons] = React.useState<Record<string, string>>({})
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [selectedProcedure, setSelectedProcedure] = React.useState<{ id: string, title: string } | null>(null)
+  // Immediate Assistance flag + notes
+  const [immediateAssistance, setImmediateAssistance] = React.useState(false)
+  const [immediateAssistanceNotes, setImmediateAssistanceNotes] = React.useState('')
   const [visitStatus, setVisitStatus] = React.useState<VisitStatus>('not-started')
   const [editDialogOpen, setEditDialogOpen] = React.useState(false)
   const [editingProcedure, setEditingProcedure] = React.useState<{ id: string, title: string } | null>(null)
@@ -182,6 +185,12 @@ export default function VisitDetailsView() {
         if (savedData.procedureReasons) {
           setProcedureReasons(savedData.procedureReasons)
         }
+        if (typeof savedData.immediateAssistance === 'boolean') {
+          setImmediateAssistance(savedData.immediateAssistance)
+        }
+        if (typeof savedData.immediateAssistanceNotes === 'string') {
+          setImmediateAssistanceNotes(savedData.immediateAssistanceNotes)
+        }
         if (savedData.status) {
           setVisitStatus(savedData.status)
         }
@@ -211,7 +220,9 @@ export default function VisitDetailsView() {
         insurance,
         status: visitFromState.status,
         outcomes: {},
-        procedureReasons: {}
+        procedureReasons: {},
+        immediateAssistance,
+        immediateAssistanceNotes
       }
       updateVisitState(initialVisitData)
     } else if (!localStorage.getItem(`visit-state-${visitId}`)) {
@@ -280,7 +291,9 @@ export default function VisitDetailsView() {
         insurance,
         status: visitStatus === 'not-started' ? 'in-progress' : visitStatus,
         outcomes: proposedOutcomes,
-        procedureReasons
+        procedureReasons,
+        immediateAssistance,
+        immediateAssistanceNotes
       }
 
       try {
@@ -350,7 +363,9 @@ export default function VisitDetailsView() {
         insurance,
         status: visitStatus === 'not-started' ? 'in-progress' : visitStatus,
         outcomes: proposedOutcomes,
-        procedureReasons: proposedReasons
+        procedureReasons: proposedReasons,
+        immediateAssistance,
+        immediateAssistanceNotes
       }
 
       try {
@@ -441,7 +456,9 @@ export default function VisitDetailsView() {
         insurance,
         status: visitStatus,
         outcomes: proposedOutcomes,
-        procedureReasons: proposedReasons
+        procedureReasons: proposedReasons,
+        immediateAssistance,
+        immediateAssistanceNotes
       }
       try {
         if (FORCE_SAVE_ERROR) {
@@ -561,7 +578,9 @@ export default function VisitDetailsView() {
       insurance,
       status: visitStatus,
       outcomes,
-      procedureReasons
+      procedureReasons,
+      immediateAssistance,
+      immediateAssistanceNotes
     }
     updateVisitState(visitData)
   }, [visitStatus, outcomes, procedureReasons, visitId, patientName, address, time, insurance, isInitialLoad, isVisitDataLoaded, updateVisitState])
@@ -585,7 +604,9 @@ export default function VisitDetailsView() {
         insurance,
         status: 'completed' as const,
         outcomes,
-        procedureReasons
+        procedureReasons,
+        immediateAssistance,
+        immediateAssistanceNotes
       }
       // Persist for other pages (e.g., Visits dashboard)
       updateVisitState(visitData)
@@ -610,7 +631,9 @@ export default function VisitDetailsView() {
         insurance,
         status: 'in-progress' as const,
         outcomes,
-        procedureReasons
+        procedureReasons,
+        immediateAssistance,
+        immediateAssistanceNotes
       }
       updateVisitState(visitData)
     }, 1000) // Show "Reopening" for 1 second
@@ -1244,6 +1267,76 @@ export default function VisitDetailsView() {
                     </div>
                   )
                 })()}
+              </div>
+            </div>
+
+            {/* Immediate Assistance Section */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <h3
+                className="text-base font-semibold mb-3"
+                style={{
+                  fontFamily:
+                    '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
+                  color: '#1B1B1B',
+                }}
+              >
+                Immediate Assistance
+              </h3>
+              <p
+                className="text-sm mb-4"
+                style={{
+                  fontFamily:
+                    '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
+                  color: '#939090',
+                }}
+              >
+                Use this when the member needs further help right away so Care Guides can prioritize follow-up.
+              </p>
+
+              <div className="flex flex-col gap-4 max-w-xl">
+                <label className="inline-flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={immediateAssistance}
+                    onChange={(e) => setImmediateAssistance(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-[#5538A6] focus:ring-[#5538A6]"
+                  />
+                  <span
+                    className="text-sm font-medium"
+                    style={{
+                      fontFamily:
+                        '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
+                      color: '#1B1B1B',
+                    }}
+                  >
+                    Immediate Assistance
+                  </span>
+                </label>
+
+                {immediateAssistance && (
+                  <div className="flex flex-col gap-2">
+                    <label
+                      className="text-sm font-medium text-gray-700"
+                      style={{
+                        fontFamily:
+                          '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
+                      }}
+                    >
+                      Notes for Care Team (optional)
+                    </label>
+                    <textarea
+                      value={immediateAssistanceNotes}
+                      onChange={(e) => setImmediateAssistanceNotes(e.target.value)}
+                      rows={3}
+                      placeholder="Describe what support the member needs and any time-sensitive concerns."
+                      className="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-[#5538A6] focus:ring-2 focus:ring-[#5538A6]/20 outline-none resize-y"
+                      style={{
+                        fontFamily:
+                          '-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif',
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>

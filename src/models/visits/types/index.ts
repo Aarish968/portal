@@ -34,6 +34,9 @@ export interface VisitState {
   status: VisitStatus
   outcomes: Record<string, OutcomeValue>
   procedureReasons: Record<string, string>
+  // Optional Immediate Assistance flag + notes captured on Visit Details page
+  immediateAssistance?: boolean
+  immediateAssistanceNotes?: string
 }
 
 export interface ConsentForm {
