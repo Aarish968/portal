@@ -203,8 +203,8 @@ export function ConsentModals({
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {!pendingConsentData.consentStatus.hipaa && (
                   <span style={{
-                    backgroundColor: '#DC2626',
-                    color: 'white',
+                    backgroundColor: 'rgb(207, 35, 35)',
+                    color: 'rgb(255, 255, 255)',
                     padding: '4px 12px',
                     borderRadius: '16px',
                     fontSize: '12px',
@@ -215,8 +215,8 @@ export function ConsentModals({
                 )}
                 {!pendingConsentData.consentStatus.privacy && (
                   <span style={{
-                    backgroundColor: '#DC2626',
-                    color: 'white',
+                    backgroundColor: 'rgb(207, 35, 35)',
+                    color: 'rgb(255, 255, 255)',
                     padding: '4px 12px',
                     borderRadius: '16px',
                     fontSize: '12px',
@@ -227,8 +227,8 @@ export function ConsentModals({
                 )}
                 {!pendingConsentData.consentStatus.treatment && (
                   <span style={{
-                    backgroundColor: '#DC2626',
-                    color: 'white',
+                    backgroundColor: 'rgb(207, 35, 35)',
+                    color: 'rgb(255, 255, 255)',
                     padding: '4px 12px',
                     borderRadius: '16px',
                     fontSize: '12px',
@@ -252,8 +252,8 @@ export function ConsentModals({
                 style={{
                   padding: '10px 20px',
                   backgroundColor: 'white',
-                  color: '#CF2323',
-                  border: '1px solid #CF2323',
+                  color: 'rgb(207, 35, 35)',
+                  border: '1px solid rgb(207, 35, 35)',
                   borderRadius: '8px',
                   fontSize: '14px',
                   fontWeight: '500',
