@@ -609,7 +609,40 @@ export function VisitCard({ visit }: { visit: Visit }) {
                             <span>Collected</span>
                           </div>
                         ) : (
-                          <span className="text-xs font-medium" style={{ color: 'rgb(207, 35, 35)', height: '24px' }}>Missing</span>
+                          <div
+                            className="inline-flex items-center gap-1 text-xs font-medium whitespace-nowrap rounded-full"
+                            style={{
+                              maxWidth: '100%',
+                              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              lineHeight: '1.5',
+                              cursor: 'unset',
+                              verticalAlign: 'middle',
+                              boxSizing: 'border-box',
+                              height: '26px',
+                              fontWeight: '500',
+                              fontSize: '0.75rem',
+                              backgroundColor: 'rgb(207, 35, 35)',
+                              color: 'rgb(255, 255, 255)',
+                              whiteSpace: 'nowrap',
+                              transition: 'background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                              outline: '0px',
+                              textDecoration: 'none',
+                              borderWidth: '0px',
+                              borderStyle: 'initial',
+                              borderColor: 'initial',
+                              borderImage: 'initial',
+                              padding: '0px 8px',
+                              borderRadius: '9999px'
+                            }}
+                          >
+                            <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+                              <X className="w-3 h-3" style={{ color: 'rgb(207, 35, 35)' }} />
+                            </div>
+                            <span>Missing</span>
+                          </div>
                         )
                       ) : null}
                       <span style={{
