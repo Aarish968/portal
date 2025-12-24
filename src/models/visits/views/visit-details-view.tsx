@@ -1332,7 +1332,7 @@ export default function VisitDetailsView() {
                                 borderStyle: 'solid',
                                 borderColor: displayOutcome === 'completed' ? 'rgba(25, 154, 146, 0.7)' : 'rgba(207, 35, 35, 0.7)',
                                 borderRadius: '24px',
-                                minWidth: '90px'
+                                minWidth: '110px'
                               }}
                             >
                               {displayOutcome === 'completed' ? (

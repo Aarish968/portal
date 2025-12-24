@@ -634,12 +634,14 @@ export function VisitCard({ visit }: { visit: Visit }) {
                               borderStyle: 'initial',
                               borderColor: 'initial',
                               borderImage: 'initial',
-                              padding: '0px 8px',
-                              borderRadius: '9999px'
+                              padding: '0px 12px',
+                              borderRadius: '9999px',
+                              minWidth: 'fit-content',
+                              width: 'auto'
                             }}
                           >
-                            <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center flex-shrink-0">
-                              <X className="w-3 h-3" style={{ color: 'rgb(207, 35, 35)' }} />
+                            <div className="w-3 h-3 rounded-full bg-white flex items-center justify-center flex-shrink-0">
+                              <X className="w-2 h-2" style={{ color: 'rgb(207, 35, 35)' }} />
                             </div>
                             <span>Missing</span>
                           </div>
