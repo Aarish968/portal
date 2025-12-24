@@ -1273,7 +1273,7 @@ export default function VisitDetailsView() {
 
           {/* Procedures */}
           <div data-procedures-section className="relative">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {procedures
                 .map((procedure) => {
                   const outcome = outcomes[procedure.id]
@@ -1297,20 +1297,20 @@ export default function VisitDetailsView() {
                   const displayOutcome = isBackendCompleted ? 'completed' : outcome
 
                   return (
-                    <div key={procedure.id} className={`bg-white rounded-2xl shadow-sm p-6 transition-shadow duration-300 hover:shadow-md relative ${editingCardIds.includes(procedure.id) ? 'flex flex-col' : ''}`}>
+                    <div key={procedure.id} className={`bg-white rounded-2xl shadow-sm p-4 sm:p-6 transition-shadow duration-300 hover:shadow-md relative ${editingCardIds.includes(procedure.id) ? 'flex flex-col' : ''}`}>
                       {/* Error Icon - top-right corner - show exclamation mark even when editing */}
                       {saveErrorIds.includes(procedure.id) && !editingCardIds.includes(procedure.id) && !savingProcedureIds.includes(procedure.id) && (
                         <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-red-600 flex items-center justify-center z-10">
                           <span className="text-white text-[12px] font-bold leading-none">!</span>
                         </div>
                       )}
-                      <div className="flex items-start justify-between mb-4 gap-3">
-                        <h3 className="text-base font-semibold text-gray-900 flex-1 min-w-0 pr-2 leading-tight">{procedure.title}</h3>
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-start justify-between mb-3 sm:mb-4 gap-2 sm:gap-3">
+                        <h3 className="text-sm sm:text-base font-semibold text-gray-900 flex-1 min-w-0 pr-1 sm:pr-2 leading-tight">{procedure.title}</h3>
+                        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                           {/* Status Badge - show when outcome exists */}
                           {displayOutcome && !editingCardIds.includes(procedure.id) && (
                             <div
-                              className="inline-flex items-center justify-center gap-2 px-4"
+                              className="inline-flex items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4"
                               style={{
                                 maxWidth: '100%',
                                 fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -1318,8 +1318,8 @@ export default function VisitDetailsView() {
                                 cursor: 'unset',
                                 verticalAlign: 'middle',
                                 boxSizing: 'border-box',
-                                height: '24px',
-                                fontSize: '0.75rem',
+                                height: '22px',
+                                fontSize: '0.7rem',
                                 backgroundColor: displayOutcome === 'completed' ? 'rgb(25, 154, 146)' : 'rgb(207, 35, 35)',
                                 color: 'rgb(255, 255, 255)',
                                 fontWeight: '500',
@@ -1332,26 +1332,26 @@ export default function VisitDetailsView() {
                                 borderStyle: 'solid',
                                 borderColor: displayOutcome === 'completed' ? 'rgba(25, 154, 146, 0.7)' : 'rgba(207, 35, 35, 0.7)',
                                 borderRadius: '24px',
-                                minWidth: '120px'
+                                minWidth: '90px'
                               }}
                             >
                               {displayOutcome === 'completed' ? (
                                 <>
-                                  <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="none">
+                                  <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-white flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 16 16" fill="none" className="sm:w-3 sm:h-3">
                                       <path d="M6.5 11.3L3.5 8.3L4.55 7.25L6.5 9.2L11.45 4.25L12.5 5.3L6.5 11.3Z" fill="#15827B" />
                                     </svg>
                                   </div>
-                                  <span>Completed</span>
+                                  <span className="text-xs sm:text-sm">Completed</span>
                                 </>
                               ) : (
                                 <>
-                                  <div className="w-4 h-4 rounded-full bg-white flex items-center justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 16 16" fill="none">
+                                  <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-white flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 16 16" fill="none" className="sm:w-3 sm:h-3">
                                       <path d="M5.12 12L8 9.12L10.88 12L12 10.88L9.12 8L12 5.12L10.88 4L8 6.88L5.12 4L4 5.12L6.88 8L4 10.88L5.12 12Z" fill="#CF2323" />
                                     </svg>
                                   </div>
-                                  <span>Not Completed</span>
+                                  <span className="text-xs sm:text-sm">Not Completed</span>
                                 </>
                               )}
                             </div>
@@ -1363,7 +1363,7 @@ export default function VisitDetailsView() {
                           {/* Editing Badge - show when this card is being edited */}
                           {editingCardIds.includes(procedure.id) && (
                             <div
-                              className="inline-flex items-center justify-center text-xs font-medium whitespace-nowrap px-4"
+                              className="inline-flex items-center justify-center text-xs font-medium whitespace-nowrap px-2 sm:px-4"
                               style={{
                                 maxWidth: '100%',
                                 fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -1371,8 +1371,8 @@ export default function VisitDetailsView() {
                                 cursor: 'unset',
                                 verticalAlign: 'middle',
                                 boxSizing: 'border-box',
-                                height: '24px',
-                                fontSize: '0.75rem',
+                                height: '22px',
+                                fontSize: '0.7rem',
                                 fontWeight: '500',
                                 backgroundColor: 'rgb(255, 244, 230)',
                                 color: 'rgb(228, 118, 0)',
@@ -1384,7 +1384,7 @@ export default function VisitDetailsView() {
                                 borderStyle: 'solid',
                                 borderRadius: '24px',
                                 borderColor: 'rgb(228, 118, 0)',
-                                minWidth: '80px'
+                                minWidth: '60px'
                               }}
                             >
                               Editing
@@ -1443,9 +1443,9 @@ export default function VisitDetailsView() {
 
                       {/* Show reason for not completed procedures */}
                       {displayOutcome === 'not-completed' && reason && (
-                        <div className="mb-4">
-                          <p className="text-sm text-gray-500 mb-1">Reason:</p>
-                          <p className="text-sm text-gray-700">{reasonLabels[reason] || reason}</p>
+                        <div className="mb-3 sm:mb-4">
+                          <p className="text-xs sm:text-sm text-gray-500 mb-1">Reason:</p>
+                          <p className="text-xs sm:text-sm text-gray-700">{reasonLabels[reason] || reason}</p>
                         </div>
                       )}
 
@@ -1455,8 +1455,8 @@ export default function VisitDetailsView() {
                       {(editingCardIds.includes(procedure.id) || (!displayOutcome && !isBackendCompleted)) && (
                         <div>
                           <div>
-                            <p className="text-sm text-gray-600 mb-3">Outcome:</p>
-                            <div className="flex gap-3">
+                            <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">Outcome:</p>
+                            <div className="flex gap-2 sm:gap-3">
                               <button
                                 onClick={() => {
                                   handleOutcomeClick(procedure.id, 'completed')
@@ -1464,7 +1464,7 @@ export default function VisitDetailsView() {
                                     setEditingCardIds(prev => prev.filter(id => id !== procedure.id)) // Close editing after selection
                                   }
                                 }}
-                                className="flex-1"
+                                className="flex-1 text-xs sm:text-sm"
                                 disabled={savingProcedureIds.includes(procedure.id)}
                                 style={{
                                   position: 'relative',
@@ -1474,13 +1474,13 @@ export default function VisitDetailsView() {
                                   display: 'inline-flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  height: '32px',
+                                  height: '28px',
                                   lineHeight: '1.5',
                                   verticalAlign: 'middle',
                                   boxSizing: 'border-box',
                                   userSelect: 'none',
                                   fontWeight: '500',
-                                  fontSize: '0.75rem',
+                                  fontSize: '0.7rem',
                                   backgroundColor: displayOutcome === 'completed' ? 'rgb(25, 154, 146)' : 'white',
                                   color: displayOutcome === 'completed' ? 'rgb(255, 255, 255)' : 'rgb(107, 114, 128)',
                                   cursor: savingProcedureIds.includes(procedure.id) ? 'not-allowed' : 'pointer',
@@ -1504,7 +1504,7 @@ export default function VisitDetailsView() {
                                     setEditingCardIds(prev => prev.filter(id => id !== procedure.id)) // Close editing after selection
                                   }
                                 }}
-                                className="flex-1"
+                                className="flex-1 text-xs sm:text-sm"
                                 disabled={savingProcedureIds.includes(procedure.id)}
                                 style={{
                                   position: 'relative',
@@ -1514,13 +1514,13 @@ export default function VisitDetailsView() {
                                   display: 'inline-flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  height: '32px',
+                                  height: '28px',
                                   lineHeight: '1.5',
                                   verticalAlign: 'middle',
                                   boxSizing: 'border-box',
                                   userSelect: 'none',
                                   fontWeight: '500',
-                                  fontSize: '0.75rem',
+                                  fontSize: '0.7rem',
                                   backgroundColor: displayOutcome === 'not-completed' ? 'rgb(207, 35, 35)' : 'white',
                                   color: displayOutcome === 'not-completed' ? 'rgb(255, 255, 255)' : 'rgb(107, 114, 128)',
                                   cursor: savingProcedureIds.includes(procedure.id) ? 'not-allowed' : 'pointer',
